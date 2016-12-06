@@ -5,9 +5,9 @@
 #'
 #' @param x Some parameter
 #'
-#' @export
 #' @examples
 #' dummy1()
+#' @export
 
 # The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package. Do not alter!
 #' @useDynLib MAGENTA
