@@ -12,7 +12,4 @@ dummy1()
 \description{
 This is a dummy function
 }
-\examples{
-dummy1()
-}
 
