@@ -13,5 +13,11 @@
 #' @exportPattern "^[[:alpha:]]+"
 
 dummy1 <- function() {
-    print("dummy1")
+    
+    # check that this function is working
+    print("R function is working!")
+    
+    # call Rcpp command
+    dummy1_cpp()
+    
 }

@@ -5,13 +5,12 @@
 
 using namespace Rcpp;
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP MAGENTA_rcpp_hello_world() {
+// dummy1_cpp
+void dummy1_cpp();
+RcppExport SEXP MAGENTA_dummy1_cpp() {
 BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
-    return rcpp_result_gen;
+    dummy1_cpp();
+    return R_NilValue;
 END_RCPP
 }
