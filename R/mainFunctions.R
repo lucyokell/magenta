@@ -3,7 +3,7 @@
 #'
 #' This is a dummy function
 #'
-#' @param x Some parameter
+#' @param paramList An example list of parameters. Should contain elements "foo" and "bar".
 #'
 #' @export
 
@@ -12,12 +12,24 @@
 #' @importFrom Rcpp evalCpp
 #' @exportPattern "^[[:alpha:]]+"
 
-dummy1 <- function() {
+dummy1 <- function(paramList) {
     
     # check that this function is working
     print("R function is working!")
     
-    # call Rcpp command
-    dummy1_cpp()
+    # do some checks on paramList
+    stopifnot(is.list(paramList))
+    stopifnot( identical(names(paramList), c("foo", "bar")) )
     
+    # ----------------------
+    # RUN C CODE
+    
+    # call Rcpp command with input list
+    rawOutput <- dummy1_cpp(paramList)
+    
+    # ----------------------
+    
+    # convert rawOutput to final output format
+    output_df <- as.data.frame(rawOutput)
+    output_df
 }

@@ -4,10 +4,10 @@
 \alias{dummy1}
 \title{Dummy function}
 \usage{
-dummy1()
+dummy1(paramList)
 }
 \arguments{
-\item{x}{Some parameter}
+\item{paramList}{An example list of parameters. Should contain elements "foo" and "bar".}
 }
 \description{
 This is a dummy function

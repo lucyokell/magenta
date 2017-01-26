@@ -6,11 +6,13 @@
 using namespace Rcpp;
 
 // dummy1_cpp
-void dummy1_cpp();
-RcppExport SEXP MAGENTA_dummy1_cpp() {
+Rcpp::List dummy1_cpp(Rcpp::List paramList);
+RcppExport SEXP MAGENTA_dummy1_cpp(SEXP paramListSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    dummy1_cpp();
-    return R_NilValue;
+    Rcpp::traits::input_parameter< Rcpp::List >::type paramList(paramListSEXP);
+    rcpp_result_gen = Rcpp::wrap(dummy1_cpp(paramList));
+    return rcpp_result_gen;
 END_RCPP
 }
