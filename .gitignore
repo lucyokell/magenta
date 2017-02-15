@@ -1,11 +1,15 @@
-
 # Compiled source #
 ###################
 *.o
 *.so
 *.dll
 *.exe
-
 # OS generated files #
 ######################
 .DS_Store
+.Rproj.user
+# ################## #
+TODO.txt
+.Rhistory
+MAGENTA.Rproj
+
