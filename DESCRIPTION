@@ -6,9 +6,9 @@ Date: 2017-2-12
 Author: OJ Watson & Bob Verity
 Maintainer: Oliver Watson <o.watson@imperial.ac.uk>
 Description: Individual-based simulation model of malaria epidemiology and genomics.
-MAGENTA entends the imperial malaria model by tracking the infection history of 
-individuals. With this additional genetic characteristics of the parasite can be 
-assessed.
+  MAGENTA extends the imperial malaria model by tracking the infection history of 
+  individuals. With this additional genetic characteristics of the parasite can be 
+  assessed.
 License: MIT
 Imports:
     Rcpp (>= 0.12.7)

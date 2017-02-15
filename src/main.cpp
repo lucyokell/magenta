@@ -81,7 +81,7 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   parameters.g_years = Rcpp::as<int>(paramList["years"]);
 
   
-  Rcpp::Rcout << "Matrix unpacking fine\n";
+  Rcpp::Rcout << "Matrix unpacking working!\n";
   // could do this //
   // int nr = Smat.nrow(), nc = Smat.ncol() ;
   // std::vector< std::vector<double> > vec( nc ) ;
@@ -135,7 +135,7 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   int het_bracket_in = 0;
   std::vector<double> infection_state_probability(6);
   //std::vector<std::vector<std::vector<double> > > infection_state_probability (6,vector<vector<double> >(num_age_brackets,vector <double>(3)));
-  Rcpp::Rcout << "Pre human initialisation okay!\n";
+  Rcpp::Rcout << "Pre human-initialisation working!\n";
   
   for (auto &element : Population) {
     
@@ -216,7 +216,7 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     s_zeta_vector[element.m_person_ID] = element.m_individual_biting_rate;
   }
   
-  Rcpp::Rcout << "Post humna initilisation okay\n";
+  Rcpp::Rcout << "Human initilisation working\n";
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: INITIALISATION FROM EQUILIBRIUM
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
