@@ -35,4 +35,4 @@ eqSSs <- lapply(eqInits,function(x){return(Equilibrium_SS_Create(eqInit = x, end
 pls <- lapply(eqSSs,function(x){return(Param_List_Simulation_Create(N=100000, years=10, eqSS = x))})
 
 ## Now run the simulations
-sim.outs <- lapply(pls,Simulation_R)
+sim.outs <- lapply(pls,function(x){return(Simulation_R(paramList = x))})
