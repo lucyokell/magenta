@@ -9,9 +9,7 @@ Equilibrium_SS_Create(eqInit, end.year = 5)
 \arguments{
 \item{eqInit}{Equilibrium initialisation state as output from \code{Equilibrium_Init_Create}}
 
-\item{end.year}{Number of years to run ODE model for. Default = 5.
-
-\code{Model_Param_List_Create}}
+\item{end.year}{Number of years to run ODE model for. Default = 5.}
 }
 \description{
 \code{Equilibrium_SS_Create} creates a close to steady-state system by 

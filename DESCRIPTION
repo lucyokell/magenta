@@ -11,7 +11,11 @@ Description: Individual-based simulation model of malaria epidemiology and genom
   assessed.
 License: MIT
 Imports:
-    Rcpp (>= 0.12.7)
+    Rcpp (>= 0.12.7),
+    stringi,
+    statmod,
+    magrittr
+Remotes: richfitz/odin
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 5.0.1
 SystemRequirements: C++11

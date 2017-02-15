@@ -167,6 +167,6 @@ Model_Param_List_Create(eta = 0.0001305, rho = 0.85, a0 = 2920,
 }
 \description{
 \code{Model_Param_List_Create} creates list of model parameters to be used
-within \code{Equilibrium_Init}
+within \code{Equilibrium_Init_Create}
 }
 

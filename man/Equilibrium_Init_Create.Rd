@@ -27,6 +27,7 @@ and admin.unit are NULL then no seasonality is assumed. Default = NULL.}
 \item{EIR}{Numeric for desired annual EIR.}
 
 \item{model.param.list}{List of epidemiological parameters created by 
+
 \code{Model_Param_List_Create}}
 }
 \description{

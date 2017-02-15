@@ -16,6 +16,7 @@
 #' @param ft Numeric for the frequency of people seeking treatment.
 #' @param EIR Numeric for desired annual EIR.
 #' @param model.param.list List of epidemiological parameters created by 
+#' 
 #' \code{Model_Param_List_Create}
 #' 
 #' @export

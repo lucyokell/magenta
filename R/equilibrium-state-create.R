@@ -8,7 +8,6 @@
 #' @param eqInit Equilibrium initialisation state as output from \code{Equilibrium_Init_Create}
 #' @param end.year Number of years to run ODE model for. Default = 5.
 #' 
-#' \code{Model_Param_List_Create}
 #' 
 #' @export
 
