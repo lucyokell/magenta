@@ -62,9 +62,24 @@ Simulation_R <- function(paramList)
   # check that this function is working
   print("R function is working!")
   
-  # do some checks on paramList
+  ## Check if paramlist is correct length and has right variable names
   stopifnot(is.list(paramList))
-  stopifnot(identical(names(paramList), c("N", "years", "eqSS")))
+  if(length(paramList)==3)
+  {
+    stopifnot(identical(names(paramList), c("N", "years", "eqSS")))  
+  }
+  # if it is length one it may be an unpacked list in which case unpack and check
+  # this might happen in the future when a list of paramLists is fed directly to this
+  # fucntion in a cluster way
+  else if(length(paramList)==1)
+  {
+    paramList <- paramList[[1]]
+    stopifnot(identical(names(paramList), c("N", "years", "eqSS")))  
+  } 
+  else 
+  {
+    stop("paramList not correct length")
+  }
   
   # ---------------------- RUN C CODE
   

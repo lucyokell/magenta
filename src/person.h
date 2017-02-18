@@ -146,7 +146,16 @@ public:
 	InfectionStatus get_m_infection_state() { return(m_infection_state); }
 
 	// Get person's ICA
+	double get_m_IB() { return (m_IB); }
+	
+	// Get person's ICA
 	double get_m_ICA() { return (m_ICA); }
+	
+	// Get person's ICA
+	double get_m_ICM() { return (m_ICM); }
+	
+	// Get person's ICA
+	double get_m_ID() { return (m_ID); }
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// SETTERS

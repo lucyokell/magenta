@@ -122,6 +122,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5){
   
   # Create odin generator
   odin_model_path <- system.file("extdata/odin_model.R",package="MAGENTA")
+  #odin_model_path <- "M:/OJ/MAGENTA/scripts/odin_model.R"
   gen <- odin::odin(odin_model_path,verbose=FALSE)
   
   #create model with initial values

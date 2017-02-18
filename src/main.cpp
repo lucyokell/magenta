@@ -79,7 +79,7 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   Person::s_mean_maternal_immunity = Rcpp::as<double>(eqSS["MaternalImmunity"]);
   parameters.g_N = Rcpp::as<unsigned int>(paramList["N"]);
   parameters.g_years = Rcpp::as<int>(paramList["years"]);
-
+  
   
   Rcpp::Rcout << "Matrix unpacking working!\n";
   // could do this //
@@ -137,37 +137,43 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   //std::vector<std::vector<std::vector<double> > > infection_state_probability (6,vector<vector<double> >(num_age_brackets,vector <double>(3)));
   Rcpp::Rcout << "Pre human-initialisation working!\n";
   
-  for (auto &element : Population) {
+  for (auto &element : Population) 
+  {
     
     // first find out what age bracket they are in
     // are they in the last - do this first for those people with ages that happen to be above the max age bracket
-    if(element.get_m_person_age() >= (age_brackets[num_age_brackets-1])){
+    if(element.get_m_person_age() >= (age_brackets[num_age_brackets-1]))
+    {
       age_bracket_in = num_age_brackets;
     } 
     // if not then loop up to last-1
     for(int age_i = 0 ; age_i < (num_age_brackets-1) ; age_i++)
     {
-      if(element.get_m_person_age() >= age_brackets[age_i] && element.get_m_person_age() < age_brackets[age_i+1]){
+      if(element.get_m_person_age() >= age_brackets[age_i] && element.get_m_person_age() < age_brackets[age_i+1])
+      {
         age_bracket_in = age_i;
       }
     }
     
     // second find out what heterogeneity bracket they are in
     // are they in the last - do this first for those people with heterogeneities that happen to be above the max 
-    if(element.m_individual_biting_rate >= het_brackets[num_het_brackets-1]) {
+    if(element.m_individual_biting_rate >= het_brackets[num_het_brackets-1]) 
+    {
       het_bracket_in = num_het_brackets;
     }
-    if(element.m_individual_biting_rate < het_brackets[1]){
+    if(element.m_individual_biting_rate < het_brackets[1])
+    {
       het_bracket_in = 0;
     }
     for(int het_i = 1 ; het_i < (num_het_brackets-1) ; het_i++)
     {
-      if(element.m_individual_biting_rate < het_brackets[het_i+1]){
+      if(element.m_individual_biting_rate < het_brackets[het_i+1])
+      {
         het_bracket_in = het_i;
       }
     }
     
-  
+    
     infection_state_probability[0] = Smat(age_bracket_in, het_bracket_in);
     infection_state_probability[1] = Dmat(age_bracket_in, het_bracket_in);
     infection_state_probability[2] = Amat(age_bracket_in, het_bracket_in);
@@ -192,18 +198,21 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     // 
     
     // Schedule change for those who are not susceptible
-    if (element.get_m_infection_state() != Person::SUSCEPTIBLE) {
+    if (element.get_m_infection_state() != Person::SUSCEPTIBLE)
+    {
       element.schedule_m_day_of_InfectionStatus_change(parameters);
     }
     
     // Check if mother and if so increase the maternal immunity sum and total number
-    if (element.get_m_person_age() > 20 * 365 && element.get_m_person_age() < 21 * 365) {
+    if (element.get_m_person_age() > 20 * 365 && element.get_m_person_age() < 21 * 365)
+    {
       Person::s_sum_maternal_immunity += element.get_m_ICA();
       Person::s_total_mums++;
     }
     
     // If they are infected, i.e. not S or P, then assign their strains and next strain clearance date
-    if (element.get_m_infection_state() != Person::SUSCEPTIBLE && element.get_m_infection_state() != Person::PROPHYLAXIS) {
+    if (element.get_m_infection_state() != Person::SUSCEPTIBLE && element.get_m_infection_state() != Person::PROPHYLAXIS) 
+    {
       // TODO: Think about how we can correctly initialise MOI for a given EIR. Presumably there is a rarefaction of MOI vs EIR, and the MOI is lognormal*age_dependency
       element.set_m_number_of_strains(runiform_int_1(1, 10));
       element.schedule_m_day_of_strain_clearance(parameters);
@@ -248,7 +257,8 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   {
     
     // Counter print
-    if (parameters.g_current_time % 100 == 0) { 
+    if (parameters.g_current_time % 100 == 0) 
+    { 
       std::cout << parameters.g_current_time << " days" << std::endl; 
     }
     
@@ -268,7 +278,8 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     
     // Loop through each person and mosquito and update
     // PARALLEL_TODO: This loop could easily be parallelised as each person will not require any shared memory (except for parameters)
-    for (unsigned int n = 0; n < parameters.g_N; n++) {
+    for (unsigned int n = 0; n < parameters.g_N; n++) 
+    {
       s_psi_vector[n] = Population[n].update(parameters);
     }
     
@@ -299,11 +310,13 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     num_bites = rpoisson1(pi_sum * Iv * 0.30677);
     
     // multinomial procedure for everyone and breaking when n_bites is reached
-    for (unsigned int n = 0; n < parameters.g_N - 1; n++) {
+    for (unsigned int n = 0; n < parameters.g_N - 1; n++)
+    {
       
       individual_binomial_bite_draw = rbinomial1(num_bites - increasing_bites, s_pi_vector[n] / (pi_sum - pi_cum_sum));
       
-      for (int element = 0; element < individual_binomial_bite_draw; element++) {
+      for (int element = 0; element < individual_binomial_bite_draw; element++)
+      {
         s_bite_storage.push(n);
       }
       
@@ -314,9 +327,11 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     }
     
     // catch rounding errors so just place this here outside loop
-    if (increasing_bites != num_bites) {
+    if (increasing_bites != num_bites) 
+    {
       individual_binomial_bite_draw = num_bites - increasing_bites;
-      for (int element = 0; element < individual_binomial_bite_draw; element++) {
+      for (int element = 0; element < individual_binomial_bite_draw; element++) 
+      {
         s_bite_storage.push(parameters.g_N - 1);
       }
     }
@@ -353,7 +368,8 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     
     // Loop through each bite and allocate accordingly
     // PARALLEL_TODO: Don't know how this could be parallelised yet - come back to with mosquitos in.
-    for (int n = 0; n < num_bites; n++) {
+    for (int n = 0; n < num_bites; n++)
+    {
       Population[s_bite_storage.front()].allocate_bite(parameters);
       s_bite_storage.pop();
     }
@@ -383,12 +399,17 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   std::vector<double> status_eq(6);
   std::vector<int> Infection_States(parameters.g_N);
   std::vector<double> Ages(parameters.g_N);
+  std::vector<int> IB(parameters.g_N);
+  std::vector<double> ICA(parameters.g_N);
+  std::vector<int> ICM(parameters.g_N);
+  std::vector<double> ID(parameters.g_N);
   int total_incidence = 0;
   int total_incidence_05 = 0;
   int daily_incidence_return = 0;
   
   
-  for (int element = 0; element < parameters.g_N ; element++) {
+  for (int element = 0; element < parameters.g_N ; element++) 
+  {
     // Match infection state and schedule associated next state change
     switch (Population[element].get_m_infection_state())
     {
@@ -423,35 +444,38 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     
     // log incidence
     daily_incidence_return = Population[element].log_daily_incidence();
-    if(daily_incidence_return == 2){
+    if(daily_incidence_return == 2)
+    {
       total_incidence++;
       total_incidence_05++;
-    } else if (daily_incidence_return == 1) {
+    } 
+    if (daily_incidence_return == 1) 
+    {
       total_incidence++;
     }
     
     // Ages
     Ages[element] = Population[element].get_m_person_age();
-
+    IB[element] = Population[element].get_m_IB();
+    ICA[element] = Population[element].get_m_ICA();
+    ICM[element] = Population[element].get_m_ICM();
+    ID[element] = Population[element].get_m_ID();
+    
   }
   
   // divide by population size
-  for (int element = 0; element < 6; element++) {
+  for (int element = 0; element < 6; element++) 
+  {
     status_eq[element] /= parameters.g_N;
     std::cout << status_eq[element] << " | " << std::endl;
   }
   
   // output Rcpp list
-  return Rcpp::List::create(Rcpp::Named("S")=status_eq[0], 
-                            Rcpp::Named("D")=status_eq[1],
-                            Rcpp::Named("A")=status_eq[2],
-                            Rcpp::Named("U")=status_eq[3],
-                            Rcpp::Named("T")=status_eq[4],
-                            Rcpp::Named("P")=status_eq[5],
-                            Rcpp::Named("Incidence")=total_incidence,
-                            Rcpp::Named("Incidence_05")=total_incidence_05,
-                            Rcpp::Named("InfectionStates")=Infection_States,
-                            Rcpp::Named("Ages")=Ages);
+  return Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
+                            Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
+                            Rcpp::Named("Incidence")=total_incidence,Rcpp::Named("Incidence_05")=total_incidence_05,
+                            Rcpp::Named("InfectionStates")=Infection_States,Rcpp::Named("Ages")=Ages,
+                            Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID);
   
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

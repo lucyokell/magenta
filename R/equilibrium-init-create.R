@@ -30,13 +30,13 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   mpl <- model.param.list
   
   ## Check Parameters
-  if(!is.numeric(age.vector)) stop("age.vector proovided is not numeric")
+  if(!is.numeric(age.vector)) stop("age.vector provided is not numeric")
   if(sum(diff(age.vector)>0) != (length(age.vector)-1)) stop("age.vector is not sequentially increasing brackets of age")
   if(!is.numeric(het.brackets)) stop("het.brackets proovided is not numeric")
   if(!is.null(country) | is.character(country)) stop("country specified is not character string")
   if(!is.null(admin.unit) | is.character(admin.unit)) stop("admin.unit specified is not character string")
-  if(!is.numeric(ft)) stop("ft proovided is not numeric")
-  if(!is.numeric(EIR)) stop("EIR proovided is not numeric")
+  if(!is.numeric(ft)) stop("ft provided is not numeric")
+  if(!is.numeric(EIR)) stop("EIR provided is not numeric")
   if(!identical(names(mpl),c("DY","eta","rho","a0","sigma2","rA","rT",
                              "rD","rU","rP","dE","delayGam","cD","cT","cU",
                              "gamma1","d1","dID","ID0","kD","uD","aD","fD0",
