@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+TODO.txt
+^scripts$
+.travis.yml
+Results
+scripts
+plots
+^Results$
+^plots$
