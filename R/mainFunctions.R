@@ -89,5 +89,5 @@ Simulation_R <- function(paramList)
   # ----------------------
   
   # convert rawOutput to final output format
-  rawOutput
+  return(rawOutput)
 }
