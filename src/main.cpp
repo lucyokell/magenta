@@ -27,6 +27,8 @@ using namespace std;
 using namespace Rcpp;
 //#define NDEBUG; // This causes all asserts to not be used - good for use after debugging and development has finished
 
+// TODO: Tidy up this static initialisation as this will grow and become messy, i.e. move everything under the Universe structure
+
 // Static initialisation
 int Person::s_person_ID_generator = 0;
 int Strain::s_strain_ID_generator = 0;
@@ -40,6 +42,17 @@ double Person::s_mean_maternal_immunity = 70; // TODO: chang this to be initiali
 // Create vector of all barcode sequences
 std::vector <barcode_t*> g_barcodes{ 1000000 };
 
+// Create universe structure for all important variables
+struct Universe {
+  std::vector<Person> Population;
+  std::vector<double> s_psi_vector;
+  std::vector<double> s_zeta_vector;
+  std::vector<double> s_pi_vector;
+  double s_mean_psi;
+  double s_mean_maternal_immunity;
+  Parameters parameters;
+  double Iv;
+};
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // START: MAIN
@@ -58,9 +71,31 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   // This will need to be declared at the beginning of each header/cpp file where parameters are needed
   extern Parameters parameters;
   
+  // Initialise static vectors for keeping biting related variables
+  static std::vector<double> s_psi_vector(parameters.g_N);
+  static std::vector<double> s_zeta_vector(parameters.g_N);
+  static std::vector<double> s_pi_vector(parameters.g_N);
+  static std::vector<double> s_cum_pi_vector(parameters.g_N);
+  static double s_mean_psi;
+  static std::queue<int> s_bite_storage{};
+  
+  // Initialise humans
+  std::vector<Person> Population{ parameters.g_N };
+  
+  // Initiatlise Iv
+  double Iv = 0.808;
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // 1. SIMULATION FROM INITIALISATION, i.e. Day 1
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  // if the parameter list contains an element named eqSS, i.e. it is a paramList for equilibrium initialisation
+  if(paramList.containsElementNamed("eqSS"))
+    {
   
   Rcpp::List eqSS = paramList["eqSS"];
   Rcpp::NumericMatrix Smat(Rcpp::as<NumericMatrix>(eqSS["Smat"]));
@@ -75,12 +110,10 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   Rcpp::NumericMatrix IDmat(Rcpp::as<NumericMatrix>(eqSS["IDmat"]));
   vector<double> age_brackets = Rcpp::as<vector<double> >(eqSS["age_brackets"]);
   vector<double> het_brackets = Rcpp::as<vector<double> >(eqSS["het_brackets"]);
-  double Iv = Rcpp::as<double>(eqSS["Iv"]);
+  Iv = Rcpp::as<double>(eqSS["Iv"]);
   Person::s_mean_maternal_immunity = Rcpp::as<double>(eqSS["MaternalImmunity"]);
   parameters.g_N = Rcpp::as<unsigned int>(paramList["N"]);
-  parameters.g_years = Rcpp::as<int>(paramList["years"]);
-  
-  
+ 
   Rcpp::Rcout << "Matrix unpacking working!\n";
   // could do this //
   // int nr = Smat.nrow(), nc = Smat.ncol() ;
@@ -99,42 +132,17 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   // Rcpp::Rcout << "Number of cols = " << Smat.ncol() <<"\n";
   // Rcpp::Rcout << vec[0][1] << " " << vec[4][1] << "\n";
   
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // END: R -> C++ CONVERSIONS
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: INITIALISATION FROM EQUILIBRIUM
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  // Initialise static vectors for keeping biting related variables
-  static std::vector<double> s_psi_vector(parameters.g_N);
-  static std::vector<double> s_zeta_vector(parameters.g_N);
-  static std::vector<double> s_pi_vector(parameters.g_N);
-  static std::vector<double> s_cum_pi_vector(parameters.g_N);
-  static double s_mean_psi;
-  static std::queue<int> s_bite_storage{};
-  
-  // Initialise humans
-  std::vector<Person> Population{ parameters.g_N };
-  
-  // Initialise strains and mosquitos
-  // TODO: Same as above for initialising humans
-  
   // Use read in R equilibrium state to then allocate each individual accordingly given tehir age and biting heterogeneity
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // std::vector<double> status_eq{ 0.112426, 0.00640168, 0.7717, 0.0884877, 0.00426778, 0.0169667 };
-  // std::vector<double> ID_Eq{ 0.005253793 ,41.30406 };
-  // std::vector<double> ICA_Eq{ 0.01841544 ,39.89687 };
-  // std::vector<double> IB_Eq{ 0.01059006 ,80.31266 };
   
   int num_age_brackets = age_brackets.size();
   int num_het_brackets = het_brackets.size();
   int age_bracket_in = 0;
   int het_bracket_in = 0;
   std::vector<double> infection_state_probability(6);
-  //std::vector<std::vector<std::vector<double> > > infection_state_probability (6,vector<vector<double> >(num_age_brackets,vector <double>(3)));
   Rcpp::Rcout << "Pre human-initialisation working!\n";
   
   for (auto &element : Population) 
@@ -173,7 +181,6 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
       }
     }
     
-    
     infection_state_probability[0] = Smat(age_bracket_in, het_bracket_in);
     infection_state_probability[1] = Dmat(age_bracket_in, het_bracket_in);
     infection_state_probability[2] = Amat(age_bracket_in, het_bracket_in);
@@ -187,15 +194,6 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     element.set_m_ICA(ICAmat(age_bracket_in, het_bracket_in));
     element.set_m_ICM(ICMmat(age_bracket_in, het_bracket_in));
     element.set_m_ID(IDmat(age_bracket_in, het_bracket_in));
-    
-    
-    // Using pseudo initialisation from above then assign their infection state and immunity
-    // element.set_m_infection_state(static_cast<Person::InfectionStatus>(sample1(status_eq, 1)));
-    // element.set_m_ID(1.4 * (element.m_individual_biting_rate * ID_Eq[0] * element.get_m_person_age()) + ID_Eq[1]);
-    // element.set_m_ICA(1.3 * (element.m_individual_biting_rate * ICA_Eq[0] * element.get_m_person_age()) + ICA_Eq[1]);
-    // element.set_m_IB(0.9 * (element.m_individual_biting_rate * IB_Eq[0] * element.get_m_person_age()) + IB_Eq[1]);
-    // element.set_m_ICM(parameters.g_PM * 70 * exp(-element.get_m_person_age() / parameters.g_dCM)); // 70 known mean mother ICA
-    // 
     
     // Schedule change for those who are not susceptible
     if (element.get_m_infection_state() != Person::SUSCEPTIBLE)
@@ -226,9 +224,37 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   }
   
   Rcpp::Rcout << "Human initilisation working\n";
+  
+    }
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: INITIALISATION FROM EQUILIBRIUM
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // 2. SIMULATION FROM MEMORY-CONTINUATION, i.e. from a statePtr
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  // if the parameter list contains an element named statePtr, i.e. it is a paramList for memory-continuation using the statePtr
+  if(paramList.containsElementNamed("statePtr"))
+  {
+    // Create universe pointer from paramList statePtr
+    Rcpp::XPtr<Universe> universe_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (paramList["statePtr"]);
+    // Initialise all the universal variables from the statePtr provided
+    //Population = universe_ptr->Population;
+    Iv = universe_ptr->Iv;
+    //parameters = universe_ptr->parameters;
+    Person::s_mean_maternal_immunity = universe_ptr->s_mean_maternal_immunity;
+    s_mean_psi = universe_ptr->s_mean_psi;
+    //s_pi_vector = universe_ptr->s_pi_vector;
+    //s_psi_vector = universe_ptr->s_psi_vector;
+    //s_zeta_vector = universe_ptr->s_zeta_vector;
+  }
+
+  
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // END: R -> C++ CONVERSIONS
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: TIMERS AND PRE LOOP
@@ -241,7 +267,7 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
   parameters.g_current_time++;
   
   // End of simulation time
-  int g_end_time = parameters.g_years * 365;
+  int g_end_time = parameters.g_current_time + parameters.g_years * 365;
   
   // Preallocations;
   int num_bites = 0;
@@ -470,14 +496,23 @@ Rcpp::List Simulation_cpp(Rcpp::List paramList)
     std::cout << status_eq[element] << " | " << std::endl;
   }
   
-  // output Rcpp list
-  return Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
+  // Create Rcpp loggers list
+  Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
                             Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
                             Rcpp::Named("Incidence")=total_incidence,Rcpp::Named("Incidence_05")=total_incidence_05,
                             Rcpp::Named("InfectionStates")=Infection_States,Rcpp::Named("Ages")=Ages,
                             Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID);
   
   
+  // Create universe ptr for memory-continuiation
+  Universe universe{ Population, s_psi_vector, s_zeta_vector,s_pi_vector, s_mean_psi, Person::s_mean_maternal_immunity, parameters,
+                     Iv};
+  
+  // Create pointer to the universe for mem-ory-continuation
+  Rcpp::XPtr<Universe> universe_ptr(&universe,true);
+  
+  // Return Named List with pointer and loggers
+  return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers);
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // fini
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

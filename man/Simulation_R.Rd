@@ -7,7 +7,8 @@
 Simulation_R(paramList)
 }
 \arguments{
-\item{paramList}{Paramlist passed from \code{Param_List_Simulation_Create}}
+\item{paramList}{Paramlist passed from \code{Param_List_Simulation_Init_Create}
+or from \code{Param_List_Simulation_Continue_Create}}
 }
 \description{
 This function triggers the main MAGENTA simulation from the R side
