@@ -1,0 +1,211 @@
+---
+title: "MAGENTA package tutorial overview"
+author: "OJ Watson"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: yes
+    css: knitr.css
+    code_folding: show
+    fig_caption: yes
+    theme: readable
+    keep_md: yes
+    toc_float: yes
+
+---
+
+## Overview
+
+The MAGENTA package provides an individual based model of human malaria transmission.
+The model is written in c++ and has been interfaced with R through Rcpp. The simulation 
+starts by producing the “equilibrium” solution in the R interface using an adapted ODE
+version of the Imperial Collage malaria transmission model (Griffin et al. 2016), 
+which is passed to the c++ along with any required parameters. At the moment the 
+model ignores mosquitoes and parasite strains, and simply has the population-level 
+size of the infected mosquito population (Iv in former models) provided as a parameter 
+from the steady state output for a desired EIR/seasonal setting. 
+
+The package can be viewed in 3 major parts (excluding installation):
+
+0. Installation
+1. Parameter lists
+2. Simulation
+3. MCMC
+
+These 3 parts will be demonstrated in the following tutorial and will give an idea
+of how the structure of MAGENTA works. 
+
+## 0. Package Loading
+
+As included in the README, the package can be installed using devtools in the conventional way:
+
+```{r Installing the package, include=TRUE, message = FALSE, warning = FALSE}
+
+# First make sure the package is installed
+#devtools::install_github("OJWatson/MAGENTA",auth_token = "810def9e944ff0ab2ae39ea5b9a00447de0eda40") 
+# Load package
+library(MAGENTA)
+```
+
+## 1. Parameter lists
+
+Model simulations within MAGENTA are initialized using the same R function, which 
+accepts a parameter list object as an argument. Within MAGENTA there are 3 (eventually 4)
+parameter list creation functions. Each will create a parameter list object that the 
+R simulation function \code{Simulation_R} recognizes and passes onto the related 
+c++ simulation function.
+
+To begin with a parameter list will need to be created for initializing a model state
+from equilibrium. This can be achieved by the following:
+
+```{r Parameter List Equilibrium, include=TRUE, message = FALSE, warning = FALSE}
+
+## Create initial parameter list, changine any key parameters, e.g. the average age
+mpl <- MAGENTA::Model_Param_List_Create(eta = 1/(21*365))
+
+## Create a near equilibirum initial condition
+eqInit <- MAGENTA::Equilibrium_Init_Create(age.vector = c(0,0.25,0.5,0.75,1,1.5,1.75,2,3.5,5,7.5,10,15,20,30,40,50,60,70,80,90,100),
+                                  het.brackets = 5,ft = 0.4,EIR = 120,model.param.list = mpl)
+
+## Next create the near equilibrium steady state
+eqSS <- MAGENTA::Equilibrium_SS_Create(eqInit = eqInit, end.year=5)
+
+## Now check and create the final parameter list for use in the Rcpp simulation initialisation, and initialise for 2 years 
+## (Simulation_Init doesn't introduce any pending infections so the system needs to equilibriate a bit)
+pl <- MAGENTA::Param_List_Simulation_Init_Create(N=10000,years=2,eqSS=eqSS)
+
+## View the paramter list object
+str(pl)
+str(pl$eqSS)
+
+## Simulate
+sim.out <- Simulation_R(pl)
+
+```
+
+The end object, \code{pl}, is a list object with 3 elements, representing the desired
+population size, length of initialization for simulation to be carried out for on the c++
+side, and a further list with equilibrium state objects derived from the equilibrium. When this
+parameter list is passed as an argument to \code{Simulation_R}, a model state will be initialized
+and simulated before returning a list containing an external pointer to the model state, 
+along with some loggers for the system. This list can then be used as a further argument
+in creating the second type of parameter list accepted by \code{Simulation_R}:
+
+```{r Parameter List Update, include=TRUE, message = FALSE, warning = FALSE}
+
+## Create new parameter list dictating how long we want to continue the simulation for
+## and specifying the external pointer to thh model state in memory
+pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = 12/12,statePtr = sim.out$Ptr)
+
+## View the paramter list object
+str(pl2)
+
+## Simulate
+sim.out <- MAGENTA::Simulation_R(pl2)
+
+```
+
+In the above we can see that we have passed back to the simulation the model state through
+its pointer, and how long we want the simulation to continue for. By breaking up simulations
+this way we can generate live logging of the model at whatever interval we desire without
+having to go into the c++. We can also validate the above is working as desired by checking
+in the 2 former model print outputs that the final susceptible population size from sim.out is
+the same as the initial susceptible population size in sim.out2. 
+
+We can continue the above process indefinitely, however at some point we may want to save
+the model state to file so that it can be used again. To do this, we create our third 
+parameter list object:
+
+```{r Parameter List Get, include=TRUE, message = FALSE, warning = FALSE}
+
+## Create new parameter list containing just the model state pointer
+pl3 <- MAGENTA::Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+
+## View the paramter list object
+str(pl3)
+
+## Simulate
+sim.save <- MAGENTA::Simulation_R(pl3)
+
+## View object
+str(sim.save,list.len=18,vec.len = 1)
+```
+
+The above outputs a list with every model state component that is required for re-initialization. 
+This details the immunities, infection status, age, biting heterogeneities, pending infections,
+etc. for the human population. The list also contains key parameter variables that have changed
+from the default. This list could then be saved to file for use later.
+
+TODO: Add reloading saved state etc. 
+
+## 2. Simulation
+
+Earlier we showed how we can create an update parameter list for continuing the simulation
+fora  given period of time. By looping this process at the R interface we can then create a live
+trace of the simulation for either visual inspection on a local machine, or for rejecting simulation
+trajectories early within parameter estimation within an ABC MCMC framework, e.g. if transmission has
+stopped, if the first major barcode after 1 year is not within a desired frequency of the target
+dataset, if the number of different barcodes has exceeded our allocation space so that we know
+to cease the simulation and restart with a larger storage for speed optimization etc.
+
+Below we will see a simple way of storing and visualising the PfPR over time:
+
+```{r Simulation, message=FALSE, warning=FALSE, include=TRUE, results="hide"}
+
+## Let's say that we want to continue the simulation for 5 years, logging the PfPR every month and plotting it live
+
+## Set up our time intervals and prevalence vector
+interval = 1/12
+intervals <- seq(1/12,5,interval)
+prev <- rep(0,length(intervals))
+
+## Now loop thrugh the intervals using the paramater update list creation function
+for(i in 1:length(intervals)){
+  pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = interval,statePtr = sim.out$Ptr)
+  sim.out <- MAGENTA::Simulation_R(pl2)
+  prev[i] <- sum(unlist(sim.out$Loggers[match(c("D","A","U","T"),names(sim.out$Loggers))]))
+}
+```
+
+```{r Plot, include=TRUE, message = FALSE, warning = FALSE}
+## Plot the timeseries
+plot(intervals[1:i],prev[1:i],ylim = c(0,1),xlab = "Years",ylab="PfPR")
+```
+
+## 3. MCMC
+
+TODO: Description of functions for creating LHS states for ABC MCMC, and triggering of simulation
+with these sample states, alongside the rejection criteria and Bayesian posterior estimates
+for parameter distributions
+
+## Summary and further TODOs
+
+Hopefully the above tutorial has shown the framework for MAGENTA and the pipeline in how to use it. 
+
+TODO List:
+
+  1. Create start from saved state c++
+    + R parameter list function: Param_List_Simulation_Saved_Init_Create
+    + main_saved_int.cpp
+    + Simulation_R update accordingly
+  2. Handle changing interventions and seasonality
+    + When update and initialization are running they need to have seasonality vectors passed as 
+    parameters so that the model state can reflect seasonality. This will then dictate the total 
+    mosquito population size, i.e. when adult mosquitoes die they are only replaced if there is 
+    space dictated by the seasonality.
+    + Similarly for the role of interventions. This needs to be handled as a parameter
+    vector which details how daily death rate of adult mosquitoes changes.
+  3. Add mosquitoes and strains
+  4. Create more pleasing on the fly logging framework
+    + This needs to look like a parameter list variable which is handles on the c++ side by 
+    specifying the logger function template to be used. There will then be a class of loggers
+    on the c++ side that handle epidemiology (prevalence/incidence etc), genetics (strain frequencies,
+    monogenomicity etc.) etc.
+  5. Tidy memory leak potential.
+    + The universe ptr seems to work fine now, however I want to know why I can't do the same with 
+    parameters - when parameters is implemented it seems to be using the wrong parameter set within person, 
+    presumably because of the extern declaration which was needed for the static initialization of the IDs, 
+    but in reality I should change this so that either when Population is initialized I can find away of 
+    specifying the length and providing parameters as a variable, or adding IDs somewhere else. 
+
+---

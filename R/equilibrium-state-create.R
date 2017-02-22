@@ -174,7 +174,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5){
     "ICMmat" = out$ICM[final,,,1],
     "IDmat" = out$ID[final,,,1],
     "Iv" = out$Iv[final],
-    "MaternalImmunity" = mean(eqInit$het_wt * (out$ICA[final,maternal,,1]/eqInit$PM))
+    "MaternalImmunity" = mean(eqInit$het_wt * (out$ICA[final,maternal,,1]))
   )
   
   return(Equilibrium_State)

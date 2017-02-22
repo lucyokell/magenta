@@ -4,7 +4,7 @@
 \alias{Pipeline}
 \title{Pipeline for cluster submission}
 \usage{
-Pipeline(EIR = 120, N = 1e+06, years = 20)
+Pipeline(EIR = 120, N = 1e+05, years = 20)
 }
 \arguments{
 \item{EIR}{Numeric for desired annual EIR. Default = 120

@@ -4,7 +4,10 @@ Individual-based simulation model of malaria epidemiology and genomics.
 
 ## Version History
 
-16.02.2017  No mosquito/strain version checked. 
+22.02.2017  State pointer passing
+
+16.02.2017  No mosquito/strain version checked 
+
 06.12.2016  Package initialised
 
 ### What is this?
@@ -15,7 +18,7 @@ individuals. With this additional genetic characteristics of the parasite can be
 assessed.
 
 ***
-> To view the tutorial please click [here](). (To be written)
+> To view the tutorial please click [here](https://github.com/OJWatson/MAGENTA/blob/master/tutorials/MAGENTA_tutorial.md)
 
 ***
 

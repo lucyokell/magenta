@@ -39,14 +39,6 @@ public:
 	// Person's individual relative biting rate (zeta) due to mosquito biting heterogeneity following a lognormal distribution
 	const double m_individual_biting_rate;  // Set for life and thus constant and fine to be public
 	const int m_person_ID;					// member variable ID	- fine to be public as constant
-
-	static double s_psi_sum;				// static variable keeping track of psi sum, needed for normalising age dependent heterogeneity
-	static double s_sum_maternal_immunity;  // static variable for the population mean maternal imunity, i.e. mean ICA between 20 and 21 years
-	static int s_total_mums;				// total number of mothers
-	static double s_mean_maternal_immunity; // mean_maternal immunity
-	
-	static int s_total_incidences;  // daily total of incidence
-	static int s_total_incidences_05;  // daily total of incidence for 0-5
 	
 private:
 
@@ -144,18 +136,54 @@ public:
 
 	// Get person's infection status
 	InfectionStatus get_m_infection_state() { return(m_infection_state); }
+	
+	// Get person's age-dependent immunity
+	double get_m_age_dependent_biting_rate() { return(m_age_dependent_biting_rate); }
 
-	// Get person's ICA
+	// Get person's IB
 	double get_m_IB() { return (m_IB); }
 	
 	// Get person's ICA
 	double get_m_ICA() { return (m_ICA); }
 	
-	// Get person's ICA
+	// Get person's ICM
 	double get_m_ICM() { return (m_ICM); }
 	
-	// Get person's ICA
+	// Get person's ID
 	double get_m_ID() { return (m_ID); }
+	
+	// Get person's IB_last_boost_time
+	int get_m_IB_last_boost_time() { return (m_IB_last_boost_time); }
+	
+	// Get person's ICA_last_boost_time
+	int get_m_ICA_last_boost_time() { return (m_ICA_last_boost_time); }
+	
+	// Get person's ID_last_boost_time
+	int get_m_ID_last_boost_time() { return (m_ID_last_boost_time); }
+	
+	// Get person's IB_last_calculated_time
+	int get_m_IB_last_calculated_time() { return (m_IB_last_calculated_time); }
+	
+	// Get person's I_C_D_CM_last_calculated_time
+	int get_m_I_C_D_CM_last_calculated_time() { return (m_I_C_D_CM_last_calculated_time); }
+	
+	// Get person's immunity boost float
+	double get_m_immunity_boost_float() { return (m_immunity_boost_float); }
+	
+	// Get person's time of InfectionStatus state change
+	int get_m_day_of_InfectionStatus_change() { return (m_day_of_InfectionStatus_change); }	
+	
+	// Get person's time of strain clearance
+	int get_m_day_of_strain_clearance() { return (m_day_of_strain_clearance); }
+	
+	// Get person's time of death
+	int get_m_day_of_death() { return (m_day_of_death); }
+	
+	// Get person's infection time realisation queue
+	std::queue<int> get_m_infection_time_realisation_queue() { return (m_infection_time_realisation_queue); }	
+	
+	// Get person's infection state realisation queue
+	std::queue<InfectionStatus> get_m_infection_state_realisation_queue() {return (m_infection_state_realisation_queue); }
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// SETTERS
@@ -256,7 +284,7 @@ public:
 	void die(const Parameters &parameters);
 
 	// Daily update function, i.e. increase ages, set maternal booleans, calculate biting proportions etc
-	double update(const Parameters &parameters);
+	double update(Parameters &parameters);
 
 	// Event handle, i.e. if any of person's death, state change, strain clearance or state change realisation days are today, respond accordingly
 	void event_handle(const Parameters &parameters);

@@ -13,7 +13,7 @@
 #' @export
 
 
-Pipeline <- function(EIR=120, N=1000000, years = 20){
+Pipeline <- function(EIR=120, N=100000, years = 20){
   
   ## Pipeline
   Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
@@ -29,7 +29,7 @@ Pipeline <- function(EIR=120, N=1000000, years = 20){
   eqSS <- Equilibrium_SS_Create(eqInit = eqInit, end.year=5)
   
   ## Now check and create the parameter list for use in the Rcpp simulation
-  # pl <- Param_List_Simulation_Create(N=N,years=years,eqSS=eqSS)
+  pl <- Param_List_Simulation_Init_Create(N=N,years=years,eqSS=eqSS)
   
   ## Now run the simulation
   sim.out <- Simulation_R(paramList = pl)
