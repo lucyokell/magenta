@@ -18,7 +18,7 @@ individuals. With this additional genetic characteristics of the parasite can be
 assessed.
 
 ***
-> To view the tutorial please click [here](https://github.com/OJWatson/MAGENTA/blob/master/tutorials/MAGENTA_tutorial.md)
+> To view the tutorial please click [here](https://github.com/bobverity/MAGENTA/blob/master/tutorials/MAGENTA_tutorial.md)
 
 ***
 
