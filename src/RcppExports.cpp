@@ -6,14 +6,36 @@
 
 using namespace Rcpp;
 
-// Simulation_cpp
-Rcpp::List Simulation_cpp(Rcpp::List paramList);
-RcppExport SEXP MAGENTA_Simulation_cpp(SEXP paramListSEXP) {
+// Simulation_Get_cpp
+Rcpp::List Simulation_Get_cpp(Rcpp::List paramList);
+RcppExport SEXP MAGENTA_Simulation_Get_cpp(SEXP paramListSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type paramList(paramListSEXP);
-    rcpp_result_gen = Rcpp::wrap(Simulation_cpp(paramList));
+    rcpp_result_gen = Rcpp::wrap(Simulation_Get_cpp(paramList));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Simulation_Init_cpp
+Rcpp::List Simulation_Init_cpp(Rcpp::List paramList);
+RcppExport SEXP MAGENTA_Simulation_Init_cpp(SEXP paramListSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type paramList(paramListSEXP);
+    rcpp_result_gen = Rcpp::wrap(Simulation_Init_cpp(paramList));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Simulation_Update_cpp
+Rcpp::List Simulation_Update_cpp(Rcpp::List paramList);
+RcppExport SEXP MAGENTA_Simulation_Update_cpp(SEXP paramListSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type paramList(paramListSEXP);
+    rcpp_result_gen = Rcpp::wrap(Simulation_Update_cpp(paramList));
     return rcpp_result_gen;
 END_RCPP
 }

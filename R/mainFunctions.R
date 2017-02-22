@@ -1,5 +1,5 @@
 #------------------------------------------------
-#' Parameter List creation for MAGENTA simulation
+#' Parameter List creation for MAGENTA simulation initialisation
 #'
 #' \code{Param_List_Simulation_Init_Create} creates suitable parameter list for
 #' \code{Simulation_R} for the beginning of a simulation
@@ -38,9 +38,9 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, years = 1, eqSS)
 }
 
 #------------------------------------------------
-#' Parameter List creation for MAGENTA simulation
+#' Parameter List creation for MAGENTA simulation updating
 #'
-#' \code{Param_List_Simulation_Continue_Create} creates suitable parameter list for
+#' \code{Param_List_Simulation_Update_Create} creates suitable parameter list for
 #' \code{Simulation_R} for continuing a simulation from memory within the active
 #' session.
 #'
@@ -49,7 +49,7 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, years = 1, eqSS)
 #' 
 #' @export
 
-Param_List_Simulation_Continue_Create <- function(years = 1, statePtr)
+Param_List_Simulation_Update_Create <- function(years = 1, statePtr)
 {
   
   ## CHECKS ##
@@ -66,6 +66,33 @@ Param_List_Simulation_Continue_Create <- function(years = 1, statePtr)
   
 }
 
+#------------------------------------------------
+#' Parameter List creation for MAGENTA simulation getting (saving to disk)
+#'
+#' \code{Param_List_Simulation_Get_Create} creates suitable parameter list for
+#' \code{Simulation_R} for continuing a simulation from memory within the active
+#' session.
+#'
+#' @param statePtr Pointer for current model state as return by \code{Simulation_R}$Ptr
+#' 
+#' @export
+
+Param_List_Simulation_Get_Create <- function(statePtr)
+{
+  
+  ## CHECKS ##
+  ##---------------------------------------------
+  if(class(statePtr)!="externalptr") stop("state.ptr is not of class externalptr")
+  
+  ##---------------------------------------------
+  
+  # Create paramlist
+  paramList <- list(statePtr = statePtr)
+  
+  return(paramList)
+  
+}
+
 
 #------------------------------------------------
 #' Simulation_R function
@@ -73,7 +100,7 @@ Param_List_Simulation_Continue_Create <- function(years = 1, statePtr)
 #' This function triggers the main MAGENTA simulation from the R side
 #'
 #' @param paramList Paramlist passed from \code{Param_List_Simulation_Init_Create}
-#' or from \code{Param_List_Simulation_Continue_Create}
+#' or from \code{Param_List_Simulation_Update_Create}
 #' @export
 
 # The following commands are needed to ensure that the roxygen2
@@ -115,6 +142,13 @@ Simulation_R <- function(paramList)
   {
     stop("paramList not correct length")
   }
+    
+    # ---------------------- RUN C CODE ------------------------------------- #
+    
+    # call Rcpp command with input list
+    rawOutput <- Simulation_Init_cpp(paramList)
+    
+    # ----------------------------------------------------------------------- #
   
     
   }
@@ -122,7 +156,7 @@ Simulation_R <- function(paramList)
   ## -----------------------------------
   ## 2. From memory-continutation
   ## -----------------------------------
-  if(!is.null(paramList$statePtr)){
+  if(!is.null(paramList$years) & !is.null(paramList$statePtr)){
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
@@ -135,24 +169,42 @@ Simulation_R <- function(paramList)
       stop("paramList not correct length")
     }
     
+    # ---------------------- RUN C CODE ------------------------------------- #
+    
+    # call Rcpp command with input list
+    rawOutput <- Simulation_Update_cpp(paramList)
+    
+    # ----------------------------------------------------------------------- #
+    
   }
   
   ## -----------------------------------
-  ## 3. From memory-continutation
+  ## 3. From memory-continutation to saving
   ## -----------------------------------
-  if(!is.null(paramList$Population)){
+  if(is.null(paramList$years) & !is.null(paramList$statePtr)){
     
     ## Check if paramlist is correct length and has right variable names
-    ## TODO: Fill in checks here for when loading a paramlist as a saved 
+    ## Check if paramlist is correct length and has right variable names
+    stopifnot(is.list(paramList))
+    if(length(paramList)==1)
+    {
+      stopifnot(identical(names(paramList), c("statePtr")))  
+    }
+    else 
+    {
+      stop("paramList not correct length")
+    } 
+    
+    # ---------------------- RUN C CODE ------------------------------------- #
+    
+    # call Rcpp command with input list
+     rawOutput <- Simulation_Get_cpp(paramList)
+    
+    # ----------------------------------------------------------------------- #
     
   }
   
-  # ---------------------- RUN C CODE ------------------------------------- #
-  
-  # call Rcpp command with input list
-  rawOutput <- Simulation_cpp(paramList)
-  
-  # ----------------------------------------------------------------------- #
+
   
   # return rawOutput
   return(rawOutput)

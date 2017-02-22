@@ -19,13 +19,11 @@ Person::Person() :
     // Allocate death day
     set_initial_m_day_of_death(parameters);
     
-    // Increase static sum of psi required for normalisiing age dependent biting rates
-    s_psi_sum += m_age_dependent_biting_rate;
-    
     // Reserve storage space for vectors
     // TODO: Turn these into an input number
     m_active_strain_pointers.reserve(100);
     m_active_strain_acquisition_day.reserve(100);
+    
   }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -358,7 +356,7 @@ void Person::die(const Parameters &parameters)
   m_IB = m_ID = m_ICA = m_number_of_strains = m_person_age = m_ID_last_boost_time = m_IB_last_boost_time = m_ICA_last_boost_time = 0;
   
   // Set maternal immunity
-  m_ICM = parameters.g_PM * s_mean_maternal_immunity * m_individual_biting_rate;
+  m_ICM = parameters.g_PM * parameters.g_mean_maternal_immunity * m_individual_biting_rate;
   
 }
 
@@ -494,19 +492,16 @@ void Person::event_handle(const Parameters &parameters) {
 }
 
 // Daily update function, i.e. increase ages, set maternal booleans, age dependent biting rate etc
-double Person::update(const Parameters &parameters)
+double Person::update(Parameters &parameters)
 {
   // Update age
   m_person_age++;
   
   // Find out if pregnacy age
   if (m_person_age > 20 * 365 && m_person_age < 21 * 365) {
-    s_sum_maternal_immunity += m_ICA;
-    s_total_mums++;
+    parameters.g_sum_maternal_immunity += m_ICA;
+    parameters.g_total_mums++;
   }
-  
-  // Update age dependent biting rate and the sum
-  s_psi_sum += m_age_dependent_biting_rate = (1 - (parameters.g_rho * exp(-m_person_age / parameters.g_a0)));
   
   // Handle any events that are happening today
   if (m_day_of_next_event == parameters.g_current_time) {

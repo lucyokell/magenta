@@ -59,6 +59,9 @@ Parameters::Parameters() {
 	g_uCA = 6.06349;
 	g_PM = 0.774368;
 	g_dCM = 67.6952;
+	g_mean_maternal_immunity = 0;
+	g_sum_maternal_immunity = 0;
+	g_total_mums = 0;
 	// contributions to infectious reservoir by state and age
 	g_g1 = 1.82425;
 	g_cD = 0.0676909;

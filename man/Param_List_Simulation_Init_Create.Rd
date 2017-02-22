@@ -2,7 +2,7 @@
 % Please edit documentation in R/mainFunctions.R
 \name{Param_List_Simulation_Init_Create}
 \alias{Param_List_Simulation_Init_Create}
-\title{Parameter List creation for MAGENTA simulation}
+\title{Parameter List creation for MAGENTA simulation initialisation}
 \usage{
 Param_List_Simulation_Init_Create(N = 10000, years = 1, eqSS)
 }
