@@ -11,7 +11,6 @@
 
 <meta name="author" content="OJ Watson" />
 
-<meta name="date" content="2017-02-22" />
 
 <title>MAGENTA package tutorial overview</title>
 
@@ -235,7 +234,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">MAGENTA package tutorial overview</h1>
 <h4 class="author"><em>OJ Watson</em></h4>
-<h4 class="date"><em>2017-02-22</em></h4>
+<h4 class="date"><em>22 February, 2017</em></h4>
 
 </div>
 
@@ -331,7 +330,7 @@ sim.out &lt;- Simulation_R(pl)</code></pre>
 ## 700 days
 ## Time elapsed total: 2 seconds
 ## S | D | A | U | T | P:
-## 0.1132 | 0.0058 | 0.7837 | 0.087 | 0.0024 | 0.0079 |</code></pre>
+## 0.1153 | 0.0049 | 0.7764 | 0.0914 | 0.0036 | 0.0084 |</code></pre>
 <p>The end object, , is a list object with 3 elements, representing the desired population size, length of initialization for simulation to be carried out for on the c++ side, and a further list with equilibrium state objects derived from the equilibrium. When this parameter list is passed as an argument to , a model state will be initialized and simulated before returning a list containing an external pointer to the model state, along with some loggers for the system. This list can then be used as a further argument in creating the second type of parameter list accepted by :</p>
 <pre class="r"><code>## Create new parameter list dictating how long we want to continue the simulation for
 ## and specifying the external pointer to thh model state in memory
@@ -347,14 +346,14 @@ sim.out &lt;- MAGENTA::Simulation_R(pl2)</code></pre>
 <pre><code>## [1] &quot;R function is working!&quot;
 ## Rcpp function is working!
 ## Pointer unpacking working!
-## Starting susceptible population: 0.1132
+## Starting susceptible population: 0.1153
 ## Time elapsed in initialisation: 0 seconds
 ## 800 days
 ## 900 days
 ## 1000 days
 ## Time elapsed total: 1 seconds
 ## S | D | A | U | T | P:
-## 0.1156 | 0.0037 | 0.7776 | 0.0899 | 0.0032 | 0.01 |</code></pre>
+## 0.1128 | 0.0041 | 0.7789 | 0.0906 | 0.0044 | 0.0092 |</code></pre>
 <p>In the above we can see that we have passed back to the simulation the model state through its pointer, and how long we want the simulation to continue for. By breaking up simulations this way we can generate live logging of the model at whatever interval we desire without having to go into the c++. We can also validate the above is working as desired by checking in the 2 former model print outputs that the final susceptible population size from sim.out is the same as the initial susceptible population size in sim.out2.</p>
 <p>We can continue the above process indefinitely, however at some point we may want to save the model state to file so that it can be used again. To do this, we create our third parameter list object:</p>
 <pre class="r"><code>## Create new parameter list containing just the model state pointer
@@ -373,45 +372,48 @@ sim.save &lt;- MAGENTA::Simulation_R(pl3)</code></pre>
 str(sim.save,list.len=18,vec.len = 1)</code></pre>
 <pre><code>## List of 2
 ##  $ Population:List of 18
-##   ..$ Infection_States                  : int [1:10000] 2 2 ...
+##   ..$ Infection_States                  : int [1:10000] 0 2 ...
 ##   ..$ Zetas                             : num [1:10000] 0.297 ...
 ##   ..$ Ages                              : num [1:10000] 4436 ...
-##   ..$ IB                                : num [1:10000] 197 ...
-##   ..$ ICA                               : num [1:10000] 206 ...
-##   ..$ ICM                               : num [1:10000] 1.18e-23 ...
-##   ..$ ID                                : num [1:10000] 109 ...
-##   ..$ IB_last_boost_time                : int [1:10000] 1085 1091 ...
-##   ..$ ICA_last_boost_time               : int [1:10000] 1071 1095 ...
-##   ..$ ID_last_boost_time                : int [1:10000] 1071 1096 ...
-##   ..$ IB_last_calculated_time           : int [1:10000] 1091 1096 ...
-##   ..$ I_C_D_CM_last_calculated_time     : int [1:10000] 1071 1096 ...
+##   ..$ IB                                : num [1:10000] 202 ...
+##   ..$ ICA                               : num [1:10000] 210 ...
+##   ..$ ICM                               : num [1:10000] 4.8e-23 ...
+##   ..$ ID                                : num [1:10000] 112 ...
+##   ..$ IB_last_boost_time                : int [1:10000] 1069 1089 ...
+##   ..$ ICA_last_boost_time               : int [1:10000] 976 1086 ...
+##   ..$ ID_last_boost_time                : int [1:10000] 976 1083 ...
+##   ..$ IB_last_calculated_time           : int [1:10000] 1069 1093 ...
+##   ..$ I_C_D_CM_last_calculated_time     : int [1:10000] 976 1089 ...
 ##   ..$ Immunity_boost_float              : int [1:10000] 0 0 ...
-##   ..$ Day_of_InfectionStatus_change     : int [1:10000] 1193 1209 ...
-##   ..$ Day_of_strain_clearance           : int [1:10000] 1137 1103 ...
-##   ..$ Day_of_death                      : int [1:10000] 3845 9154 ...
+##   ..$ Day_of_InfectionStatus_change     : int [1:10000] 0 1394 ...
+##   ..$ Day_of_strain_clearance           : int [1:10000] 0 1097 ...
+##   ..$ Day_of_death                      : int [1:10000] 20139 9154 ...
 ##   ..$ Infection_time_realisation_queues :List of 10000
 ##   .. ..$ : int(0) 
-##   .. ..$ : int [1:5] 1097 1103 ...
-##   .. ..$ : int 1101
+##   .. ..$ : int [1:2] 1098 1101
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int [1:4] 1104 1106 ...
-##   .. ..$ : int [1:5] 1098 1100 ...
-##   .. ..$ : int [1:3] 1098 1104 ...
+##   .. ..$ : int 1104
 ##   .. ..$ : int 1107
+##   .. ..$ : int(0) 
+##   .. ..$ : int(0) 
+##   .. ..$ : int(0) 
+##   .. ..$ : int(0) 
+##   .. ..$ : int(0) 
+##   .. ..$ : int(0) 
+##   .. ..$ : int [1:8] 1098 1098 ...
+##   .. ..$ : int [1:9] 1097 1098 ...
+##   .. ..$ : int [1:4] 1097 1097 ...
+##   .. ..$ : int [1:4] 1103 1106 ...
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. .. [list output truncated]
 ##   ..$ Infection_state_realisation_queues:List of 10000
 ##   .. ..$ : int(0) 
-##   .. ..$ : int [1:5] 2 2 ...
+##   .. ..$ : int [1:2] 2 2
+##   .. ..$ : int(0) 
+##   .. ..$ : int(0) 
+##   .. ..$ : int 2
 ##   .. ..$ : int 2
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
@@ -419,21 +421,18 @@ str(sim.save,list.len=18,vec.len = 1)</code></pre>
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
+##   .. ..$ : int [1:8] 2 2 ...
+##   .. ..$ : int [1:9] 2 2 ...
 ##   .. ..$ : int [1:4] 2 2 ...
-##   .. ..$ : int [1:5] 2 2 ...
-##   .. ..$ : int [1:3] 2 2 ...
-##   .. ..$ : int 2
+##   .. ..$ : int [1:4] 2 2 ...
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. .. [list output truncated]
 ##  $ Parameters:List of 4
 ##   ..$ g_current_time          : int 1097
 ##   ..$ g_mean_maternal_immunity: num 392
-##   ..$ g_sum_maternal_immunity : int 76903
-##   ..$ g_total_mums            : int 196</code></pre>
+##   ..$ g_sum_maternal_immunity : int 73324
+##   ..$ g_total_mums            : int 187</code></pre>
 <p>The above outputs a list with every model state component that is required for re-initialization. This details the immunities, infection status, age, biting heterogeneities, pending infections, etc. for the human population. The list also contains key parameter variables that have changed from the default. This list could then be saved to file for use later.</p>
 <p>TODO: Add reloading saved state etc.</p>
 </div>
@@ -456,7 +455,7 @@ for(i in 1:length(intervals)){
 }</code></pre>
 <pre class="r"><code>## Plot the timeseries
 plot(intervals[1:i],prev[1:i],ylim = c(0,1),xlab = &quot;Years&quot;,ylab=&quot;PfPR&quot;)</code></pre>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 </div>
 <div id="mcmc" class="section level2">
 <h2>3. MCMC</h2>

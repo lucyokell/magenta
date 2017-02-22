@@ -8,3 +8,5 @@ scripts
 plots
 ^Results$
 ^plots$
+^tutorials$
+tutorials
