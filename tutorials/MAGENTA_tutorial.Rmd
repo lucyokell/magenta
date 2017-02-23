@@ -65,21 +65,26 @@ mpl <- MAGENTA::Model_Param_List_Create(eta = 1/(21*365))
 
 ## Create a near equilibirum initial condition
 eqInit <- MAGENTA::Equilibrium_Init_Create(age.vector = c(0,0.25,0.5,0.75,1,1.5,1.75,2,3.5,5,7.5,10,15,20,30,40,50,60,70,80,90,100),
-                                  het.brackets = 5,ft = 0.4,EIR = 120,model.param.list = mpl)
+                                  het.brackets = 5,
+                                  ft = 0.4,
+                                  EIR = 120,
+                                  model.param.list = mpl)
 
 ## Next create the near equilibrium steady state
 eqSS <- MAGENTA::Equilibrium_SS_Create(eqInit = eqInit, end.year=5)
 
 ## Now check and create the final parameter list for use in the Rcpp simulation initialisation, and initialise for 2 years 
 ## (Simulation_Init doesn't introduce any pending infections so the system needs to equilibriate a bit)
-pl <- MAGENTA::Param_List_Simulation_Init_Create(N=10000,years=2,eqSS=eqSS)
+pl <- MAGENTA::Param_List_Simulation_Init_Create(N=10000,
+                                                 years=2,
+                                                 eqSS=eqSS)
 
 ## View the paramter list object
 str(pl)
 str(pl$eqSS)
 
 ## Simulate
-sim.out <- Simulation_R(pl)
+sim.out <- MAGENTA::Simulation_R(pl)
 
 ```
 
@@ -95,7 +100,8 @@ in creating the second type of parameter list accepted by \code{Simulation_R}:
 
 ## Create new parameter list dictating how long we want to continue the simulation for
 ## and specifying the external pointer to thh model state in memory
-pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = 12/12,statePtr = sim.out$Ptr)
+pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = 12/12,
+                                                    statePtr = sim.out$Ptr)
 
 ## View the paramter list object
 str(pl2)
@@ -127,6 +133,9 @@ str(pl3)
 ## Simulate
 sim.save <- MAGENTA::Simulation_R(pl3)
 
+## Save
+saveRDS(sim.save,"savedState.rds")
+
 ## View object
 str(sim.save,list.len=18,vec.len = 1)
 ```
@@ -136,7 +145,23 @@ This details the immunities, infection status, age, biting heterogeneities, pend
 etc. for the human population. The list also contains key parameter variables that have changed
 from the default. This list could then be saved to file for use later.
 
-TODO: Add reloading saved state etc. 
+We can now continue at any point in the future by reloading from this saved state. To do 
+this we first read teh save .rds object and pass it to the last parameter list creation function
+\code{Param_List_Simulation_Saved_Init_Create}:
+
+```{r Parameter List Saved State, include=TRUE, message = FALSE, warning = FALSE}
+
+## Load the saved state
+savedState <- readRDS("savedState.rds")
+
+## Create new parameter list from the saved state
+pl4 <- Param_List_Simulation_Saved_Init_Create(years = 1,
+                                               savedState = savedState)
+
+## Simulate
+sim.out <- MAGENTA::Simulation_R(pl4)
+
+```
 
 ## 2. Simulation
 
@@ -161,15 +186,18 @@ prev <- rep(0,length(intervals))
 
 ## Now loop thrugh the intervals using the paramater update list creation function
 for(i in 1:length(intervals)){
-  pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = interval,statePtr = sim.out$Ptr)
+  pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = interval,
+                                                      statePtr = sim.out$Ptr)
   sim.out <- MAGENTA::Simulation_R(pl2)
-  prev[i] <- sum(unlist(sim.out$Loggers[match(c("D","A","U","T"),names(sim.out$Loggers))]))
+  prev[i] <- sum(unlist(sim.out$Loggers[match(c("D","A","U","T"),
+                                              names(sim.out$Loggers))]))
 }
 ```
 
 ```{r Plot, include=TRUE, message = FALSE, warning = FALSE}
 ## Plot the timeseries
-plot(intervals[1:i],prev[1:i],ylim = c(0,1),xlab = "Years",ylab="PfPR")
+plot(intervals[1:i],prev[1:i],
+     ylim = c(0,1),xlab = "Years",ylab="PfPR")
 ```
 
 ## 3. MCMC
@@ -184,10 +212,7 @@ Hopefully the above tutorial has shown the framework for MAGENTA and the pipelin
 
 TODO List:
 
-  1. Create start from saved state c++
-    + R parameter list function: Param_List_Simulation_Saved_Init_Create
-    + main_saved_int.cpp
-    + Simulation_R update accordingly
+  1. Add mosquitoes and strains
   2. Handle changing interventions and seasonality
     + When update and initialization are running they need to have seasonality vectors passed as 
     parameters so that the model state can reflect seasonality. This will then dictate the total 
@@ -195,17 +220,11 @@ TODO List:
     space dictated by the seasonality.
     + Similarly for the role of interventions. This needs to be handled as a parameter
     vector which details how daily death rate of adult mosquitoes changes.
-  3. Add mosquitoes and strains
-  4. Create more pleasing on the fly logging framework
+  3. Create more pleasing on the fly logging framework
     + This needs to look like a parameter list variable which is handles on the c++ side by 
     specifying the logger function template to be used. There will then be a class of loggers
     on the c++ side that handle epidemiology (prevalence/incidence etc), genetics (strain frequencies,
     monogenomicity etc.) etc.
-  5. Tidy memory leak potential.
-    + The universe ptr seems to work fine now, however I want to know why I can't do the same with 
-    parameters - when parameters is implemented it seems to be using the wrong parameter set within person, 
-    presumably because of the extern declaration which was needed for the static initialization of the IDs, 
-    but in reality I should change this so that either when Population is initialized I can find away of 
-    specifying the length and providing parameters as a variable, or adding IDs somewhere else. 
+
 
 ---

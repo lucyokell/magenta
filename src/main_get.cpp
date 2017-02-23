@@ -30,7 +30,7 @@ using namespace Rcpp;
 // Create universe structure for all important variables
 struct Universe {
   // Human storage
-  std::vector<Person> Population;
+  std::vector<Person> population;
   std::vector<double> psi_vector;
   std::vector<double> zeta_vector;
   std::vector<double> pi_vector;
@@ -73,8 +73,9 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   // START: MODEL STATE GET
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
+  // Create model state storage
   std::vector<int> Infection_States(universe_ptr->parameters.g_N);
-  std::vector<double> Ages(universe_ptr->parameters.g_N);
+  std::vector<int> Ages(universe_ptr->parameters.g_N);
   std::vector<double> IB(universe_ptr->parameters.g_N);
   std::vector<double> ICA(universe_ptr->parameters.g_N);
   std::vector<double> ICM(universe_ptr->parameters.g_N);
@@ -84,11 +85,11 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   std::vector<int> ID_last_boost_time(universe_ptr->parameters.g_N);
   std::vector<int> IB_last_calculated_time(universe_ptr->parameters.g_N);
   std::vector<int> I_C_D_CM_last_calculated_time(universe_ptr->parameters.g_N);
-  std::vector<int> Immunity_boost_float(universe_ptr->parameters.g_N);
+  std::vector<double> Immunity_boost_float(universe_ptr->parameters.g_N);
   std::vector<int>  Day_of_InfectionStatus_change(universe_ptr->parameters.g_N);	
   std::vector<int>  Day_of_strain_clearance(universe_ptr->parameters.g_N);		
   std::vector<int>  Day_of_death(universe_ptr->parameters.g_N);					
-  
+  std::vector<int>  Number_of_Strains(universe_ptr->parameters.g_N);	
   std::vector<std::vector<int> > Infection_time_realisation_queues(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Infection_state_realisation_queues(universe_ptr->parameters.g_N);
   
@@ -98,6 +99,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   
   std::vector<int> temp_infection_time_realisation_vector{};
   std::vector<int> temp_infection_state_realisation_vector{};
+  
   // TODO: Strains and mosquito saving
   //std::vector<std::queue<int> > Infection_strain_realisation_queues(universe_ptr->parameters.g_N);
   
@@ -105,43 +107,48 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   {
     
     // Infection States
-    Infection_States[element] = static_cast<int>(universe_ptr->Population[element].get_m_infection_state());
+    Infection_States[element] = static_cast<int>(universe_ptr->population[element].get_m_infection_state());
     
     // Ages
-    Ages[element] = universe_ptr->Population[element].get_m_person_age();
+    Ages[element] = universe_ptr->population[element].get_m_person_age();
     
     // Immunities
-    IB[element] = universe_ptr->Population[element].get_m_IB();
-    ICA[element] = universe_ptr->Population[element].get_m_ICA();
-    ICM[element] = universe_ptr->Population[element].get_m_ICM();
-    ID[element] = universe_ptr->Population[element].get_m_ID();
+    IB[element] = universe_ptr->population[element].get_m_IB();
+    ICA[element] = universe_ptr->population[element].get_m_ICA();
+    ICM[element] = universe_ptr->population[element].get_m_ICM();
+    ID[element] = universe_ptr->population[element].get_m_ID();
     
     // Boost times
-    IB_last_boost_time[element] = universe_ptr->Population[element].get_m_IB_last_boost_time();
-    ICA_last_boost_time[element] = universe_ptr->Population[element].get_m_ICA_last_boost_time();
-    ID_last_boost_time[element] = universe_ptr->Population[element].get_m_ID_last_boost_time();
+    IB_last_boost_time[element] = universe_ptr->population[element].get_m_IB_last_boost_time();
+    ICA_last_boost_time[element] = universe_ptr->population[element].get_m_ICA_last_boost_time();
+    ID_last_boost_time[element] = universe_ptr->population[element].get_m_ID_last_boost_time();
     
     // Calc times
-    IB_last_calculated_time[element] = universe_ptr->Population[element].get_m_IB_last_calculated_time();
-    I_C_D_CM_last_calculated_time[element] = universe_ptr->Population[element].get_m_I_C_D_CM_last_calculated_time();
+    IB_last_calculated_time[element] = universe_ptr->population[element].get_m_IB_last_calculated_time();
+    I_C_D_CM_last_calculated_time[element] = universe_ptr->population[element].get_m_I_C_D_CM_last_calculated_time();
     
     // Immunity float
-    Immunity_boost_float[element] = universe_ptr->Population[element].get_m_immunity_boost_float();
+    Immunity_boost_float[element] = universe_ptr->population[element].get_m_immunity_boost_float();
     
     // Day Changes
-    Day_of_InfectionStatus_change[element] = universe_ptr->Population[element].get_m_day_of_InfectionStatus_change();
-    Day_of_strain_clearance[element] = universe_ptr->Population[element].get_m_day_of_strain_clearance();
-    Day_of_death[element]	 = universe_ptr->Population[element].get_m_day_of_death();
+    Day_of_InfectionStatus_change[element] = universe_ptr->population[element].get_m_day_of_InfectionStatus_change();
+    Day_of_strain_clearance[element] = universe_ptr->population[element].get_m_day_of_strain_clearance();
+    Day_of_death[element]	 = universe_ptr->population[element].get_m_day_of_death();
+    
+    // Strain Numbers
+    Number_of_Strains[element] = universe_ptr->population[element].get_m_number_of_strains();
     
     // Queue temp creates
-    temp_infection_time_realisation_queue = universe_ptr->Population[element].get_m_infection_time_realisation_queue();
-    temp_infection_state_realisation_queue = universe_ptr->Population[element].get_m_infection_state_realisation_queue();
+    temp_infection_time_realisation_queue = universe_ptr->population[element].get_m_infection_time_realisation_queue();
+    temp_infection_state_realisation_queue = universe_ptr->population[element].get_m_infection_state_realisation_queue();
     
     // Push back to the temp vector all the queue elements and then assign before clearing the temp vector
     while(!temp_infection_time_realisation_queue.empty()){
       temp_infection_time_realisation_vector.push_back(temp_infection_time_realisation_queue.front());
       temp_infection_time_realisation_queue.pop();
     }
+    // Reverse the vector first so that we can then simply grab the back and pop when reinitialising this into a queue
+    std::reverse(std::begin(temp_infection_time_realisation_vector),std::end(temp_infection_time_realisation_vector));
     Infection_time_realisation_queues[element] = temp_infection_time_realisation_vector;
     temp_infection_time_realisation_vector.clear();
     
@@ -150,13 +157,15 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
       temp_infection_state_realisation_vector.push_back(temp_infection_state_realisation_queue.front());
       temp_infection_state_realisation_queue.pop();
     }
+    // Reverse the vector first so that we can then simply grab the back and pop when reinitialising this into a queue
+    std::reverse(std::begin(temp_infection_state_realisation_vector),std::end(temp_infection_state_realisation_vector));
     Infection_state_realisation_queues[element] = temp_infection_state_realisation_vector;
     temp_infection_state_realisation_vector.clear();
     
   }
   
-  // Create Rcpp Population list
-  Rcpp::List Population_List = Rcpp::List::create(Rcpp::Named("Infection_States")=Infection_States,
+  // Create Rcpp population list
+  Rcpp::List population_List = Rcpp::List::create(Rcpp::Named("Infection_States")=Infection_States,
                                                   Rcpp::Named("Zetas")=Zeta,
                                                   Rcpp::Named("Ages")=Ages,
                                                   Rcpp::Named("IB")=IB,
@@ -172,16 +181,18 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
                                                   Rcpp::Named("Day_of_InfectionStatus_change")=Day_of_InfectionStatus_change,
                                                   Rcpp::Named("Day_of_strain_clearance")=Day_of_strain_clearance,
                                                   Rcpp::Named("Day_of_death")=Day_of_death,
+                                                  Rcpp::Named("Number_of_Strains")=Number_of_Strains,
                                                   Rcpp::Named("Infection_time_realisation_queues")=Infection_time_realisation_queues,
                                                   Rcpp::Named("Infection_state_realisation_queues")=Infection_state_realisation_queues
   );
   
   // Create Rcpp Parameters list
   // TODO: Chat to Rich about why this fails on long lists and how to circumvent
-  Rcpp::List Parameters_List = Rcpp::List::create(Rcpp::Named("g_current_time")=universe_ptr->parameters.g_current_time,
+  Rcpp::List parameters_List = Rcpp::List::create(Rcpp::Named("g_current_time")=universe_ptr->parameters.g_current_time,
                                                   Rcpp::Named("g_mean_maternal_immunity")=universe_ptr->parameters.g_mean_maternal_immunity,
                                                   Rcpp::Named("g_sum_maternal_immunity")=universe_ptr->parameters.g_sum_maternal_immunity,
-                                                  Rcpp::Named("g_total_mums")=universe_ptr->parameters.g_total_mums
+                                                  Rcpp::Named("g_total_mums")=universe_ptr->parameters.g_total_mums,
+                                                  Rcpp::Named("g_N")=universe_ptr->parameters.g_N
   );
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -192,8 +203,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
   std::cout << "Time elapsed in fetching state: " << duration << " seconds" << std::endl;
   
-  // Return Named List with Population and parameters
-  return Rcpp::List::create(Rcpp::Named("Population") = Population_List, Rcpp::Named("Parameters")=Parameters_List);
+  // Return Named List with population and parameters
+  return Rcpp::List::create(Rcpp::Named("population_List") = population_List, Rcpp::Named("parameters_List")=parameters_List, Rcpp::Named("Iv")=universe_ptr->Iv);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // fini

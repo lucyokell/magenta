@@ -234,7 +234,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">MAGENTA package tutorial overview</h1>
 <h4 class="author"><em>OJ Watson</em></h4>
-<h4 class="date"><em>22 February, 2017</em></h4>
+<h4 class="date"><em>23 February, 2017</em></h4>
 
 </div>
 
@@ -268,14 +268,19 @@ mpl &lt;- MAGENTA::Model_Param_List_Create(eta = 1/(21*365))
 
 ## Create a near equilibirum initial condition
 eqInit &lt;- MAGENTA::Equilibrium_Init_Create(age.vector = c(0,0.25,0.5,0.75,1,1.5,1.75,2,3.5,5,7.5,10,15,20,30,40,50,60,70,80,90,100),
-                                  het.brackets = 5,ft = 0.4,EIR = 120,model.param.list = mpl)
+                                  het.brackets = 5,
+                                  ft = 0.4,
+                                  EIR = 120,
+                                  model.param.list = mpl)
 
 ## Next create the near equilibrium steady state
 eqSS &lt;- MAGENTA::Equilibrium_SS_Create(eqInit = eqInit, end.year=5)
 
 ## Now check and create the final parameter list for use in the Rcpp simulation initialisation, and initialise for 2 years 
 ## (Simulation_Init doesn't introduce any pending infections so the system needs to equilibriate a bit)
-pl &lt;- MAGENTA::Param_List_Simulation_Init_Create(N=10000,years=2,eqSS=eqSS)
+pl &lt;- MAGENTA::Param_List_Simulation_Init_Create(N=10000,
+                                                 years=2,
+                                                 eqSS=eqSS)
 
 ## View the paramter list object
 str(pl)</code></pre>
@@ -314,7 +319,7 @@ str(pl)</code></pre>
 ##  $ Iv              : num 0.859
 ##  $ MaternalImmunity: num 44.8</code></pre>
 <pre class="r"><code>## Simulate
-sim.out &lt;- Simulation_R(pl)</code></pre>
+sim.out &lt;- MAGENTA::Simulation_R(pl)</code></pre>
 <pre><code>## [1] &quot;R function is working!&quot;
 ## Rcpp function is working!
 ## Matrix unpacking working!
@@ -330,11 +335,12 @@ sim.out &lt;- Simulation_R(pl)</code></pre>
 ## 700 days
 ## Time elapsed total: 2 seconds
 ## S | D | A | U | T | P:
-## 0.1153 | 0.0049 | 0.7764 | 0.0914 | 0.0036 | 0.0084 |</code></pre>
+## 0.1101 | 0.0038 | 0.7875 | 0.0869 | 0.0038 | 0.0079 |</code></pre>
 <p>The end object, , is a list object with 3 elements, representing the desired population size, length of initialization for simulation to be carried out for on the c++ side, and a further list with equilibrium state objects derived from the equilibrium. When this parameter list is passed as an argument to , a model state will be initialized and simulated before returning a list containing an external pointer to the model state, along with some loggers for the system. This list can then be used as a further argument in creating the second type of parameter list accepted by :</p>
 <pre class="r"><code>## Create new parameter list dictating how long we want to continue the simulation for
 ## and specifying the external pointer to thh model state in memory
-pl2 &lt;- MAGENTA::Param_List_Simulation_Update_Create(years = 12/12,statePtr = sim.out$Ptr)
+pl2 &lt;- MAGENTA::Param_List_Simulation_Update_Create(years = 12/12,
+                                                    statePtr = sim.out$Ptr)
 
 ## View the paramter list object
 str(pl2)</code></pre>
@@ -346,14 +352,14 @@ sim.out &lt;- MAGENTA::Simulation_R(pl2)</code></pre>
 <pre><code>## [1] &quot;R function is working!&quot;
 ## Rcpp function is working!
 ## Pointer unpacking working!
-## Starting susceptible population: 0.1153
+## Starting susceptible population: 0.1101
 ## Time elapsed in initialisation: 0 seconds
 ## 800 days
 ## 900 days
 ## 1000 days
 ## Time elapsed total: 1 seconds
 ## S | D | A | U | T | P:
-## 0.1128 | 0.0041 | 0.7789 | 0.0906 | 0.0044 | 0.0092 |</code></pre>
+## 0.1156 | 0.0035 | 0.7753 | 0.0915 | 0.0046 | 0.0095 |</code></pre>
 <p>In the above we can see that we have passed back to the simulation the model state through its pointer, and how long we want the simulation to continue for. By breaking up simulations this way we can generate live logging of the model at whatever interval we desire without having to go into the c++. We can also validate the above is working as desired by checking in the 2 former model print outputs that the final susceptible population size from sim.out is the same as the initial susceptible population size in sim.out2.</p>
 <p>We can continue the above process indefinitely, however at some point we may want to save the model state to file so that it can be used again. To do this, we create our third parameter list object:</p>
 <pre class="r"><code>## Create new parameter list containing just the model state pointer
@@ -368,73 +374,84 @@ sim.save &lt;- MAGENTA::Simulation_R(pl3)</code></pre>
 <pre><code>## [1] &quot;R function is working!&quot;
 ## Rcpp function is working!
 ## Pointer unpacking working!</code></pre>
-<pre class="r"><code>## View object
+<pre class="r"><code>## Save
+saveRDS(sim.save,&quot;savedState.rds&quot;)
+
+## View object
 str(sim.save,list.len=18,vec.len = 1)</code></pre>
-<pre><code>## List of 2
-##  $ Population:List of 18
-##   ..$ Infection_States                  : int [1:10000] 0 2 ...
-##   ..$ Zetas                             : num [1:10000] 0.297 ...
-##   ..$ Ages                              : num [1:10000] 4436 ...
-##   ..$ IB                                : num [1:10000] 202 ...
-##   ..$ ICA                               : num [1:10000] 210 ...
-##   ..$ ICM                               : num [1:10000] 4.8e-23 ...
-##   ..$ ID                                : num [1:10000] 112 ...
-##   ..$ IB_last_boost_time                : int [1:10000] 1069 1089 ...
-##   ..$ ICA_last_boost_time               : int [1:10000] 976 1086 ...
-##   ..$ ID_last_boost_time                : int [1:10000] 976 1083 ...
-##   ..$ IB_last_calculated_time           : int [1:10000] 1069 1093 ...
-##   ..$ I_C_D_CM_last_calculated_time     : int [1:10000] 976 1089 ...
-##   ..$ Immunity_boost_float              : int [1:10000] 0 0 ...
-##   ..$ Day_of_InfectionStatus_change     : int [1:10000] 0 1394 ...
-##   ..$ Day_of_strain_clearance           : int [1:10000] 0 1097 ...
-##   ..$ Day_of_death                      : int [1:10000] 20139 9154 ...
+<pre><code>## List of 3
+##  $ population_List:List of 19
+##   ..$ Infection_States                  : int [1:10000] 3 2 ...
+##   ..$ Zetas                             : num [1:10000] 0.0266 ...
+##   ..$ Ages                              : int [1:10000] 10007 8293 ...
+##   ..$ IB                                : num [1:10000] 287 ...
+##   ..$ ICA                               : num [1:10000] 469 ...
+##   ..$ ICM                               : num [1:10000] 2.13e-27 ...
+##   ..$ ID                                : num [1:10000] 173 ...
+##   ..$ IB_last_boost_time                : int [1:10000] 986 1089 ...
+##   ..$ ICA_last_boost_time               : int [1:10000] 986 1092 ...
+##   ..$ ID_last_boost_time                : int [1:10000] 986 1089 ...
+##   ..$ IB_last_calculated_time           : int [1:10000] 986 1096 ...
+##   ..$ I_C_D_CM_last_calculated_time     : int [1:10000] 986 1092 ...
+##   ..$ Immunity_boost_float              : num [1:10000] 0.243 ...
+##   ..$ Day_of_InfectionStatus_change     : int [1:10000] 1099 1149 ...
+##   ..$ Day_of_strain_clearance           : int [1:10000] 1253 1098 ...
+##   ..$ Day_of_death                      : int [1:10000] 19977 17393 ...
+##   ..$ Number_of_Strains                 : int [1:10000] 1 72 ...
 ##   ..$ Infection_time_realisation_queues :List of 10000
 ##   .. ..$ : int(0) 
-##   .. ..$ : int [1:2] 1098 1101
+##   .. ..$ : int [1:4] 1104 1104 ...
+##   .. ..$ : int 1100
+##   .. ..$ : int [1:4] 1106 1106 ...
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
-##   .. ..$ : int 1104
-##   .. ..$ : int 1107
+##   .. ..$ : int 1105
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
+##   .. ..$ : int [1:2] 1098 1097
+##   .. ..$ : int 1100
 ##   .. ..$ : int(0) 
+##   .. ..$ : int 1105
 ##   .. ..$ : int(0) 
-##   .. ..$ : int [1:8] 1098 1098 ...
-##   .. ..$ : int [1:9] 1097 1098 ...
-##   .. ..$ : int [1:4] 1097 1097 ...
-##   .. ..$ : int [1:4] 1103 1106 ...
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. .. [list output truncated]
-##   ..$ Infection_state_realisation_queues:List of 10000
-##   .. ..$ : int(0) 
-##   .. ..$ : int [1:2] 2 2
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int 2
-##   .. ..$ : int 2
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int [1:8] 2 2 ...
-##   .. ..$ : int [1:9] 2 2 ...
-##   .. ..$ : int [1:4] 2 2 ...
-##   .. ..$ : int [1:4] 2 2 ...
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. .. [list output truncated]
-##  $ Parameters:List of 4
+##   .. [list output truncated]
+##  $ parameters_List:List of 5
 ##   ..$ g_current_time          : int 1097
 ##   ..$ g_mean_maternal_immunity: num 392
-##   ..$ g_sum_maternal_immunity : int 73324
-##   ..$ g_total_mums            : int 187</code></pre>
+##   ..$ g_sum_maternal_immunity : num 84717
+##   ..$ g_total_mums            : int 216
+##   ..$ g_N                     : num 10000
+##  $ Iv             : num 0.859</code></pre>
 <p>The above outputs a list with every model state component that is required for re-initialization. This details the immunities, infection status, age, biting heterogeneities, pending infections, etc. for the human population. The list also contains key parameter variables that have changed from the default. This list could then be saved to file for use later.</p>
-<p>TODO: Add reloading saved state etc.</p>
+<p>We can now continue at any point in the future by reloading from this saved state. To do this we first read teh save .rds object and pass it to the last parameter list creation function :</p>
+<pre class="r"><code>## Load the saved state
+savedState &lt;- readRDS(&quot;savedState.rds&quot;)
+
+## Create new parameter list from the saved state
+pl4 &lt;- Param_List_Simulation_Saved_Init_Create(years = 1,
+                                               savedState = savedState)
+
+## Simulate
+sim.out &lt;- MAGENTA::Simulation_R(pl4)</code></pre>
+<pre><code>## [1] &quot;R function is working!&quot;
+## Rcpp function is working!
+## Matrix unpacking working!
+## Pre human-initialisation working!
+## Human initilisation working
+## Pointer unpacking working!
+## Starting susceptible population: 0.1156
+## Time elapsed in initialisation: 0 seconds
+## 1100 days
+## 1200 days
+## 1300 days
+## 1400 days
+## Time elapsed total: 1 seconds
+## S | D | A | U | T | P:
+## 0.1199 | 0.0056 | 0.7711 | 0.0862 | 0.0057 | 0.0115 |</code></pre>
 </div>
 <div id="simulation" class="section level2">
 <h2>2. Simulation</h2>
@@ -449,13 +466,16 @@ prev &lt;- rep(0,length(intervals))
 
 ## Now loop thrugh the intervals using the paramater update list creation function
 for(i in 1:length(intervals)){
-  pl2 &lt;- MAGENTA::Param_List_Simulation_Update_Create(years = interval,statePtr = sim.out$Ptr)
+  pl2 &lt;- MAGENTA::Param_List_Simulation_Update_Create(years = interval,
+                                                      statePtr = sim.out$Ptr)
   sim.out &lt;- MAGENTA::Simulation_R(pl2)
-  prev[i] &lt;- sum(unlist(sim.out$Loggers[match(c(&quot;D&quot;,&quot;A&quot;,&quot;U&quot;,&quot;T&quot;),names(sim.out$Loggers))]))
+  prev[i] &lt;- sum(unlist(sim.out$Loggers[match(c(&quot;D&quot;,&quot;A&quot;,&quot;U&quot;,&quot;T&quot;),
+                                              names(sim.out$Loggers))]))
 }</code></pre>
 <pre class="r"><code>## Plot the timeseries
-plot(intervals[1:i],prev[1:i],ylim = c(0,1),xlab = &quot;Years&quot;,ylab=&quot;PfPR&quot;)</code></pre>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+plot(intervals[1:i],prev[1:i],
+     ylim = c(0,1),xlab = &quot;Years&quot;,ylab=&quot;PfPR&quot;)</code></pre>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 </div>
 <div id="mcmc" class="section level2">
 <h2>3. MCMC</h2>
@@ -466,25 +486,15 @@ plot(intervals[1:i],prev[1:i],ylim = c(0,1),xlab = &quot;Years&quot;,ylab=&quot;
 <p>Hopefully the above tutorial has shown the framework for MAGENTA and the pipeline in how to use it.</p>
 <p>TODO List:</p>
 <ol style="list-style-type: decimal">
-<li>Create start from saved state c++
-<ul>
-<li>R parameter list function: Param_List_Simulation_Saved_Init_Create</li>
-<li>main_saved_int.cpp</li>
-<li>Simulation_R update accordingly</li>
-</ul></li>
+<li>Add mosquitoes and strains</li>
 <li>Handle changing interventions and seasonality
 <ul>
 <li>When update and initialization are running they need to have seasonality vectors passed as parameters so that the model state can reflect seasonality. This will then dictate the total mosquito population size, i.e. when adult mosquitoes die they are only replaced if there is space dictated by the seasonality.</li>
 <li>Similarly for the role of interventions. This needs to be handled as a parameter vector which details how daily death rate of adult mosquitoes changes.</li>
 </ul></li>
-<li>Add mosquitoes and strains</li>
 <li>Create more pleasing on the fly logging framework
 <ul>
 <li>This needs to look like a parameter list variable which is handles on the c++ side by specifying the logger function template to be used. There will then be a class of loggers on the c++ side that handle epidemiology (prevalence/incidence etc), genetics (strain frequencies, monogenomicity etc.) etc.</li>
-</ul></li>
-<li>Tidy memory leak potential.
-<ul>
-<li>The universe ptr seems to work fine now, however I want to know why I can’t do the same with parameters - when parameters is implemented it seems to be using the wrong parameter set within person, presumably because of the extern declaration which was needed for the static initialization of the IDs, but in reality I should change this so that either when Population is initialized I can find away of specifying the length and providing parameters as a variable, or adding IDs somewhere else.</li>
 </ul></li>
 </ol>
 <hr />

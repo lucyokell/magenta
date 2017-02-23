@@ -35,14 +35,10 @@ public:
 		PROPHYLAXIS,	// 5
 		NUMBER_OF_STATES = 6
 	};
-
-	// Person's individual relative biting rate (zeta) due to mosquito biting heterogeneity following a lognormal distribution
-	const double m_individual_biting_rate;  // Set for life and thus constant and fine to be public
-	const int m_person_ID;					// member variable ID	- fine to be public as constant
 	
 private:
-
-	static int s_person_ID_generator;		// static member variable for initialising unique identifiers
+  
+  int m_person_ID;					// member variable ID	- fine to be public as constant
 	int m_person_age;						// Person's age
 	InfectionStatus m_infection_state;		// Infection Status enum
 
@@ -50,6 +46,8 @@ private:
 	double m_age_dependent_biting_rate;
 	// Person's symptom success rate (phi) - See Griffin 2010 S1 for this specific origin
 	double m_symptom_success_rate;
+	// Person's individual relative biting rate (zeta) due to mosquito biting heterogeneity following a lognormal distribution
+	double m_individual_biting_rate;  // Set for life
 
 	// Person's transition probabilities, i.e. the probabilty, given their acquired immunity and the treatment seeking rate, that they 
 	// become diseased, treated or asymptomatic
@@ -125,7 +123,7 @@ private:
 public:
 
 	// Default class constructor
-	Person();
+	Person(const Parameters &parameters);
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// GETTERS
@@ -139,6 +137,12 @@ public:
 	
 	// Get person's age-dependent immunity
 	double get_m_age_dependent_biting_rate() { return(m_age_dependent_biting_rate); }
+	
+	// Get person's anumber of strains
+	double get_m_number_of_strains() { return(m_number_of_strains); }
+	
+	// Get person's individual biting rate
+	double get_m_individual_biting_rate() { return(m_individual_biting_rate); }
 
 	// Get person's IB
 	double get_m_IB() { return (m_IB); }
@@ -190,15 +194,21 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// Set static person generator
-	void set_s_person_ID_generator(int x = 1) { Person::s_person_ID_generator = x; }
+	void set_m_person_ID(int x) { m_person_ID = x; }
+	
+	// Get person's age
+	void set_m_person_age(int x) { m_person_age = x; }
 
 	// Set person's infection state
 	void set_m_infection_state(InfectionStatus x) { m_infection_state = x; }
+	
+	// Set person's individual biting rate
+	void set_m_individual_biting_rate(double x) { m_individual_biting_rate = x; };
 
-	// TODO: THESE ARE NOT FORMAL SETTERS AND SHOULD BE REWORDED
+	// TODO: THESE ARE NOT FORMAL SETTERS AND SHOULD BE REWORDED TO SOMETHING LIKE CALCULATE
 	// --------------------------------------------------------------------------------------------------------
 	// Set person's individual biting rate
-	double set_m_individual_biting_rate(double zeta_meanlog, double zeta_sdlog);
+	double set_initial_m_individual_biting_rate(double zeta_meanlog, double zeta_sdlog);
 
 	// Set person's relative chance of biting (psi)
 	double set_m_age_dependent_biting_rate(double rho, double a0);
@@ -234,9 +244,51 @@ public:
 
 	// Set person's ICM
 	void set_m_ICM(double x) { m_ICM = x; }
-
-	// Set person's ICM
+	
+	// Set person's IB_last_boost_time
+	void set_m_IB_last_boost_time(int x) { m_IB_last_boost_time = x; }
+	
+	// Set person's ICA_last_boost_time
+	void set_m_ICA_last_boost_time(int x) { m_ICA_last_boost_time = x; }
+	
+	// Set person's ID_last_boost_time
+	void set_m_ID_last_boost_time(int x) { m_ID_last_boost_time = x; }
+	
+	// Set person's IB_last_calculated_time
+	void set_m_IB_last_calculated_time(int x) { m_IB_last_calculated_time = x; }
+	
+	// Set person's I_C_D_CM_last_calculated_time
+	void set_m_I_C_D_CM_last_calculated_time(int x) { m_I_C_D_CM_last_calculated_time = x; }
+	
+	// Set person's immunity boost float
+	void set_m_immunity_boost_float(double x) { m_immunity_boost_float = x; }
+	
+	// Set person's time of InfectionStatus state change
+	void set_m_day_of_InfectionStatus_change(int x) { m_day_of_InfectionStatus_change = x; }	
+	
+	// Set person's time of strain clearance
 	void set_m_day_of_strain_clearance(int x) { m_day_of_strain_clearance = x; }
+	
+	// Set person's time of death
+	void set_m_day_of_death(int x) { m_day_of_death = x; }
+	
+	// Set person's infection time realisation queue
+	void set_m_infection_time_realisation_queue_from_vector(std::vector<int> x) 
+	{ 
+	  while(!x.empty()){
+	    m_infection_time_realisation_queue.push(x.back()); 
+	    x.pop_back();
+	  }
+	}	
+	
+	// Set person's infection state realisation queue
+	void set_m_infection_state_realisation_queue_from_vector(std::vector<int> x) 
+	{ 
+	  while(!x.empty()){
+	    m_infection_state_realisation_queue.push(static_cast<Person::InfectionStatus>(x.back())); 
+	    x.pop_back();
+	  }
+	}	
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// ALLOCATIONS

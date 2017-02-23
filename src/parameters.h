@@ -77,7 +77,7 @@ public:
 	double g_PM;
 	double g_dCM;
 	double g_mean_maternal_immunity;
-	int g_sum_maternal_immunity;
+	double g_sum_maternal_immunity;
 	int g_total_mums;
 	// contributions to infectious reservoir by state and age;
 	double g_g1;

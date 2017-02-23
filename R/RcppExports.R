@@ -9,6 +9,10 @@ Simulation_Init_cpp <- function(paramList) {
     .Call('MAGENTA_Simulation_Init_cpp', PACKAGE = 'MAGENTA', paramList)
 }
 
+Simulation_Saved_Init_cpp <- function(paramList) {
+    .Call('MAGENTA_Simulation_Saved_Init_cpp', PACKAGE = 'MAGENTA', paramList)
+}
+
 Simulation_Update_cpp <- function(paramList) {
     .Call('MAGENTA_Simulation_Update_cpp', PACKAGE = 'MAGENTA', paramList)
 }

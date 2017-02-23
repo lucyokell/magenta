@@ -53,14 +53,19 @@ mpl <- MAGENTA::Model_Param_List_Create(eta = 1/(21*365))
 
 ## Create a near equilibirum initial condition
 eqInit <- MAGENTA::Equilibrium_Init_Create(age.vector = c(0,0.25,0.5,0.75,1,1.5,1.75,2,3.5,5,7.5,10,15,20,30,40,50,60,70,80,90,100),
-                                  het.brackets = 5,ft = 0.4,EIR = 120,model.param.list = mpl)
+                                  het.brackets = 5,
+                                  ft = 0.4,
+                                  EIR = 120,
+                                  model.param.list = mpl)
 
 ## Next create the near equilibrium steady state
 eqSS <- MAGENTA::Equilibrium_SS_Create(eqInit = eqInit, end.year=5)
 
 ## Now check and create the final parameter list for use in the Rcpp simulation initialisation, and initialise for 2 years 
 ## (Simulation_Init doesn't introduce any pending infections so the system needs to equilibriate a bit)
-pl <- MAGENTA::Param_List_Simulation_Init_Create(N=10000,years=2,eqSS=eqSS)
+pl <- MAGENTA::Param_List_Simulation_Init_Create(N=10000,
+                                                 years=2,
+                                                 eqSS=eqSS)
 
 ## View the paramter list object
 str(pl)
@@ -111,7 +116,7 @@ str(pl$eqSS)
 
 ```r
 ## Simulate
-sim.out <- Simulation_R(pl)
+sim.out <- MAGENTA::Simulation_R(pl)
 ```
 
 ```
@@ -130,7 +135,7 @@ sim.out <- Simulation_R(pl)
 ## 700 days
 ## Time elapsed total: 2 seconds
 ## S | D | A | U | T | P:
-## 0.1153 | 0.0049 | 0.7764 | 0.0914 | 0.0036 | 0.0084 |
+## 0.1101 | 0.0038 | 0.7875 | 0.0869 | 0.0038 | 0.0079 |
 ```
 
 The end object, \code{pl}, is a list object with 3 elements, representing the desired
@@ -145,7 +150,8 @@ in creating the second type of parameter list accepted by \code{Simulation_R}:
 ```r
 ## Create new parameter list dictating how long we want to continue the simulation for
 ## and specifying the external pointer to thh model state in memory
-pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = 12/12,statePtr = sim.out$Ptr)
+pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = 12/12,
+                                                    statePtr = sim.out$Ptr)
 
 ## View the paramter list object
 str(pl2)
@@ -166,14 +172,14 @@ sim.out <- MAGENTA::Simulation_R(pl2)
 ## [1] "R function is working!"
 ## Rcpp function is working!
 ## Pointer unpacking working!
-## Starting susceptible population: 0.1153
+## Starting susceptible population: 0.1101
 ## Time elapsed in initialisation: 0 seconds
 ## 800 days
 ## 900 days
 ## 1000 days
 ## Time elapsed total: 1 seconds
 ## S | D | A | U | T | P:
-## 0.1128 | 0.0041 | 0.7789 | 0.0906 | 0.0044 | 0.0092 |
+## 0.1156 | 0.0035 | 0.7753 | 0.0915 | 0.0046 | 0.0095 |
 ```
 
 In the above we can see that we have passed back to the simulation the model state through
@@ -213,74 +219,61 @@ sim.save <- MAGENTA::Simulation_R(pl3)
 ```
 
 ```r
+## Save
+saveRDS(sim.save,"savedState.rds")
+
 ## View object
 str(sim.save,list.len=18,vec.len = 1)
 ```
 
 ```
-## List of 2
-##  $ Population:List of 18
-##   ..$ Infection_States                  : int [1:10000] 0 2 ...
-##   ..$ Zetas                             : num [1:10000] 0.297 ...
-##   ..$ Ages                              : num [1:10000] 4436 ...
-##   ..$ IB                                : num [1:10000] 202 ...
-##   ..$ ICA                               : num [1:10000] 210 ...
-##   ..$ ICM                               : num [1:10000] 4.8e-23 ...
-##   ..$ ID                                : num [1:10000] 112 ...
-##   ..$ IB_last_boost_time                : int [1:10000] 1069 1089 ...
-##   ..$ ICA_last_boost_time               : int [1:10000] 976 1086 ...
-##   ..$ ID_last_boost_time                : int [1:10000] 976 1083 ...
-##   ..$ IB_last_calculated_time           : int [1:10000] 1069 1093 ...
-##   ..$ I_C_D_CM_last_calculated_time     : int [1:10000] 976 1089 ...
-##   ..$ Immunity_boost_float              : int [1:10000] 0 0 ...
-##   ..$ Day_of_InfectionStatus_change     : int [1:10000] 0 1394 ...
-##   ..$ Day_of_strain_clearance           : int [1:10000] 0 1097 ...
-##   ..$ Day_of_death                      : int [1:10000] 20139 9154 ...
+## List of 3
+##  $ population_List:List of 19
+##   ..$ Infection_States                  : int [1:10000] 3 2 ...
+##   ..$ Zetas                             : num [1:10000] 0.0266 ...
+##   ..$ Ages                              : int [1:10000] 10007 8293 ...
+##   ..$ IB                                : num [1:10000] 287 ...
+##   ..$ ICA                               : num [1:10000] 469 ...
+##   ..$ ICM                               : num [1:10000] 2.13e-27 ...
+##   ..$ ID                                : num [1:10000] 173 ...
+##   ..$ IB_last_boost_time                : int [1:10000] 986 1089 ...
+##   ..$ ICA_last_boost_time               : int [1:10000] 986 1092 ...
+##   ..$ ID_last_boost_time                : int [1:10000] 986 1089 ...
+##   ..$ IB_last_calculated_time           : int [1:10000] 986 1096 ...
+##   ..$ I_C_D_CM_last_calculated_time     : int [1:10000] 986 1092 ...
+##   ..$ Immunity_boost_float              : num [1:10000] 0.243 ...
+##   ..$ Day_of_InfectionStatus_change     : int [1:10000] 1099 1149 ...
+##   ..$ Day_of_strain_clearance           : int [1:10000] 1253 1098 ...
+##   ..$ Day_of_death                      : int [1:10000] 19977 17393 ...
+##   ..$ Number_of_Strains                 : int [1:10000] 1 72 ...
 ##   ..$ Infection_time_realisation_queues :List of 10000
 ##   .. ..$ : int(0) 
-##   .. ..$ : int [1:2] 1098 1101
+##   .. ..$ : int [1:4] 1104 1104 ...
+##   .. ..$ : int 1100
+##   .. ..$ : int [1:4] 1106 1106 ...
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
-##   .. ..$ : int 1104
-##   .. ..$ : int 1107
+##   .. ..$ : int 1105
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
+##   .. ..$ : int [1:2] 1098 1097
+##   .. ..$ : int 1100
 ##   .. ..$ : int(0) 
+##   .. ..$ : int 1105
 ##   .. ..$ : int(0) 
-##   .. ..$ : int [1:8] 1098 1098 ...
-##   .. ..$ : int [1:9] 1097 1098 ...
-##   .. ..$ : int [1:4] 1097 1097 ...
-##   .. ..$ : int [1:4] 1103 1106 ...
 ##   .. ..$ : int(0) 
 ##   .. ..$ : int(0) 
 ##   .. .. [list output truncated]
-##   ..$ Infection_state_realisation_queues:List of 10000
-##   .. ..$ : int(0) 
-##   .. ..$ : int [1:2] 2 2
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int 2
-##   .. ..$ : int 2
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. ..$ : int [1:8] 2 2 ...
-##   .. ..$ : int [1:9] 2 2 ...
-##   .. ..$ : int [1:4] 2 2 ...
-##   .. ..$ : int [1:4] 2 2 ...
-##   .. ..$ : int(0) 
-##   .. ..$ : int(0) 
-##   .. .. [list output truncated]
-##  $ Parameters:List of 4
+##   .. [list output truncated]
+##  $ parameters_List:List of 5
 ##   ..$ g_current_time          : int 1097
 ##   ..$ g_mean_maternal_immunity: num 392
-##   ..$ g_sum_maternal_immunity : int 73324
-##   ..$ g_total_mums            : int 187
+##   ..$ g_sum_maternal_immunity : num 84717
+##   ..$ g_total_mums            : int 216
+##   ..$ g_N                     : num 10000
+##  $ Iv             : num 0.859
 ```
 
 The above outputs a list with every model state component that is required for re-initialization. 
@@ -288,7 +281,40 @@ This details the immunities, infection status, age, biting heterogeneities, pend
 etc. for the human population. The list also contains key parameter variables that have changed
 from the default. This list could then be saved to file for use later.
 
-TODO: Add reloading saved state etc. 
+We can now continue at any point in the future by reloading from this saved state. To do 
+this we first read teh save .rds object and pass it to the last parameter list creation function
+\code{Param_List_Simulation_Saved_Init_Create}:
+
+
+```r
+## Load the saved state
+savedState <- readRDS("savedState.rds")
+
+## Create new parameter list from the saved state
+pl4 <- Param_List_Simulation_Saved_Init_Create(years = 1,
+                                               savedState = savedState)
+
+## Simulate
+sim.out <- MAGENTA::Simulation_R(pl4)
+```
+
+```
+## [1] "R function is working!"
+## Rcpp function is working!
+## Matrix unpacking working!
+## Pre human-initialisation working!
+## Human initilisation working
+## Pointer unpacking working!
+## Starting susceptible population: 0.1156
+## Time elapsed in initialisation: 0 seconds
+## 1100 days
+## 1200 days
+## 1300 days
+## 1400 days
+## Time elapsed total: 1 seconds
+## S | D | A | U | T | P:
+## 0.1199 | 0.0056 | 0.7711 | 0.0862 | 0.0057 | 0.0115 |
+```
 
 ## 2. Simulation
 
@@ -313,16 +339,19 @@ prev <- rep(0,length(intervals))
 
 ## Now loop thrugh the intervals using the paramater update list creation function
 for(i in 1:length(intervals)){
-  pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = interval,statePtr = sim.out$Ptr)
+  pl2 <- MAGENTA::Param_List_Simulation_Update_Create(years = interval,
+                                                      statePtr = sim.out$Ptr)
   sim.out <- MAGENTA::Simulation_R(pl2)
-  prev[i] <- sum(unlist(sim.out$Loggers[match(c("D","A","U","T"),names(sim.out$Loggers))]))
+  prev[i] <- sum(unlist(sim.out$Loggers[match(c("D","A","U","T"),
+                                              names(sim.out$Loggers))]))
 }
 ```
 
 
 ```r
 ## Plot the timeseries
-plot(intervals[1:i],prev[1:i],ylim = c(0,1),xlab = "Years",ylab="PfPR")
+plot(intervals[1:i],prev[1:i],
+     ylim = c(0,1),xlab = "Years",ylab="PfPR")
 ```
 
 ![](MAGENTA_tutorial_files/figure-html/Plot-1.png)<!-- -->
@@ -339,10 +368,7 @@ Hopefully the above tutorial has shown the framework for MAGENTA and the pipelin
 
 TODO List:
 
-  1. Create start from saved state c++
-    + R parameter list function: Param_List_Simulation_Saved_Init_Create
-    + main_saved_int.cpp
-    + Simulation_R update accordingly
+  1. Add mosquitoes and strains
   2. Handle changing interventions and seasonality
     + When update and initialization are running they need to have seasonality vectors passed as 
     parameters so that the model state can reflect seasonality. This will then dictate the total 
@@ -350,17 +376,11 @@ TODO List:
     space dictated by the seasonality.
     + Similarly for the role of interventions. This needs to be handled as a parameter
     vector which details how daily death rate of adult mosquitoes changes.
-  3. Add mosquitoes and strains
-  4. Create more pleasing on the fly logging framework
+  3. Create more pleasing on the fly logging framework
     + This needs to look like a parameter list variable which is handles on the c++ side by 
     specifying the logger function template to be used. There will then be a class of loggers
     on the c++ side that handle epidemiology (prevalence/incidence etc), genetics (strain frequencies,
     monogenomicity etc.) etc.
-  5. Tidy memory leak potential.
-    + The universe ptr seems to work fine now, however I want to know why I can't do the same with 
-    parameters - when parameters is implemented it seems to be using the wrong parameter set within person, 
-    presumably because of the extern declaration which was needed for the static initialization of the IDs, 
-    but in reality I should change this so that either when Population is initialized I can find away of 
-    specifying the length and providing parameters as a variable, or adding IDs somewhere else. 
+
 
 ---

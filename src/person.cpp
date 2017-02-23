@@ -6,13 +6,9 @@
 #include <cassert> // for error checking
 #include "parameters.h"
 
-// Declare the already initialised global paramters object
-Parameters parameters;
-
-// Default Constructor
-Person::Person() :
-  m_person_ID{ Person::s_person_ID_generator++ },
-  m_individual_biting_rate{ set_m_individual_biting_rate(parameters.g_zeta_meanlog, parameters.g_zeta_sdlog) },
+// Only Constructor
+Person::Person(const Parameters &parameters) :
+  m_individual_biting_rate{ set_initial_m_individual_biting_rate(parameters.g_zeta_meanlog, parameters.g_zeta_sdlog) },
   m_person_age{ set_initial_m_person_age(parameters.g_average_age) },
   m_age_dependent_biting_rate{ set_m_age_dependent_biting_rate(parameters.g_rho, parameters.g_a0) }
   {
@@ -31,7 +27,7 @@ Person::Person() :
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Set person's individual biting rate
-double Person::set_m_individual_biting_rate(double zeta_meanlog, double zeta_sdlog) {
+double Person::set_initial_m_individual_biting_rate(double zeta_meanlog, double zeta_sdlog) {
   
   return(rlognorm1(zeta_meanlog, zeta_sdlog));
   
@@ -361,7 +357,7 @@ void Person::die(const Parameters &parameters)
 }
 
 // Recover to being susceptible, i.e. clearing all infections and strains and associated timings
-void Person::recover(const Parameters &parameter)
+void Person::recover(const Parameters &parameters)
 {
   
   // Return to susceptible
@@ -436,9 +432,7 @@ void Person::event_handle(const Parameters &parameters) {
       case TREATED:
         m_infection_state = PROPHYLAXIS;
         schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
-        m_infection_time_realisation_queue = std::queue<int>(); // remove pending infections as assumend to be cleared with treatment
-        m_infection_state_realisation_queue = std::queue<InfectionStatus>(); // TODO: Is this right biologically
-        m_infection_strain_realisation_queue = std::queue<Strain*>();
+        m_number_of_strains = 0;
         break;
       case PROPHYLAXIS:
         recover(parameters);
@@ -461,22 +455,38 @@ void Person::event_handle(const Parameters &parameters) {
         // Set infection state to first infection state and then clear that state realisation and time
         while (m_infection_realisation_empty_catch == 1)
         {
+          // Assign infection state
           m_infection_state = m_infection_state_realisation_queue.front();
-          schedule_m_day_of_InfectionStatus_change(parameters);
-          m_infection_state_realisation_queue.pop();
-          m_infection_time_realisation_queue.pop();
           
-          // Allocate active strain and time of acquisition to map
-          // TODO: Add strain allocation in and removing of strain pointer in strain realisation vector
-          // allocate_strain(parameters, m_infection_strain_realisation_queue.front());
-          // m_infection_strain_realisation_queue.pop();
-          
-          m_number_of_strains++; // This will be removed as should be in allocate strain etc
-          schedule_m_day_of_strain_clearance(parameters);
-          
-          if (!m_infection_time_realisation_queue.empty()) {
-            if (m_infection_time_realisation_queue.front() == parameters.g_current_time) {}
-            else { m_infection_realisation_empty_catch = 0; }
+          // If infection state is treated then we clear all pending infections
+          if(m_infection_state == TREATED)
+          {
+            schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+            m_infection_time_realisation_queue = std::queue<int>(); // remove pending infections as assumend to be cleared with treatment
+            m_infection_state_realisation_queue = std::queue<InfectionStatus>(); 
+            m_infection_strain_realisation_queue = std::queue<Strain*>();
+          } 
+          // Otherwise pop the time and state and schedule state change
+          else 
+          {
+            schedule_m_day_of_InfectionStatus_change(parameters);
+            m_infection_state_realisation_queue.pop();
+            m_infection_time_realisation_queue.pop();
+            
+            // Allocate active strain and time of acquisition to map
+            // TODO: Add strain allocation in and removing of strain pointer in strain realisation vector
+            // allocate_strain(parameters, m_infection_strain_realisation_queue.front());
+            // m_infection_strain_realisation_queue.pop();
+            
+            m_number_of_strains++; // This will be removed as should be in allocate strain etc
+            schedule_m_day_of_strain_clearance(parameters);
+          }
+          if (!m_infection_time_realisation_queue.empty()) 
+          {
+            if (m_infection_time_realisation_queue.front() != parameters.g_current_time) 
+            {
+              m_infection_realisation_empty_catch = 0; 
+            }
           }
           else { m_infection_realisation_empty_catch = 0; }
           

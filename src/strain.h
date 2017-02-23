@@ -27,8 +27,7 @@ class Strain {
 
 private:
 
-	static int s_strain_ID_generator;	// static member variable for initialising unique identifiers
-	const int m_strain_ID;				// member variable ID	
+	int m_strain_ID;				// member variable ID	
 	barcode_t* m_barcode_pointer;		// barcode sequence pointer  
 
 	// Phenotype parameters to do here for resistance work
