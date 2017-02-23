@@ -527,7 +527,7 @@ double Person::update(Parameters &parameters)
 
 // Caluclate daily incidence for population and 0-5 years, i.e. would they cause an incident case today
 // Returns 2 if 0-5 and incident, 1 if just incident, and 0 if neither
-int Person::log_daily_incidence(){
+int Person::log_daily_incidence(const Parameters &parameters){
   
   // Are they considered to be a new case, i.e. S, A, U
   if(m_infection_state == SUSCEPTIBLE || m_infection_state == ASYMPTOMATIC || m_infection_state == SUBPATENT) 

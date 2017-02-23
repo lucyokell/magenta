@@ -211,7 +211,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  Rcpp:Rcout << "Time elapsed in initialisation: " << duration << " seconds\n";
+  Rcpp::Rcout << "Time elapsed in initialisation: " << duration << " seconds\n";
   
   // Start from day 2
   parameters.g_current_time++;

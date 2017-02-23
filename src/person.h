@@ -295,7 +295,7 @@ public:
 	
 	// Caluclate daily incidence for population and 0-5 years, i.e. would they cause an incident case today.
 	// Returns 2 if 0-5 and incident, 1 if just incident, and 0 if neither
-	int log_daily_incidence();
+	int log_daily_incidence(const Parameters &parameters);
 
 };
 

@@ -87,7 +87,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  Rcpp:Rcout << "Time elapsed in initialisation: " << duration << " seconds\n";
+  Rcpp::Rcout << "Time elapsed in initialisation: " << duration << " seconds\n";
   
   // End of simulation time
   int g_end_time = parameters.g_current_time + (parameters.g_years * 365);
