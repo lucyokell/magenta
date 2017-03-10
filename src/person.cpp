@@ -121,12 +121,18 @@ void Person::allocate_bite(const Parameters &parameters)
   }
   
   // Work out if the bite has led to an infection
+  if (m_infection_state != TREATED || m_infection_state != PROPHYLAXIS)
+  {
+    
+  
   if (rbinomial1(1, m_biting_success_rate)) {
     // Allocate mosquito pointer 
     // m_mosquito_pointers[m_number_of_bites] = mosquito_pointer;
     
     // Allocate infection
     allocate_infection(parameters);
+  }
+  
   }
   
   // Increase number of bites 
@@ -433,6 +439,7 @@ void Person::event_handle(const Parameters &parameters) {
         m_infection_state = PROPHYLAXIS;
         schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
         m_number_of_strains = 0;
+        m_day_of_strain_clearance = 0;
         break;
       case PROPHYLAXIS:
         recover(parameters);

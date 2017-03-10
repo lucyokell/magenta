@@ -299,7 +299,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     
     // Caluclate total probability of being bitten within population
     pi_sum = std::accumulate(pi_vector.begin(), pi_vector.end(), 0.0);
-    num_bites = rpoisson1(pi_sum * Iv * 0.30677);
+    num_bites = rpoisson1(pi_sum * Iv * 1/3);
     
     // multinomial procedure for everyone and breaking when n_bites is reached
     for (unsigned int n = 0; n < parameters.g_N - 1; n++)

@@ -20,7 +20,7 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, years = 1, eqSS)
                 c("age_brackets","het_brackets","Smat",
                   "Dmat","Amat","Umat","Tmat","Pmat",
                   "IBmat","ICAmat","ICMmat","IDmat",
-                  "Iv","MaternalImmunity"))) stop("Incorrect variable names within equilibrium.steady.state")
+                  "Sv","Ev","Iv","MaternalImmunity"))) stop("Incorrect variable names within equilibrium.steady.state")
   dims.1 <- lapply(eqSS,function(x){return(dim(x)[1])})
   dims.2 <- lapply(eqSS,function(x){return(dim(x)[2])})
   if(unique(unlist(dims.1[grep("mat",names(eqSS))]))!=length(eqSS$age_brackets)) stop("Dimensions 1 error in equilibrium.stead.state matrices")
