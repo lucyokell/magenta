@@ -376,8 +376,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // status eq for logging and other logging variables
   std::vector<double> status_eq = { 0,0,0,0,0,0 };
   unsigned int log_counter = 0;
-  int total_incidence = 0;
-  int total_incidence_05 = 0;
+  double total_incidence = 0;
+  double total_incidence_05 = 0;
   int daily_incidence_return = 0;
   
   // For loop preallocations
@@ -655,8 +655,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   // Create Rcpp loggers list
   Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
-                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],Rcpp::Named("Incidence")=total_incidence,
-                                          Rcpp::Named("Incidence_05")=total_incidence_05,Rcpp::Named("InfectionStates")=Infection_States,Rcpp::Named("Ages")=Ages,
+                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],Rcpp::Named("Incidence")=total_incidence/log_counter,
+                                          Rcpp::Named("Incidence_05")=total_incidence_05/log_counter,Rcpp::Named("InfectionStates")=Infection_States,Rcpp::Named("Ages")=Ages,
                                                       Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID);
   
   
