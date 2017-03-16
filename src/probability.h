@@ -3,6 +3,7 @@
 //  probability.h
 //
 //  Created: OJ on 12/01/2017
+//	Most recent edits: OJ on 10/03/2017
 //
 //  Distributed under the MIT software licence
 //
@@ -14,6 +15,22 @@
 #define __MAGENTA__PROBABILITY__
 
 #include <vector>
+
+//------------------------------------------------
+// draw from bernoulli distribution for cD
+bool rbernoulli_cD();
+
+//------------------------------------------------
+// draw from bernoulli distribution for cT
+bool rbernoulli_cT();
+
+//------------------------------------------------
+// draw from bernoulli distribution for cU
+bool rbernoulli_cU();
+
+//------------------------------------------------
+// draw from exponenetial distribution for mosquito death
+int rexpint_mu0_1();
 
 //------------------------------------------------
 // sample from uniform(a,b) distribution
@@ -52,6 +69,10 @@ int rpoisson1(double mean);
 int rbinomial1(int trials, double p);
 
 //------------------------------------------------
+// draw from bernoulli distribution
+bool rbernoulli1(double p);
+
+//------------------------------------------------
 // draw from exponenetial distribution
 double rexpdouble1(double lambda);
 
@@ -62,5 +83,17 @@ int rexpint1(double lambda);
 //------------------------------------------------
 // sample without replacement from vector
 std::vector<int> sample_without_replacement(std::vector<int> &v, int c);
+
+//------------------------------------------------
+// sample with replacement from vector
+std::vector<int> sample_with_replacement(std::vector<int> &v, int c);
+
+//------------------------------------------------
+// sample with replacement from max integer
+std::vector<int> sample_with_replacement_from_max(int max, int c);
+
+//------------------------------------------------
+// shuffle integer vector
+void shuffle_integer_vector(std::vector<int> &vec);
 
 #endif

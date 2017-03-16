@@ -114,7 +114,7 @@ Param_List_Simulation_Saved_Init_Create <- function(years = 1, savedState)
   ##---------------------------------------------
   if(class(savedState)!="list") stop("savedState is not of class list")
   if(!is.numeric(years)) stop("years provided is not numeric")
-  if(!identical(names(savedState),c("population_List","parameters_List","Iv"))) stop("Incorrect variable names within savedState")
+  if(!identical(names(savedState),c("population_List","populations_event_and_strains_List","scourge_List","parameters_List"))) stop("Incorrect variable names within savedState")
  
   ## TODO: More checks here
   ##---------------------------------------------
