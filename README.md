@@ -4,6 +4,8 @@ Individual-based simulation model of malaria epidemiology and genomics.
 
 ## Version History
 
+18.03.2017  Individual mosquitos added
+
 22.02.2017  State pointer passing
 
 16.02.2017  No mosquito/strain version checked 

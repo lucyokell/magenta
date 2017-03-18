@@ -511,7 +511,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     }
     
     // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
-    // shuffle_integer_vector(bite_storage_queue);
+    shuffle_integer_vector(bite_storage_queue);
     
     // Reset bite and sum of biting rates
     increasing_bites = 0;

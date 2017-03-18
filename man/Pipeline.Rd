@@ -13,11 +13,11 @@ Pipeline(EIR = 120, N = 1e+05, years = 20)
 
 \item{N}{Population Size. Default = 100000}
 
-\item{years}{Lenth of simulation. Default = 10}
+\item{years}{Lenth of simulation. Default = 20}
 }
 \description{
 \code{Pipeline} steps through creating the parameter list, the equilibrium
 initialisation and steady state creation before checking and passing suitable
-parameters to the simulation
+parameters to the simulation. This is then saved
 }
 

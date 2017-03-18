@@ -2,7 +2,7 @@
 //  MAGENTA
 //  main_update.cpp
 //
-//  Created: Bob Verity on 06/12/2015
+//  Created: OJ Watson on 06/12/2015
 //
 //  Distributed under the MIT software licence
 //
@@ -235,7 +235,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     pi_cum_sum = 0;
     
     // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
-    // shuffle_integer_vector(bite_storage_queue);
+    shuffle_integer_vector(bite_storage_queue);
     
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // END: BITE ALLOCATION SAMPLING
