@@ -484,7 +484,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     pi_cum_sum = 0;
     
     // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
-    // shuffle_integer_vector(bite_storage_queue);
+    shuffle_integer_vector(bite_storage_queue);
     
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // END: BITE ALLOCATION SAMPLING

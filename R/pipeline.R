@@ -3,9 +3,10 @@
 #'
 #' \code{Pipeline} steps through creating the parameter list, the equilibrium
 #' initialisation and steady state creation before checking and passing suitable
-#' parameters to the simulation
+#' parameters to the simulation. This is then saved 
+#' 
 #' @param N Population Size. Default = 100000
-#' @param years Lenth of simulation. Default = 10
+#' @param years Lenth of simulation. Default = 20
 #' @param EIR Numeric for desired annual EIR. Default = 120
 #' 
 #' \code{Pipeline}
@@ -34,6 +35,10 @@ Pipeline <- function(EIR=120, N=100000, years = 20){
   ## Now run the simulation
   sim.out <- Simulation_R(paramList = pl)
   
-  return(sim.out)
+  ## Now let's save the simulation in full
+  pl2 <- MAGENTA::Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+  sim.save <- MAGENTA::Simulation_R(pl2)
+  
+  return(sim.save)
   
 }
