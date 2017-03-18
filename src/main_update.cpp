@@ -2,7 +2,7 @@
 //  MAGENTA
 //  main_update.cpp
 //
-//  Created: Bob Verity on 06/12/2015
+//  Created: OJ Watson on 06/12/2015
 //
 //  Distributed under the MIT software licence
 //
