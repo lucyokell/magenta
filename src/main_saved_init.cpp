@@ -612,7 +612,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     // TODO: Figure out the best way of standardising this logging 
     // Something like passing in a function name within the paramList which is the 
     // name for a logger written else where which then returns the Loggers obeject below
-    
+    Infection_States[element] = static_cast<int>(population[element].get_m_infection_state());
     Ages[element] = population[element].get_m_person_age();
     IB[element] = population[element].get_m_IB();
     ICA[element] = population[element].get_m_ICA();

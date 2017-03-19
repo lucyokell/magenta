@@ -14,8 +14,11 @@ Imports:
     Rcpp (>= 0.12.7),
     stringi,
     statmod,
-    magrittr
-Remotes: richfitz/odin
+    magrittr,
+    dde
+Remotes: 
+    richfitz/odin,
+    richfitz/dde
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 5.0.1
 SystemRequirements: C++11

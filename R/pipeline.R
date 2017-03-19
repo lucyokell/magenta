@@ -8,13 +8,14 @@
 #' @param N Population Size. Default = 100000
 #' @param years Lenth of simulation. Default = 20
 #' @param EIR Numeric for desired annual EIR. Default = 120
+#' @param full_save Boolean detailing whether the entire simulation is saved. Default = FALSE
 #' 
 #' \code{Pipeline}
 #' 
 #' @export
 
 
-Pipeline <- function(EIR=120, N=100000, years = 20){
+Pipeline <- function(EIR=120, N=100000, years = 20, full_save = FALSE){
   
   ## Pipeline
   Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
@@ -34,11 +35,14 @@ Pipeline <- function(EIR=120, N=100000, years = 20){
   
   ## Now run the simulation
   sim.out <- Simulation_R(paramList = pl)
+  res <- sim.out
   
+  if(full_save){
   ## Now let's save the simulation in full
   pl2 <- MAGENTA::Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-  sim.save <- MAGENTA::Simulation_R(pl2)
+  res <- MAGENTA::Simulation_R(pl2)
+  }
   
-  return(sim.save)
+  return(res)
   
 }
