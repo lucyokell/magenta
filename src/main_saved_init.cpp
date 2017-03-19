@@ -421,6 +421,12 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
       }
     }
     
+    // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
+    shuffle_integer_vector(mosquito_biting_queue);
+    
+    // Adjust the number of bites to account for anthrophagy
+    num_bites *= parameters.g_Q0;
+    
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // BITE HANDLING
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -483,8 +489,6 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     increasing_bites = 0;
     pi_cum_sum = 0;
     
-    // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
-    shuffle_integer_vector(bite_storage_queue);
     
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // END: BITE ALLOCATION SAMPLING

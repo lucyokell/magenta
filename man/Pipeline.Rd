@@ -4,16 +4,18 @@
 \alias{Pipeline}
 \title{Pipeline for cluster submission}
 \usage{
-Pipeline(EIR = 120, N = 1e+05, years = 20)
+Pipeline(EIR = 120, N = 1e+05, years = 20, full_save = FALSE)
 }
 \arguments{
-\item{EIR}{Numeric for desired annual EIR. Default = 120
-
-\code{Pipeline}}
+\item{EIR}{Numeric for desired annual EIR. Default = 120}
 
 \item{N}{Population Size. Default = 100000}
 
 \item{years}{Lenth of simulation. Default = 20}
+
+\item{full_save}{Boolean detailing whether the entire simulation is saved. Default = FALSE
+
+\code{Pipeline}}
 }
 \description{
 \code{Pipeline} steps through creating the parameter list, the equilibrium

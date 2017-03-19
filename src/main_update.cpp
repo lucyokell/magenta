@@ -98,6 +98,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   double total_incidence = 0;
   double total_incidence_05 = 0;
   int daily_incidence_return = 0;
+  int daily_bite_counters = 0;
   
   // For loop preallocations
   unsigned int human_update_i = 0;
@@ -172,6 +173,12 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
         num_bites++;
       }
     }
+    
+    // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
+    shuffle_integer_vector(mosquito_biting_queue);
+    
+    // Adjust the number of bites to account for anthrophagy
+    num_bites *= universe_ptr->parameters.g_Q0;
 
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // BITE HANDLING
@@ -234,9 +241,6 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     increasing_bites = 0;
     pi_cum_sum = 0;
     
-    // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
-    shuffle_integer_vector(bite_storage_queue);
-    
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // END: BITE ALLOCATION SAMPLING
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -251,6 +255,10 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
       // allocate bite to human if mosquito is infected
       if (universe_ptr->scourge[mosquito_biting_queue[num_bites_i]].m_mosquito_infected) {
         universe_ptr->population[bite_storage_queue[num_bites_i]].allocate_bite(universe_ptr->parameters, universe_ptr->scourge[mosquito_biting_queue[num_bites_i]]);
+        if ( universe_ptr->parameters.g_current_time > g_end_time - 7)
+        {
+          daily_bite_counters++;
+        }
       }
       
       // if human would cause infection to mosquito then allocate gametocytes
@@ -376,7 +384,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
                                           Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],Rcpp::Named("Incidence")=total_incidence/log_counter,
                                           Rcpp::Named("Incidence_05")=total_incidence_05/log_counter,Rcpp::Named("InfectionStates")=Infection_States,Rcpp::Named("Ages")=Ages,
-                                                      Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID);
+                                                      Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID,
+                                                        Rcpp::Named("Daily_Bites")=daily_bite_counters/log_counter);
   
   
   // Return Named List with pointer and loggers

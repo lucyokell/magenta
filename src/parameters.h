@@ -44,6 +44,7 @@ public:
   double g_beta_gradient;
   double g_beta_intercept;
   double g_ak;
+  double g_Q0;
   // delays and durations;
   double g_delay_mos;
   double g_delay_gam;

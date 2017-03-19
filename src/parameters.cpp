@@ -22,6 +22,7 @@ Parameters::Parameters() {
   g_beta_gradient = 0.05879106;
   g_beta_intercept = 0.07108894;
   g_ak = 0.30677;
+  g_Q0 = 0.92;
   // delays and durations
   g_delay_mos = 10;
   g_delay_gam = 12.5;
