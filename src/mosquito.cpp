@@ -108,8 +108,9 @@ void Mosquito::die(const Parameters & parameters)
   // Make mosquito susceptible again
   m_mosquito_infection_state = SUSCEPTIBLE;
   
-  // Schedule next blood meal and death
-  schedule_m_day_of_blood_meal(parameters);
+  // Schedule next blood meal for tomorrow (we assume on an adult mosquitos first day they feed) and death
+  // schedule_m_day_of_blood_meal(parameters);
+  m_day_of_next_blood_meal = parameters.g_current_time + 1;
   schedule_m_day_of_death(parameters);
   
   // Schedule next event

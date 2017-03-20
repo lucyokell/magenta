@@ -475,7 +475,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     }
     
     // catch rounding errors so just place this here outside loop
-    if (increasing_bites != num_bites)
+    if (increasing_bites < num_bites)
     {
       individual_binomial_bite_draw = num_bites - increasing_bites;
       for (bite_sampling_internal_i = 0; bite_sampling_internal_i < individual_binomial_bite_draw; bite_sampling_internal_i++)
@@ -617,6 +617,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     // Something like passing in a function name within the paramList which is the 
     // name for a logger written else where which then returns the Loggers obeject below
     Infection_States[element] = static_cast<int>(population[element].get_m_infection_state());
+    population[element].update_immunities_to_today(parameters);
     Ages[element] = population[element].get_m_person_age();
     IB[element] = population[element].get_m_IB();
     ICA[element] = population[element].get_m_ICA();

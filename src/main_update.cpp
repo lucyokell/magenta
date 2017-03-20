@@ -227,7 +227,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     }
     
     // catch rounding errors so just place this here outside loop
-    if (increasing_bites != num_bites)
+    if (increasing_bites < num_bites)
     {
       individual_binomial_bite_draw = num_bites - increasing_bites;
       for (bite_sampling_internal_i = 0; bite_sampling_internal_i < individual_binomial_bite_draw; bite_sampling_internal_i++)

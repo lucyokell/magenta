@@ -427,6 +427,9 @@ public:
   // Returns 2 if 0-5 and incident, 1 if just incident, and 0 if neither
   int log_daily_incidence(const Parameters &parameters);
   
+  // Update immunities so they are correct for today - helpful when logging to know actual immunities
+  void update_immunities_to_today(const Parameters &parameters);
+  
 };
 
 #endif // PERSON_H

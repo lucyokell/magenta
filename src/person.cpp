@@ -873,7 +873,19 @@ int Person::log_daily_incidence(const Parameters &parameters) {
   return(0);
 }
 
-
+void Person::update_immunities_to_today(const Parameters &parameters) {
+  
+  m_IB *= exp((m_IB_last_calculated_time - parameters.g_current_time) / parameters.g_dB);
+  // Update last calculated time
+  m_IB_last_calculated_time = parameters.g_current_time;
+  // First calculate what the current immunities should be given when it was last calculated
+  m_ID *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dB);
+  m_ICA *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dCA);
+  m_ICM *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dCM);
+  
+  // Update last calculated time
+  m_I_C_D_CM_last_calculated_time = parameters.g_current_time;
+}
 
 
 

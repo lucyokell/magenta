@@ -72,8 +72,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
     age_rate[i] <- ifelse(i == na, 0, 1/(age[i + 1] - age[i]))  # vector of rates at which people leave each age group (1/age group width)
     if (i < na) 
       age2[i] <- 0.5 * (age2[i] + age2[i + 1])  # set age group vector to the midpoint of the group
-    age_width[i] <- ifelse(i == na, age_width[i], age[i] - age[i - 
-                                                                 1])
+    age_width[i] <- ifelse(i == na, age[i] - age[i - 1], age[i] - age[i - 1])
   }
   age_width <- age_width[-1]  # bet this will break at some point
   
@@ -90,7 +89,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   foi_age <- c()
   for (i in 1:na)
   {
-    foi_age[i] <- 1 - mpl$rho * exp(-age[i]/mpl$a0)  #force of infection for each age group
+    foi_age[i] <- 1 - (mpl$rho * exp(-age[i]/mpl$a0))  #force of infection for each age group
   }
   fden <- foi_age * den
   omega <- sum(fden)  #normalising constant
