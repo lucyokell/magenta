@@ -176,7 +176,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5){
     "Sv" = out$Sv[final],
     "Ev" = sum(out$Ev[final,]),
     "Iv" = out$Iv[final],
-    "MaternalImmunity" = mean(eqInit$het_wt * (out$ICA[final,maternal,,1]))
+    "MaternalImmunity" = sum(out$ICA[final,maternal,,1] * (eqInit$het_wt))* mpl$PM
   )
   
   return(Equilibrium_State)

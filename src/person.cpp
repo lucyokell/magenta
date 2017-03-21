@@ -235,11 +235,11 @@ void Person::allocate_bite(const Parameters &parameters, Mosquito &mosquito)
   {
     
     // If the last bite was less than g_uB (time in which boosting of IB cannot happen) then increse IB
-    if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB - m_immunity_boost_float) {
+    if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB) {
       
       // Increase IB and update IB last boost time
       m_IB++;
-      m_IB_last_boost_time = parameters.g_current_time;
+      m_IB_last_boost_time = parameters.g_current_time + modf(m_IB_last_boost_time, &m_IB_last_boost_time);
       
     }
     
@@ -281,26 +281,26 @@ void Person::allocate_infection(const Parameters &parameters, Mosquito &mosquito
     // First calculate what the current immunities should be given when it was last calculated
     m_ID *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dB);
     m_ICA *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dCA);
-    m_ICM *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dCM);
+    m_ICM = m_ICM_init * exp(-m_person_age / parameters.g_dCM);
     
     // Update last calculated time
     m_I_C_D_CM_last_calculated_time = parameters.g_current_time;
     
     // If the last bite was less than g_uD (time in which boosting of ID cannot happen) then increse ID
-    if (m_ID_last_boost_time < parameters.g_current_time - parameters.g_uD - m_immunity_boost_float) {
+    if (m_ID_last_boost_time < parameters.g_current_time - parameters.g_uD) {
       
       // Increase ID and update ID last boost time
       m_ID++;
-      m_ID_last_boost_time = parameters.g_current_time;
+      m_ID_last_boost_time = parameters.g_current_time + modf(m_ID_last_boost_time, &m_ID_last_boost_time);
       
     }
     
     // If the last bite was less than g_uCA (time in which boosting of ICA cannot happen) then increse ICA
-    if (m_ICA_last_boost_time < parameters.g_current_time - parameters.g_uCA - m_immunity_boost_float) {
+    if (m_ICA_last_boost_time < parameters.g_current_time - parameters.g_uCA) {
       
       // Increase IB and update IB last boost time
       m_ICA++;
-      m_ICA_last_boost_time = parameters.g_current_time;
+      m_ICA_last_boost_time = parameters.g_current_time + modf(m_ICA_last_boost_time, &m_ICA_last_boost_time);
       
     }
     
@@ -400,7 +400,7 @@ void Person::schedule_m_day_of_InfectionStatus_change(const Parameters &paramete
 void Person::schedule_m_day_of_death(const Parameters &parameters)
 {
   // Throw if called on someone who is not SUSCEPTIBLE
-  assert(m_infection_state == SUSCEPTIBLE && "Death day schedule called for someone who is not susceptible");
+  // assert(m_infection_state == SUSCEPTIBLE && "Death day schedule called for someone who is not susceptible");
   
   // Exppnential waiting time plus current day and 1 so not the same day
   m_day_of_death = rexpint1(1.0 / parameters.g_average_age) + parameters.g_current_time + 1;
@@ -468,14 +468,16 @@ void Person::all_strain_clearance() {
   // Clear all strains
   
   // Throw if this is called on someone with no strains
-  assert(m_number_of_strains != 0 && "Tried to clear all strains from an individual with no strains");
+  //assert(m_number_of_strains != 0 && "Tried to clear all strains from an individual with no strains");
   m_active_strains.clear();
+  m_active_strain_contribution.clear();
   
   // Update numbers of strains and clearance dates
   m_number_of_strains = 0;
   m_number_of_realised_infections = 0;
   m_day_of_strain_clearance = 0;
   m_day_of_next_strain_state_change = std::numeric_limits<int>::max();
+  m_more_than_one_strain_to_change_today_bool = false;
   
   // Clear all associated vectors
   m_infection_time_realisation_vector.clear();
@@ -493,13 +495,23 @@ void Person::die(const Parameters &parameters)
   // recover first
   recover(parameters);
   
-  // Reset immunities, strains, age, boost times
+  // Reset immunities, age
   m_IB = m_ID = m_ICA = 0;
-  m_number_of_strains = m_person_age = m_ID_last_boost_time = m_IB_last_boost_time = m_ICA_last_boost_time = 0;
+  m_person_age = 0;
+  
+  // set their boost times back enough so that they are guaranteed to boost if bitten tomorrow
+  m_IB_last_boost_time -= parameters.g_uB;
+  m_ICA_last_boost_time -= parameters.g_uCA;
+  m_ID_last_boost_time -= parameters.g_uD;
   
   // Set maternal immunity
-  m_ICM = parameters.g_PM * parameters.g_mean_maternal_immunity;
+  m_ICM = m_ICM_init = parameters.g_PM * parameters.g_mean_maternal_immunity;
   
+  // Schedule death
+  schedule_m_day_of_death(parameters);
+  
+  // Set new day of next event
+  set_m_day_of_next_event();
 }
 
 // Recover to being susceptible, i.e. clearing all infections and strains and associated timings
@@ -513,23 +525,16 @@ void Person::recover(const Parameters &parameters)
   if (m_number_of_strains > 0) {
     all_strain_clearance();
   }
-  
+  else 
+  {
   // Clear waiting infection vectors
   m_infection_time_realisation_vector.clear();
   m_infection_state_realisation_vector.clear();
   m_infection_barcode_realisation_vector.clear();
-  
-  // Clear strain vectors
-  m_active_strains.clear();
-  m_active_strain_contribution.clear();
+  }
   
   // Reset other events to 0
-  m_day_of_strain_clearance = 0;
   m_day_of_InfectionStatus_change = 0;
-  m_more_than_one_strain_to_change_today_bool = false;
-  
-  // Schedule death
-  schedule_m_day_of_death(parameters);
   
   // Update next event counter - due to nature of recovering the next event has to be their death
   m_day_of_next_event = m_day_of_death;
@@ -882,7 +887,7 @@ void Person::update_immunities_to_today(const Parameters &parameters) {
   // First calculate what the current immunities should be given when it was last calculated
   m_ID *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dB);
   m_ICA *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dCA);
-  m_ICM *= exp((m_I_C_D_CM_last_calculated_time - parameters.g_current_time) / parameters.g_dCM);
+  m_ICM = m_ICM_init * exp(-m_person_age / parameters.g_dCM);
   
   // Update last calculated time
   m_I_C_D_CM_last_calculated_time = parameters.g_current_time;

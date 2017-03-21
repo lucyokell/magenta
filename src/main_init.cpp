@@ -104,7 +104,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   Rcpp::NumericMatrix IDmat(Rcpp::as<NumericMatrix>(eqSS["IDmat"]));
   vector<double> age_brackets = Rcpp::as<vector<double> >(eqSS["age_brackets"]);
   vector<double> het_brackets = Rcpp::as<vector<double> >(eqSS["het_brackets"]);
-  
+  double ICM_Init = Rcpp::as<double>(eqSS["MaternalImmunity"]);
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     // are they in the last - do this first for those people with ages that happen to be above the max age bracket
     if(population[n].get_m_person_age() >= (age_brackets[num_age_brackets-1]))
     {
-      age_bracket_in = num_age_brackets;
+      age_bracket_in = num_age_brackets-1;
     } 
     // if not then loop up to last-1
     for(int age_i = 0 ; age_i < (num_age_brackets-1) ; age_i++)
@@ -157,7 +157,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     // are they in the last - do this first for those people with heterogeneities that happen to be above the max 
     if(population[n].get_m_individual_biting_rate() >= het_brackets[num_het_brackets-1]) 
     {
-      het_bracket_in = num_het_brackets;
+      het_bracket_in = num_het_brackets-1;
     }
     if(population[n].get_m_individual_biting_rate() < het_brackets[1])
     {
@@ -182,7 +182,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     population[n].set_m_infection_state(static_cast<Person::InfectionStatus>(sample1(infection_state_probability, std::accumulate(infection_state_probability.begin(), infection_state_probability.end(),0.0))));
     population[n].set_m_IB(IBmat(age_bracket_in, het_bracket_in));
     population[n].set_m_ICA(ICAmat(age_bracket_in, het_bracket_in));
-    population[n].set_m_ICM(ICMmat(age_bracket_in, het_bracket_in));
+    population[n].set_m_ICM_init(ICM_Init);
+    population[n].set_m_ICM(ICM_Init * exp(-population[n].get_m_person_age() / parameters.g_dCM));
     population[n].set_m_ID(IDmat(age_bracket_in, het_bracket_in));
     
     // Schedule change for those who are not susceptible

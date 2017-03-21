@@ -83,9 +83,9 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   std::vector<double> ICA(universe_ptr->parameters.g_N);
   std::vector<double> ICM(universe_ptr->parameters.g_N);
   std::vector<double> ID(universe_ptr->parameters.g_N);
-  std::vector<int> IB_last_boost_time(universe_ptr->parameters.g_N);
-  std::vector<int> ICA_last_boost_time(universe_ptr->parameters.g_N);
-  std::vector<int> ID_last_boost_time(universe_ptr->parameters.g_N);
+  std::vector<double> IB_last_boost_time(universe_ptr->parameters.g_N);
+  std::vector<double> ICA_last_boost_time(universe_ptr->parameters.g_N);
+  std::vector<double> ID_last_boost_time(universe_ptr->parameters.g_N);
   std::vector<int> IB_last_calculated_time(universe_ptr->parameters.g_N);
   std::vector<int> I_C_D_CM_last_calculated_time(universe_ptr->parameters.g_N);
   std::vector<double> Immunity_boost_float(universe_ptr->parameters.g_N);

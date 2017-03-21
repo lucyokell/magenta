@@ -14,7 +14,6 @@
 #define PARAMETERS_H
 
 #include "stdafx.h"
-#include "parameters.h"
 #include <math.h>
 #include <vector>
 #include <queue>

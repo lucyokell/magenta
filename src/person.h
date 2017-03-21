@@ -100,22 +100,23 @@ private:
   // Person's pre-erythrocytic immunity (IB), i.e. infection blocking
   double m_IB;								// infection-blocking immunity 
   double m_biting_success_rate = 0;			// Temporary biting success rate (b) dependent on age and pre-erythocytic immunity
-  int m_IB_last_boost_time = 0;				// time that IB was last boosted
+  double m_IB_last_boost_time = runif1(0.0, 1.0);				// time that IB was last boosted
   int m_IB_last_calculated_time = 0;			// time IB was last calculated
   
   // Person's acquired disease blocking immunity 
+  double m_ICM_init;
   double m_ICM;								// maternally acquired immunty (ICM)
   double m_ICA;								// exposure acquired immunity (ICA)
-  int m_ICA_last_boost_time = 0;				// time that ICA was last boosted
+  double m_ICA_last_boost_time = runif1(0.0, 1.0);				// time that ICA was last boosted
   int m_I_C_D_CM_last_calculated_time = 0;		// time IC and ID was last calculated
   
   // Person's blood stage immunity (I.D), i.e. reducing probability of detectiona ond onwards contribution to infectiousness
   double m_ID;								// infection-blocking immunity 
-  int m_ID_last_boost_time = 0;				// time that ID was last boosted
+  double m_ID_last_boost_time = runif1(0.0, 1.0);				// time that ID was last boosted
   double m_cA;								// individuals contribution to onwards infection from asymptomatic case
   
-  // Person's float for immunities and age to give non integer comparisons for boosting, i.e. so parameter
-  // for boosting equals 7.2, it doesn't essentially become 8 for everyone
+  // Important to note the above runifs as these are key in ensuring that the last boost times represent random times in the day
+  // that biting occurs
   double m_immunity_boost_float = runif1(0.0, 1.0);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -187,17 +188,20 @@ public:
   // Get person's ICM
   double get_m_ICM() { return (m_ICM); }
   
+  // Get person's ICM_init
+  double get_m_ICM_init() { return (m_ICM_init); }
+  
   // Get person's ID
   double get_m_ID() { return (m_ID); }
   
   // Get person's IB_last_boost_time
-  int get_m_IB_last_boost_time() { return (m_IB_last_boost_time); }
+  double get_m_IB_last_boost_time() { return (m_IB_last_boost_time); }
   
   // Get person's ICA_last_boost_time
-  int get_m_ICA_last_boost_time() { return (m_ICA_last_boost_time); }
+  double get_m_ICA_last_boost_time() { return (m_ICA_last_boost_time); }
   
   // Get person's ID_last_boost_time
-  int get_m_ID_last_boost_time() { return (m_ID_last_boost_time); }
+  double get_m_ID_last_boost_time() { return (m_ID_last_boost_time); }
   
   // Get person's IB_last_calculated_time
   int get_m_IB_last_calculated_time() { return (m_IB_last_calculated_time); }
@@ -305,14 +309,17 @@ public:
   // Set person's ICM
   void set_m_ICM(double x) { m_ICM = x; }
   
+  // Set person's ICM_init
+  void set_m_ICM_init(double x) { m_ICM_init = x; }
+  
   // Set person's IB_last_boost_time
-  void set_m_IB_last_boost_time(int x) { m_IB_last_boost_time = x; }
+  void set_m_IB_last_boost_time(double x) { m_IB_last_boost_time = x; }
   
   // Set person's ICA_last_boost_time
-  void set_m_ICA_last_boost_time(int x) { m_ICA_last_boost_time = x; }
+  void set_m_ICA_last_boost_time(double x) { m_ICA_last_boost_time = x; }
   
   // Set person's ID_last_boost_time
-  void set_m_ID_last_boost_time(int x) { m_ID_last_boost_time = x; }
+  void set_m_ID_last_boost_time(double x) { m_ID_last_boost_time = x; }
   
   // Set person's IB_last_calculated_time
   void set_m_IB_last_calculated_time(int x) { m_IB_last_calculated_time = x; }
