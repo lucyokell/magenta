@@ -494,10 +494,11 @@ void Person::die(const Parameters &parameters)
   recover(parameters);
   
   // Reset immunities, strains, age, boost times
-  m_IB = m_ID = m_ICA = m_number_of_strains = m_person_age = m_ID_last_boost_time = m_IB_last_boost_time = m_ICA_last_boost_time = 0;
+  m_IB = m_ID = m_ICA = 0;
+  m_number_of_strains = m_person_age = m_ID_last_boost_time = m_IB_last_boost_time = m_ICA_last_boost_time = 0;
   
   // Set maternal immunity
-  m_ICM = parameters.g_PM * parameters.g_mean_maternal_immunity * m_individual_biting_rate;
+  m_ICM = parameters.g_PM * parameters.g_mean_maternal_immunity;
   
 }
 
@@ -779,7 +780,7 @@ double Person::update(Parameters &parameters)
   m_person_age++;
   
   // Find out if pregnacy age
-  if (m_person_age > 20 * 365 && m_person_age < 21 * 365) {
+  if (m_person_age > (15 * 365) && m_person_age < (25 * 365)) {
     parameters.g_sum_maternal_immunity += m_ICA;
     parameters.g_total_mums++;
   }

@@ -1,7 +1,7 @@
 Package: MAGENTA
 Type: Package
 Title: Individual-based simulation model of malaria epidemiology and genomics.
-Version: 0.1
+Version: 0.11
 Date: 2017-2-12
 Author: OJ Watson & Bob Verity
 Maintainer: Oliver Watson <o.watson@imperial.ac.uk>
