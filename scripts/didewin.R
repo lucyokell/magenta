@@ -1,35 +1,26 @@
-## Typical Cluster script
-
-install.packages("didewin",
-                 repos=c(CRAN="https://cran.rstudio.com",
-                         drat="https://richfitz.github.io/drat"))
-
-devtools::install_github(c(
-  "richfitz/ids",
-  "richfitz/syncr",
-  "dide-tools/context",
-  "richfitz/queuer",
-  "dide-tools/didewin"))
-
-install.packages("openssl")
-
-didewin::didewin_config_global(credentials="C:\\Users\\Oliver\\.smbcredentials",
-                               temp=didewin::path_mapping("tmp","T:","//fi--didef2.dide.ic.ac.uk/tmp","T:"),
-                               cluster="fi--dideclusthn")
-
-didewin::didewin_config(rtools=TRUE)
-didewin::web_login()
-
-sources.vector <- c(paste("R/",list.files("M:/OJ/MAGENTA/R"),sep=""))
+didehpc::didehpc_config_global(credentials="C:\\Users\\Oliver\\.smbcredentials",
+  temp=didehpc::path_mapping("tmp","T:","//fi--didef2.dide.ic.ac.uk/tmp","T:"),
+  home=didehpc::path_mapping("OJ","M:","//fi--didef2.dide.ic.ac.uk/Malaria","M:"))
+didehpc::web_login()
+didehpc::didehpc_config()
 
 packages.vector <- c("Rcpp","stringi","statmod", "magrittr","ring","dde","odin","MAGENTA")
+unique_value <- "ojwatson"
 
-root1 <- "M:/OJ/MAGENTA_Results/EIR_prev_inc_test"
-ctx1 <- context::context_save(sources=sources.vector, root=root1,
-                              package_sources=context::package_sources(github=c("richfitz/ring","richfitz/dde","richfitz/odin"),local="M:/OJ/MAGENTA"),
-                              packages=packages.vector)
-obj1 <- didewin::queue_didewin(ctx1, config = didewin::didewin_config(rtools = TRUE))
 
+root <- "M:/OJ/MAGENTA_Results/Mosquito_EIR_Prev7"
+context::context_log_start()
+ctx <- context::context_save(root,
+  packages = packages.vector,
+  package_sources= provisionr::package_sources(github=c("richfitz/ring","richfitz/dde","richfitz/odin"),
+    local="M:/OJ/MAGENTA"))
+config <- didehpc::didehpc_config(use_workers = TRUE)
+obj <- didehpc::queue_didehpc(ctx, config = config)
+
+workers <- obj$submit_workers(30)
 bm <- read.csv("inst/extdata/bm.txt",sep="\t")
-cpdf <- data.frame("EIR"=as.numeric(bm$EIRY_eq),"N"=1e6,"years"=20)
-grp1 <- queuer::enqueue_bulk(X = cpdf,FUN = Pipeline, obj = obj1, timeout=0)
+pos <- floor(seq(1,50,length.out = 30))
+cpdf <- data.frame("EIR"=as.numeric(bm$EIRY_eq[pos]),"N"=1e5,"years"=60, full_save=FALSE)
+grp <- queuer::enqueue_bulk(X = cpdf,FUN = Pipeline, obj = obj, timeout=0, name="EIR_Check",overwrite = T)
+
+bundle <- obj$task_bundle_get("EIR_Check")
