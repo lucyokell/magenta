@@ -202,9 +202,9 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
       "ICAmat" = eqInit$ICA[,,1],
       "ICMmat" = eqInit$ICM[,,1],
       "IDmat" = eqInit$ID[,,1],
-      "Sv" = eqInit$Sv,
-      "Ev" = eqInit$Ev,
-      "Iv" = eqInit$Iv,
+      "Sv" = eqInit$Sv * eqInit$mv0,
+      "Ev" = eqInit$Ev * eqInit$mv0,
+      "Iv" = eqInit$Iv * eqInit$mv0,
       "MaternalImmunity" = sum(eqInit$ICA[maternal,,1] * (eqInit$het_wt))* eqInit$PM
     )
     
