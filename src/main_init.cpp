@@ -165,7 +165,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     }
     for(int het_i = 1 ; het_i < (num_het_brackets-1) ; het_i++)
     {
-      if(population[n].get_m_individual_biting_rate() < het_brackets[het_i+1])
+      if(population[n].get_m_individual_biting_rate() >= het_brackets[het_i] && population[n].get_m_individual_biting_rate() < het_brackets[het_i+1])
       {
         het_bracket_in = het_i;
       }
@@ -183,7 +183,13 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     population[n].set_m_IB(IBmat(age_bracket_in, het_bracket_in));
     population[n].set_m_ICA(ICAmat(age_bracket_in, het_bracket_in));
     population[n].set_m_ICM_init(ICM_Init);
+    if(population[n].get_m_person_age() == 0){
+      population[n].set_m_ICM(ICM_Init); 
+    }
+    else
+    {
     population[n].set_m_ICM(ICM_Init * exp(-population[n].get_m_person_age() / parameters.g_dCM));
+    }
     population[n].set_m_ID(IDmat(age_bracket_in, het_bracket_in));
     
     // Schedule change for those who are not susceptible

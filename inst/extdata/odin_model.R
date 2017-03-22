@@ -241,6 +241,15 @@ EIR[,,] <- av_human[k] * rel_foi[j] * foi_age[i]/omega*Iv
 # Iv - Infectious mosquitoes
 
 # initial state values:
+# init_Sv <- user()
+# init_Ev[] <- user()
+# dim(init_Ev) <- 10
+# init_Iv <- user()
+# initial(Sv) <- init_Sv * mv0
+# initial(Ev[]) <- init_Ev[i] * mv0
+# dim(Ev) <- 10
+# initial(Iv) <- init_Iv *mv0
+
 init_Sv <- user()
 init_Ev <- user()
 init_Iv <- user()
@@ -248,6 +257,7 @@ initial(Sv) <- init_Sv * mv0
 initial(Ev[1:10]) <- init_Ev/10 * mv0
 dim(Ev) <- 10
 initial(Iv) <- init_Iv *mv0
+
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -274,6 +284,7 @@ ince <- FOIv * Sv
 
 # Number of mosquitoes born (depends on PL, number of larvae)
 betaa <- 0.5*PL/dPL
+#betaa <- mv0 * mu * theta2
 deriv(Sv) <- -ince - mu*Sv + betaa
 # Exposed mosquitoes go through 10 compartments to simulate 10 day development of
 # sporozoites (and mosquitoes that die off during this wait)

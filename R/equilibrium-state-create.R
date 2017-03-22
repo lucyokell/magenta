@@ -7,11 +7,14 @@
 #' 
 #' @param eqInit Equilibrium initialisation state as output from \code{Equilibrium_Init_Create}
 #' @param end.year Number of years to run ODE model for. Default = 5.
-#' 
+#' @param use_odin Boolean detailing whether the intiial solution is run within the odin model 
+#' for end.year length. Default = False while the model is still buggy. 
 #' 
 #' @export
 
-Equilibrium_SS_Create <- function(eqInit, end.year = 5){
+Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
+  
+  if(use_odin){
   
   ## Odin generator function
   generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
@@ -125,6 +128,8 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5){
   #odin_model_path <- "M:/OJ/MAGENTA/scripts/odin_model.R"
   gen <- odin::odin(odin_model_path,verbose=FALSE)
   
+  #eqInit$Ev <- diff(pexp(q = 1:11,rate=0.132))/ sum(diff(pexp(q = 1:11,rate=0.132))) * eqInit$Ev
+  
   #create model with initial values
   mod <- generate_default_model(ft=eqInit$ft,age=eqInit$age_brackets,dat=eqInit,generator=gen,dde=TRUE)
   tt <- seq(0,end.year*365,1)
@@ -178,6 +183,32 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5){
     "Iv" = out$Iv[final],
     "MaternalImmunity" = sum(out$ICA[final,maternal,,1] * (eqInit$het_wt))* mpl$PM
   )
+  
+  } else {
+    
+    maternal <- which.max(eqInit$age_brackets>=20)
+    
+    ## create equilibrium state for return
+    Equilibrium_State <- list(
+      "age_brackets" = eqInit$age_brackets*365,
+      "het_brackets" = eqInit$rel_foi,
+      "Smat" = eqInit$S[,,1],
+      "Dmat" = eqInit$D[,,1],
+      "Amat" = eqInit$A[,,1],
+      "Umat" = eqInit$U[,,1],
+      "Tmat" = eqInit$T[,,1],
+      "Pmat" = eqInit$P[,,1],
+      "IBmat" = eqInit$IB[,,1],
+      "ICAmat" = eqInit$ICA[,,1],
+      "ICMmat" = eqInit$ICM[,,1],
+      "IDmat" = eqInit$ID[,,1],
+      "Sv" = eqInit$Sv,
+      "Ev" = eqInit$Ev,
+      "Iv" = eqInit$Iv,
+      "MaternalImmunity" = sum(eqInit$ICA[maternal,,1] * (eqInit$het_wt))* eqInit$PM
+    )
+    
+  }
   
   return(Equilibrium_State)
   

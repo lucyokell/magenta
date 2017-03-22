@@ -783,6 +783,7 @@ double Person::update(Parameters &parameters)
 {
   // Update age
   m_person_age++;
+  m_age_dependent_biting_rate = 1 - (parameters.g_rho*exp(-m_person_age / parameters.g_a0));
   
   // Find out if pregnacy age
   if (m_person_age > (15 * 365) && m_person_age < (25 * 365)) {

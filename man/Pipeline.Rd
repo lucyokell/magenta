@@ -4,7 +4,9 @@
 \alias{Pipeline}
 \title{Pipeline for cluster submission}
 \usage{
-Pipeline(EIR = 120, N = 1e+05, years = 20, full_save = FALSE)
+Pipeline(EIR = 120, N = 1e+05, years = 20, num_het_brackets = 200,
+  num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100,
+  use_odin = FALSE, full_save = FALSE)
 }
 \arguments{
 \item{EIR}{Numeric for desired annual EIR. Default = 120}
@@ -12,6 +14,17 @@ Pipeline(EIR = 120, N = 1e+05, years = 20, full_save = FALSE)
 \item{N}{Population Size. Default = 100000}
 
 \item{years}{Lenth of simulation. Default = 20}
+
+\item{num_het_brackets}{Number of heterogeinity brackets to use in initialisation. Default = 200}
+
+\item{num_age_brackets}{Number of age brackets to use in initialisation. Default = 200}
+
+\item{geometric_age_brackets}{Boolean detailing whether age brackets are geometric. Default = TRUE}
+
+\item{max_age}{Maximum age in age brackets. Default = 100}
+
+\item{use_odin}{Boolean detailing whether the intiial solution is run within the odin model 
+first. Default = FALSE while the model is still buggy.}
 
 \item{full_save}{Boolean detailing whether the entire simulation is saved. Default = FALSE
 

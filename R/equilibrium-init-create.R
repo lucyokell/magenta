@@ -72,7 +72,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
     age_rate[i] <- ifelse(i == na, 0, 1/(age[i + 1] - age[i]))  # vector of rates at which people leave each age group (1/age group width)
     if (i < na) 
       age2[i] <- 0.5 * (age2[i] + age2[i + 1])  # set age group vector to the midpoint of the group
-    age_width[i] <- ifelse(i == na, age[i] - age[i - 1], age[i] - age[i - 1])
+    age_width[i] <- ifelse(i == na, age_width[i] - age[i - 1], age[i] - age[i - 1])
   }
   age_width <- age_width[-1]  # bet this will break at some point
   
@@ -379,14 +379,14 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   
   
   res <- list(S = S_eq, T = T_eq, D = D_eq, A = A_eq, U = U_eq, P = P_eq, 
-              IB = IB_eq, ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, Iv = Iv_eq, 
+              IB = IB_eq, ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, ICM_init_eq = ICM_init_eq, Iv = Iv_eq, 
               Sv = Sv_eq, Ev = Ev_eq, PL = PL_eq, LL = LL_eq, EL = EL_eq, age_rate = age_rate, 
-              het_wt = het_wt, omega = omega, foi_age = foi_age, rel_foi = rel_foi, 
+              het_wt = het_wt, het_x = het_x, omega = omega, foi_age = foi_age, rel_foi = rel_foi, 
               K0 = K0, mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I, 
               age_rate = age_rate, FOI = FOI_eq, EIR = EIR_eq, cA_eq = cA_eq, 
               den = den, age59 = age59, age05 = age05, ssa0 = ssa0, ssa1 = ssa1, 
               ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3, 
-              theta_c = theta_c, age_brackets = age.vector, ft = ft)
+              theta_c = theta_c, age_brackets = age.vector, ft = ft, FOIv_eq = FOIv_eq)
   
   res <- append(res,unlist(mpl))
   

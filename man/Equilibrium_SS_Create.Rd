@@ -4,12 +4,15 @@
 \alias{Equilibrium_SS_Create}
 \title{Equilibrium steady state list creation}
 \usage{
-Equilibrium_SS_Create(eqInit, end.year = 5)
+Equilibrium_SS_Create(eqInit, end.year = 5, use_odin = FALSE)
 }
 \arguments{
 \item{eqInit}{Equilibrium initialisation state as output from \code{Equilibrium_Init_Create}}
 
 \item{end.year}{Number of years to run ODE model for. Default = 5.}
+
+\item{use_odin}{Boolean detailing whether the intiial solution is run within the odin model 
+for end.year length. Default = False while the model is still buggy.}
 }
 \description{
 \code{Equilibrium_SS_Create} creates a close to steady-state system by 
