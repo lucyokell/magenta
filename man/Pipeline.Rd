@@ -6,7 +6,7 @@
 \usage{
 Pipeline(EIR = 120, N = 1e+05, years = 20, num_het_brackets = 200,
   num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100,
-  use_odin = FALSE, full_save = FALSE)
+  use_odin = FALSE, full_save = FALSE, yearly_save = FALSE)
 }
 \arguments{
 \item{EIR}{Numeric for desired annual EIR. Default = 120}
@@ -26,7 +26,9 @@ Pipeline(EIR = 120, N = 1e+05, years = 20, num_het_brackets = 200,
 \item{use_odin}{Boolean detailing whether the intiial solution is run within the odin model 
 first. Default = FALSE while the model is still buggy.}
 
-\item{full_save}{Boolean detailing whether the entire simulation is saved. Default = FALSE
+\item{full_save}{Boolean detailing whether the entire simulation is saved. Default = FALSE}
+
+\item{yearly_save}{Boolean detailing whether the logging output is saved each year up to years. Default = FALSE
 
 \code{Pipeline}}
 }
