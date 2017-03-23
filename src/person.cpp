@@ -545,7 +545,7 @@ void Person::recover(const Parameters &parameters)
 void Person::event_handle(const Parameters &parameters) {
   
   // If death occurs then no need to explore the other events
-  if (m_day_of_death == m_day_of_next_event || m_person_age == parameters.g_max_age) {
+  if (m_day_of_death == m_day_of_next_event || m_person_age >= parameters.g_max_age) {
     die(parameters);
   }
   else
@@ -792,7 +792,7 @@ double Person::update(Parameters &parameters)
   }
   
   // Handle any events that are happening today
-  if (m_day_of_next_event == parameters.g_current_time || m_person_age == parameters.g_max_age) {
+  if (m_day_of_next_event == parameters.g_current_time || m_person_age >= parameters.g_max_age) {
     event_handle(parameters);
   }
   
