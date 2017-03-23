@@ -15,6 +15,7 @@
 #' @param use_odin Boolean detailing whether the intiial solution is run within the odin model 
 #' first. Default = FALSE while the model is still buggy. 
 #' @param full_save Boolean detailing whether the entire simulation is saved. Default = FALSE
+#' @param yearly_save Boolean detailing whether the logging output is saved each year up to years. Default = FALSE
 #' 
 #' \code{Pipeline}
 #' 
@@ -23,7 +24,7 @@
 
 Pipeline <- function(EIR=120, N=100000, years = 20, 
                      num_het_brackets = 200, num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, 
-                     full_save = FALSE){
+                     full_save = FALSE, yearly_save = FALSE){
   
   ## Pipeline
   Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
@@ -54,6 +55,34 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
   ## Now check and create the parameter list for use in the Rcpp simulation
   pl <- Param_List_Simulation_Init_Create(N=N,years=years,eqSS=eqSS)
   
+  if(yearly_save){
+    
+    res <- list()
+    length(res) <- years
+    
+    pl$years = 1
+    sim.out <- Simulation_R(paramList = pl)
+    res[[1]] <- sim.out$Loggers
+    
+    for(i in 2:(years - 1)){
+      pl2 <- Param_List_Simulation_Update_Create(years = 1, statePtr = sim.out$Ptr)
+      sim.out <- Simulation_R(pl2)
+      res[[i]] <- sim.out$Loggers
+    }
+    
+    ## final run
+    pl2 <- Param_List_Simulation_Update_Create(years = 1, statePtr = sim.out$Ptr)
+    sim.out <- Simulation_R(pl2)
+    if(full_save){
+      ## Now let's save the simulation in full
+      pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+      res[[years]] <- Simulation_R(pl2)
+    } else {
+      res[[years]] <- sim.out$Loggers
+    }
+    
+  } else {
+  
   ## Now run the simulation
   sim.out <- Simulation_R(paramList = pl)
   res <- sim.out
@@ -64,6 +93,7 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
     res <- MAGENTA::Simulation_R(pl2)
   }
   
+  }
   return(res)
   
 }
