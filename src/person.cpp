@@ -40,27 +40,41 @@ bool Person::reciprocal_infection_boolean(const Parameters &parameters)
     // double q = (parameters.g_d1 + ((1 - parameters.g_d1) / (1 + fD *(pow((m_ID / parameters.g_ID0), parameters.g_kD)))));
     m_cA = (parameters.g_cU + (parameters.g_cD - parameters.g_cU) * (pow((parameters.g_d1 + ((1 - parameters.g_d1) / (1 + (1 - ((1 - parameters.g_fD0) / (1 + (pow((m_person_age / parameters.g_aD), parameters.g_gD))))) * (pow((m_ID / parameters.g_ID0), parameters.g_kD))))), parameters.g_gamma1)));
     m_cA_counter = false;
+    // work out the number of strains that are gametocytogenic, i.e. they were realised more than delay_gam time earlier
+    m_gametocytogenic_infections = std::upper_bound(m_infection_time_realisation_vector.begin(), 
+                                                    m_infection_time_realisation_vector.end(), 
+                                                    parameters.g_current_time - parameters.g_delay_gam) - m_infection_time_realisation_vector.begin(); 
   }
   
-  // Match infection state and asses whether onward infection would have happened
-  switch (m_infection_state)
+  // If there are gametocytogenic infections then work out whether they led to onward infecion of the mosquito, otherwise return false
+  if (m_gametocytogenic_infections)
   {
-  case SUSCEPTIBLE:
+    
+    // Match infection state and asses whether onward infection would have happened
+    switch (m_infection_state)
+    {
+    case SUSCEPTIBLE:
+      return(false);
+    case DISEASED:
+      return(rbernoulli_cD());
+    case ASYMPTOMATIC:
+      /*return(rbinomial1(1,m_cA));*/
+      return(rbernoulli1(m_cA));
+    case SUBPATENT:
+      return(rbernoulli_cU());
+    case TREATED:
+      return(rbernoulli_cT());
+    case PROPHYLAXIS:
+      return(false);
+    default:
+      assert("Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
     return(false);
-  case DISEASED:
-    return(rbernoulli_cD());
-  case ASYMPTOMATIC:
-    /*return(rbinomial1(1,m_cA));*/
-    return(rbernoulli1(m_cA));
-  case SUBPATENT:
-    return(rbernoulli_cU());
-  case TREATED:
-    return(rbernoulli_cT());
-  case PROPHYLAXIS:
+    }
+    
+  } 
+  else 
+  {
     return(false);
-  default:
-    assert("Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
-  return(false);
   }
   
 }
@@ -71,7 +85,9 @@ std::vector<barcode_t> Person::sample_two_barcodes(const Parameters &parameters)
   // Work out what the contribution for each strain is 
   if (m_contribution_counter == 0) {
     
-    for (int n = 0; n < m_number_of_strains; n++)
+    // loop over the smaller of the number of strains or gametocytogenic infections - need to do this min to handle when strains are cleared,
+    // as it might occur that there are fewer strains than realised infections that could have led to gametocytogenic infections (if they had not been cleared)
+    for (int n = 0; n < std::min(m_gametocytogenic_infections,m_number_of_strains); n++)
     {
       // Match infection state and schedule associated next state change
       switch (m_active_strains[n].get_m_strain_infection_status())

@@ -138,7 +138,7 @@ private:
   
   int m_infection_realisation_empty_catch = 1;	// Variable that allows a check for empty vectors when dealing with more than one infection realisation on a day
   int m_number_of_realised_infections = 0;	// Count of realised infections
-  
+  int m_gametocytogenic_infections = 0;         // Count of realised infections that occurred earlier than the current time - 12.5 days.
   
 public:
   
