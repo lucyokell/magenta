@@ -6,7 +6,8 @@
 \usage{
 Pipeline(EIR = 120, N = 1e+05, years = 20, num_het_brackets = 200,
   num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100,
-  use_odin = FALSE, full_save = FALSE, yearly_save = FALSE)
+  use_odin = FALSE, full_save = FALSE, human_only_full_save = FALSE,
+  yearly_save = FALSE, saved_state_path = NULL)
 }
 \arguments{
 \item{EIR}{Numeric for desired annual EIR. Default = 120}
@@ -28,13 +29,19 @@ first. Default = FALSE while the model is still buggy.}
 
 \item{full_save}{Boolean detailing whether the entire simulation is saved. Default = FALSE}
 
-\item{yearly_save}{Boolean detailing whether the logging output is saved each year up to years. Default = FALSE
+\item{human_only_full_save}{Boolean detailing whether just the human component of the simulation is saved within full_save. Default = FALSE}
+
+\item{yearly_save}{Boolean detailing whether the logging output is saved each year up to years. Default = FALSE}
+
+\item{saved_state_path}{Full file path to a saved model state to be loaded and continued. Default = NULL,
+which will trigger initialisation
 
 \code{Pipeline}}
 }
 \description{
 \code{Pipeline} steps through creating the parameter list, the equilibrium
 initialisation and steady state creation before checking and passing suitable
-parameters to the simulation. This is then saved
+parameters to the simulation. This is then saved. If a path to a savedState is
+provided then this state is loaded and continued.
 }
 
