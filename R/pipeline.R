@@ -97,7 +97,7 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
       sim.out <- Simulation_R(pl2)
       
       ## If we have specified a full save then we grab that and save it or just the human bits of interest
-      if(full_save |human_only_full_save)
+      if(full_save || human_only_full_save)
       {
         
         ## Now let's save the simulation in full
@@ -120,7 +120,7 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
       else 
       {
         ## If we don't want a full save then just save the Loggers as usual
-        res[[years]] <- sim.out$Loggers
+        res[[years]] <- sim.out
         
       }
       
@@ -155,7 +155,7 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
       else 
       {
         ## If we don't want a full save then just save the Loggers as usual
-        res <- sim.out$Loggers
+        res <- sim.out
         
       }
       

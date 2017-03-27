@@ -234,7 +234,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     // Create model state storage
-    unsigned short int scourge_size = universe_ptr->scourge.size();
+    unsigned int scourge_size = universe_ptr->scourge.size();
   
     std::vector<int> Mosquito_Infection_States(scourge_size);
     std::vector<unsigned short int> Mosquito_Day_of_next_blood_meal(scourge_size);		
