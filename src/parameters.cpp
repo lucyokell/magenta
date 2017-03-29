@@ -19,6 +19,7 @@ Parameters::Parameters() {
   g_ft = 0.4;
   // entomological parameters
   g_mu0 = 0.132;
+  g_mean_mosquito_age = 1/0.132;
   g_beta_gradient = 0.05879106;
   g_beta_intercept = 0.07108894;
   g_ak = 0.30677;

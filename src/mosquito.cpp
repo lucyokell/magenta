@@ -3,7 +3,7 @@
 
 // Non class constructor which will inialise a random strain
 Mosquito::Mosquito(const Parameters &parameters) :
-  m_day_of_death(rexpint1(parameters.g_mu0) + parameters.g_current_time + 1),
+  m_day_of_death(rexpint1(parameters.g_mean_mosquito_age) + parameters.g_current_time + 1),
   m_day_of_next_blood_meal(runiform_int_1(1, 3) + parameters.g_current_time)
 {
   // Reserve vector memory
@@ -48,7 +48,7 @@ void Mosquito::schedule_m_day_of_death(const Parameters &parameters)
   assert(m_mosquito_infection_state == SUSCEPTIBLE && "Death day schedule called for mosquito which is not susceptible");
   
   // Exponential waiting time plus current day and 1 so not the same day
-  m_day_of_death = rexpint_mu0_1() + parameters.g_current_time + 1;
+  m_day_of_death = rexpint1(parameters.g_mean_mosquito_age) + parameters.g_current_time + 1;
 }
 
 // Schedule mosquito's day of next blood meal

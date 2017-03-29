@@ -146,7 +146,7 @@ double Person::set_initial_m_individual_biting_rate(double zeta_meanlog, double 
 // Set person's age
 int Person::set_initial_m_person_age(double average_age) {
   
-  return(rexpint1(1.0 / average_age));
+  return(rexpint1(average_age));
   
 }
 
@@ -154,7 +154,7 @@ int Person::set_initial_m_person_age(double average_age) {
 void Person::set_initial_m_day_of_death(const Parameters &parameters)
 {
   // Exppnential waiting time plus current day and 1 so not the same day
-  m_day_of_death = rexpint1(1.0 / parameters.g_average_age) + parameters.g_current_time + 1;
+  m_day_of_death = rexpint1(parameters.g_average_age) + parameters.g_current_time + 1;
   
 }
 
@@ -391,19 +391,19 @@ void Person::schedule_m_day_of_InfectionStatus_change(const Parameters &paramete
   switch (m_infection_state)
   {
   case DISEASED:
-    m_day_of_InfectionStatus_change = rexpint1(1.0 / parameters.g_dur_D) + parameters.g_current_time + 1;
+    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_D) + parameters.g_current_time + 1;
     break;
   case ASYMPTOMATIC:
-    m_day_of_InfectionStatus_change = rexpint1(1.0 / parameters.g_dur_A) + parameters.g_current_time + 1;
+    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_A) + parameters.g_current_time + 1;
     break;
   case SUBPATENT:
-    m_day_of_InfectionStatus_change = rexpint1(1.0 / parameters.g_dur_U) + parameters.g_current_time + 1;
+    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_U) + parameters.g_current_time + 1;
     break;
   case TREATED:
-    m_day_of_InfectionStatus_change = rexpint1(1.0 / parameters.g_dur_T) + parameters.g_current_time + 1;
+    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_T) + parameters.g_current_time + 1;
     break;
   case PROPHYLAXIS:
-    m_day_of_InfectionStatus_change = rexpint1(1.0 / parameters.g_dur_P) + parameters.g_current_time + 1;
+    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_P) + parameters.g_current_time + 1;
     break;
   default:
     assert(NULL && "Schedule Infection Status Change Error - person's infection status not D, A, U, T or P");
@@ -419,7 +419,7 @@ void Person::schedule_m_day_of_death(const Parameters &parameters)
   // assert(m_infection_state == SUSCEPTIBLE && "Death day schedule called for someone who is not susceptible");
   
   // Exppnential waiting time plus current day and 1 so not the same day
-  m_day_of_death = rexpint1(1.0 / parameters.g_average_age) + parameters.g_current_time + 1;
+  m_day_of_death = rexpint1(parameters.g_average_age) + parameters.g_current_time + 1;
 }
 
 // Schedule person's next strain clearance
@@ -429,7 +429,7 @@ void Person::schedule_m_day_of_strain_clearance(const Parameters &parameters)
   assert(m_number_of_strains != 0 && "Tried to schedule a strain clearance day from an individual with no strains");
   
   // Work out potential new clearance day
-  int possible_clearance_day = rexpint1(m_number_of_strains / parameters.g_dur_AU) + parameters.g_current_time + 1;
+  int possible_clearance_day = rexpint1(m_number_of_strains * parameters.g_dur_AU) + parameters.g_current_time + 1;
   
   // If the new clearance day is earlier then schedule it
   if (possible_clearance_day < m_day_of_strain_clearance || !m_day_of_strain_clearance || m_day_of_strain_clearance == parameters.g_current_time) {

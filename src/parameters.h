@@ -14,7 +14,7 @@
 #define PARAMETERS_H
 
 #include "stdafx.h"
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <queue>
 #include <bitset>
@@ -40,6 +40,7 @@ public:
   double g_ft;
   // entomological parameters;
   double g_mu0;
+  double g_mean_mosquito_age;
   double g_beta_gradient;
   double g_beta_intercept;
   double g_ak;
