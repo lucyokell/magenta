@@ -55,6 +55,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // Initialise parameters
   Parameters parameters;
   parameters.g_years = Rcpp::as<double>(paramList["years"]);
+  parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
   
   // Unpack R List to Rcpp Lists
   Rcpp::List savedState = paramList["savedState"];

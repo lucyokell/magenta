@@ -10,7 +10,7 @@
 #' 
 #' @export
 
-Param_List_Simulation_Init_Create <- function(N = 1e+04, years = 1, eqSS)
+Param_List_Simulation_Init_Create <- function(N = 1e+04, years = 1, ft = 0.4, eqSS)
 {
   
   ## CHECKS ##
@@ -32,7 +32,7 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, years = 1, eqSS)
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(N = N, years = years, eqSS = eqSS)
+  paramList <- list(N = N, years = years, ft = ft, eqSS = eqSS)
   
   return(paramList)
   
@@ -50,7 +50,7 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, years = 1, eqSS)
 #' 
 #' @export
 
-Param_List_Simulation_Update_Create <- function(years = 1, statePtr)
+Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4, statePtr)
 {
   
   ## CHECKS ##
@@ -61,7 +61,7 @@ Param_List_Simulation_Update_Create <- function(years = 1, statePtr)
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(years = years, statePtr = statePtr)
+  paramList <- list(years = years, ft = ft, statePtr = statePtr)
   
   return(paramList)
   
@@ -107,7 +107,7 @@ Param_List_Simulation_Get_Create <- function(statePtr)
 #' 
 #' @export
 
-Param_List_Simulation_Saved_Init_Create <- function(years = 1, savedState)
+Param_List_Simulation_Saved_Init_Create <- function(years = 1, ft = 0.4, savedState)
 {
   
   ## CHECKS ##
@@ -120,7 +120,7 @@ Param_List_Simulation_Saved_Init_Create <- function(years = 1, savedState)
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(savedState = savedState, years = years)
+  paramList <- list(savedState = savedState,years = years, ft = ft )
   
   return(paramList)
   
@@ -159,9 +159,9 @@ Simulation_R <- function(paramList)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==3)
+    if(length(paramList)==4)
     {
-      stopifnot(identical(names(paramList), c("N", "years", "eqSS")))  
+      stopifnot(identical(names(paramList), c("N", "years", "ft", "eqSS")))  
     }
     # if it is length one it may be an unpacked list in which case unpack and check
     # this might happen in the future when a list of paramLists is fed directly to this
@@ -169,7 +169,7 @@ Simulation_R <- function(paramList)
     else if(length(paramList)==1)
     {
       paramList <- paramList[[1]]
-      stopifnot(identical(names(paramList), c("N", "years", "eqSS")))  
+      stopifnot(identical(names(paramList), c("N", "years","ft", "eqSS")))  
     } 
     else 
     {
@@ -193,9 +193,9 @@ Simulation_R <- function(paramList)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==2)
+    if(length(paramList)==3)
     {
-      stopifnot(identical(names(paramList), c("years", "statePtr")))  
+      stopifnot(identical(names(paramList), c("years","ft", "statePtr")))  
     }
     else 
     {
@@ -243,9 +243,9 @@ Simulation_R <- function(paramList)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==2)
+    if(length(paramList)==3)
     {
-      stopifnot(identical(names(paramList), c("savedState","years")))  
+      stopifnot(identical(names(paramList), c("savedState","years", "ft")))  
     }
     else 
     {

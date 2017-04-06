@@ -62,6 +62,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
   // Initialise all the universal variables from the statePtr provided
   universe_ptr->parameters.g_years = Rcpp::as<double>(paramList["years"]);
+  universe_ptr->parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: R -> C++ CONVERSIONS

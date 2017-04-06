@@ -7,6 +7,7 @@
 #' provided then this state is loaded and continued. 
 #' 
 #' @param N Population Size. Default = 100000
+#' @param ft Frequency of treatment. Default = 0.4
 #' @param years Lenth of simulation. Default = 20
 #' @param EIR Numeric for desired annual EIR. Default = 120
 #' @param num_het_brackets Number of heterogeinity brackets to use in initialisation. Default = 200
@@ -26,13 +27,17 @@
 #' @export
 
 
-Pipeline <- function(EIR=120, N=100000, years = 20, 
+Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20, 
                      num_het_brackets = 200, num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, 
                      full_save = FALSE, human_only_full_save = FALSE, yearly_save = FALSE,
-                     saved_state_path = NULL){
+                     saved_state_path = NULL,seed=runif(1,1,10000)){
   
   ## Pipeline
   Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
+  
+  ## if no seed is specified then save the seed
+  set.seed(seed)
+  message(paste0("Seed set to ",seed))
   
   ## If we don't have a saved state then we initialise first
   if(is.null(saved_state_path))
@@ -54,7 +59,7 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
     ## Create a near equilibirum initial condition
     eqInit <- Equilibrium_Init_Create(age.vector = age.vector,
                                       het.brackets = num_het_brackets,
-                                      ft = 0.4,
+                                      ft = ft,
                                       EIR = EIR,
                                       model.param.list = mpl)
     
@@ -70,7 +75,7 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
   {
     # If we have provided the saved state then load this
     saved_state <- readRDS(saved_state_path)
-    pl <- Param_List_Simulation_Saved_Init_Create(years = years, savedState = saved_state)
+    pl <- Param_List_Simulation_Saved_Init_Create(years = years, ft = ft, savedState = saved_state)
     
   }
   
@@ -87,13 +92,13 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
       res[[1]] <- sim.out$Loggers
       
       for(i in 2:(years - 1)){
-        pl2 <- Param_List_Simulation_Update_Create(years = 1, statePtr = sim.out$Ptr)
+        pl2 <- Param_List_Simulation_Update_Create(years = 1, ft = ft, statePtr = sim.out$Ptr)
         sim.out <- Simulation_R(pl2)
         res[[i]] <- sim.out$Loggers
       }
       
       ## final run
-      pl2 <- Param_List_Simulation_Update_Create(years = 1, statePtr = sim.out$Ptr)
+      pl2 <- Param_List_Simulation_Update_Create(years = 1, ft = ft, statePtr = sim.out$Ptr)
       sim.out <- Simulation_R(pl2)
       
       ## If we have specified a full save then we grab that and save it or just the human bits of interest
@@ -161,7 +166,8 @@ Pipeline <- function(EIR=120, N=100000, years = 20,
       
     }
     
-  # Save the result
+  # Save the seed as an attribute adn return the result
+  attr(res,"seed") <- seed
   return(res)
   
 }

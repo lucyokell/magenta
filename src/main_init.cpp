@@ -57,6 +57,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   // Grab these R parameters first so that they are used in the initialisation
   parameters.g_N = Rcpp::as<unsigned int>(paramList["N"]);
+  parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
   parameters.g_years = Rcpp::as<double>(paramList["years"]);
   
   // Unpack the R equilibirum state parameter list object
