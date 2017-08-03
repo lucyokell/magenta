@@ -6,18 +6,9 @@ sim.out <- Pipeline(10,ft = 0.2,N=10000,years=10)
 res <- list()
 length(res) <- 30
 
-for ( i in 1 : 10){
-  
-  pl2 <- Param_List_Simulation_Update_Create(years = 2,statePtr = sim.out$Ptr)
-  sim.out <- Simulation_R(pl2)
-  pl3 <- Param_List_Simulation_Get_Create(sim.out$Ptr)
-  res[[i]] <- Simulation_R(pl3)
-  
-}
-
 ft <- c(rep(0.2,10),seq(0.2,0.8,length.out = 10),rep(0.8,10))
 
-for ( i in 11 : 30){
+for ( i in 1 : 30){
   
   pl2 <- Param_List_Simulation_Update_Create(years = 2,ft=ft[i],statePtr = sim.out$Ptr)
   sim.out <- Simulation_R(pl2)

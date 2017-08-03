@@ -553,6 +553,9 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       
       // if human would cause infection to mosquito then allocate gametocytes
       if (population[bite_storage_queue[num_bites_i]].reciprocal_infection_boolean(parameters)) {
+
+        // TODO: Here draw from a zero truncated ngeative binomial for number of oocysts that will form
+        // and then loop over this that many times. 
         scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(parameters, population[bite_storage_queue[num_bites_i]].sample_two_barcodes(parameters));
       }
       

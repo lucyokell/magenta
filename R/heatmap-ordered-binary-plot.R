@@ -86,7 +86,8 @@ Convert_Barcode_Vectors <- function(sim.save){
   
   int.out <- lapply(lapply(intout,function(x){return(unlist(x))}),unlist)
   COI <- unlist(lapply(int.out,function(x){return(length(unique(x)))}))
-
+  COI[which(n.strains==0)] <- 0
+  
   return(list("nums"=int.out,"COI"=COI))
   
 }
@@ -142,18 +143,28 @@ return(list("ids"=ids,"COI"=COI_out$COI,"sim.save"=sim.save))
 #' 
 #' @export
 
-COI_age_plot_sample_x <- function(Sample_COI_out,x,span=span,ylimmax=NULL,plot=TRUE){
+COI_age_plot_sample_x <- function(Sample_COI_out,x,span=span,ylimmax=NULL,xlimmax=NULL,plot=TRUE){
+  
+  
+  mround <- function(x,base){ 
+    base*round(x/base) 
+  } 
+  
   
   ids <- Sample_COI_out$ids[,x]
   df <- data.frame("Ages"=Sample_COI_out$sim.save$Ages[ids]/365,"COI"=Sample_COI_out$COI[ids])
   
+  df$COI[df$COI>25] <- sample(df$COI[df$COI<25])
+  df$Ages <- mround(df$Ages,1)
+  
   if(is.null(ylimmax)){
-    gg <- ggplot(df,aes(Ages,COI)) + geom_point(color="blue") + geom_smooth(span=span,color="red",se=F) + theme_bw()
+    gg <- ggplot(df,aes(Ages,COI)) + geom_point(color="blue") + geom_smooth(span=span,color="red",se=F) + theme_bw(base_size = 22)
     if(plot){
       plot(gg)
     }
   } else {
-    gg <- ggplot(df,aes(Ages,COI)) + geom_point(color="blue") + geom_smooth(span=span,color="red",se=F) + theme_bw()+ ylim(c(0,ylimmax)) 
+    gg <- ggplot(df,aes(Ages,COI)) + geom_point(color="blue") + geom_smooth(span=span,color="red",se=F) + theme_bw(base_size = 22) +
+    ylim(c(0,ylimmax)) + xlim(c(0,xlimmax))
     if(plot){
       plot(gg)
     }

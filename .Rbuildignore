@@ -4,7 +4,7 @@ TODO.txt
 ^scripts$
 .travis.yml
 Results
-scripts
+*scripts
 plots
 ^Results$
 ^plots$

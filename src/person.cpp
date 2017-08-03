@@ -128,6 +128,8 @@ std::vector<barcode_t> Person::sample_two_barcodes(const Parameters &parameters)
   }
   else
   {
+  // TODO: Introduce effective selfing here, by making a m_temp_active_strain_contribution, for which the position that 
+  // was drawn for the first barcode becomes x, such that p(selfing) = x/std::accumulate(m_temp_active_strain_contribution)
     return(std::vector<barcode_t> { m_active_strains[sample1(m_active_strain_contribution, m_contribution_sum)].get_m_barcode(), m_active_strains[sample1(m_active_strain_contribution, m_contribution_sum)].get_m_barcode() });
   }
 }
@@ -275,6 +277,7 @@ void Person::allocate_bite(const Parameters &parameters, Mosquito &mosquito)
   {
     
     // Random draw to see if the bite led to an infection
+
     if (rbernoulli1(m_biting_success_rate)) {
       
       // Allocate infection
@@ -347,8 +350,10 @@ void Person::allocate_infection(const Parameters &parameters, Mosquito &mosquito
   // Increase number of succesful bites
   m_number_of_succesful_bites++;
   
-  //TODO: Add here a rpois that details the possibility that more than one stain is pushed - if there is you simply loop through the following three lines
-  
+  //TODO: Add here a truncated neg binomial that details the possibility that more than one stain is pushed - if there is you simply loop through the following three lines
+  // TODO: Introduce here a carrying capacity - it makes sense that an individual with ahve their immunity increased without
+  // gaining a new strain
+
   // Push the resultant state of infection
   m_infection_state_realisation_vector.emplace_back(m_transition_vector[sample1(m_transition_probabilities, m_sum_transition_probabilities)]);
   

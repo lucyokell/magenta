@@ -1,8 +1,8 @@
 contextualise <- function(root = "M:/OJ/MAGENTA_Results/Mosquito_EIR_Prev_Check_max_age_with_plusmodf_and_gamtcg_and_new_seeds"){
 
 didehpc::didehpc_config_global(credentials="C:\\Users\\Oliver\\.smbcredentials",
-                               temp=didehpc::path_mapping("tmp","T:","//fi--didef2.dide.ic.ac.uk/tmp","T:"),
-                               home=didehpc::path_mapping("OJ","M:","//fi--didef2.dide.ic.ac.uk/Malaria","M:"))
+                               temp=didehpc::path_mapping("tmp","T:","//fi--didef3.dide.ic.ac.uk/tmp","T:"),
+                               home=didehpc::path_mapping("OJ","M:","//fi--didef3.dide.ic.ac.uk/Malaria","M:"))
 didehpc::web_login()
 didehpc::didehpc_config()
 
