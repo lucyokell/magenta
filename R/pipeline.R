@@ -33,7 +33,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,
                      saved_state_path = NULL,seed=runif(1,1,10000)){
   
   ## Pipeline
-  Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
+  #Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
   
   ## if no seed is specified then save the seed
   set.seed(seed)
@@ -67,105 +67,107 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,
     eqSS <- Equilibrium_SS_Create(eqInit = eqInit, end.year=5, use_odin = use_odin)
     
     ## Now check and create the parameter list for use in the Rcpp simulation
-    pl <- Param_List_Simulation_Init_Create(N=N,years=years,eqSS=eqSS)
-  
+    pl <- Param_List_Simulation_Init_Create(N=N,eqSS=eqSS)
+    
   }
   ## If there is a saved state path then we load this
   else 
   {
     # If we have provided the saved state then load this
     saved_state <- readRDS(saved_state_path)
-    pl <- Param_List_Simulation_Saved_Init_Create(years = years, ft = ft, savedState = saved_state)
+    pl <- Param_List_Simulation_Saved_Init_Create(savedState = saved_state)
     
   }
+  
+  ## Create model simulation state
+  sim.out <- Simulation_R(paramList = pl)
   
   # If we have specified a yearly save we iterate through the total time in year chunks saving the loggers at each stage
   ## TODO: Put the human state save in the year chuck section as well 
   if(yearly_save)
-    {
-      
-      res <- list()
-      length(res) <- years
-      
-      pl$years <- 1
-      sim.out <- Simulation_R(paramList = pl)
-      res[[1]] <- sim.out$Loggers
-      
-      for(i in 2:(years - 1)){
-        pl2 <- Param_List_Simulation_Update_Create(years = 1, ft = ft, statePtr = sim.out$Ptr)
-        sim.out <- Simulation_R(pl2)
-        res[[i]] <- sim.out$Loggers
-      }
-      
-      ## final run
+  {
+    
+    res <- list()
+    length(res) <- years
+    
+    for(i in 1:(years-1)){
       pl2 <- Param_List_Simulation_Update_Create(years = 1, ft = ft, statePtr = sim.out$Ptr)
       sim.out <- Simulation_R(pl2)
+      res[[i]] <- sim.out$Loggers
+    }
+    
+    ## final run
+    pl2 <- Param_List_Simulation_Update_Create(years = 1, ft = ft, statePtr = sim.out$Ptr)
+    sim.out <- Simulation_R(pl2)
+    
+    ## If we have specified a full save then we grab that and save it or just the human bits of interest
+    if(full_save || human_only_full_save)
+    {
       
-      ## If we have specified a full save then we grab that and save it or just the human bits of interest
-      if(full_save || human_only_full_save)
+      ## Now let's save the simulation in full
+      pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+      sim.save <- Simulation_R(pl2)
+      
+      ## If we want just the humans then get the keybits and save that instead
+      if(human_only_full_save)
       {
-        
-        ## Now let's save the simulation in full
-        pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-        sim.save <- Simulation_R(pl2)
-        
-        ## If we want just the humans then get the keybits and save that instead
-        if(human_only_full_save)
-        {
-          Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
-          Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
-          res[[years]] <- Humans
-        } 
-        else
-        {
-          res[[years]] <- sim.save
-        }
-        
+        Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
+        Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
+        res[[years]] <- Humans
       } 
-      else 
+      else
       {
-        ## If we don't want a full save then just save the Loggers as usual
-        res[[years]] <- sim.out
-        
+        res[[years]] <- sim.save
       }
       
     } 
-    else
+    else 
     {
-      
-      ## Now run the simulation
-      sim.out <- Simulation_R(paramList = pl)
-      
-      ## If we have specified a full save or human save then we grab that and save it or just the human bits of interest
-      if(full_save || human_only_full_save)
-      {
-        
-        ## Now let's save the simulation in full
-        pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-        sim.save <- Simulation_R(pl2)
-        
-        ## If we want just the humans then get the keybits and save that instead
-        if(human_only_full_save)
-        {
-          Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
-          Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
-          res <- Humans
-        } 
-        else
-        {
-          res <- sim.save
-        }
-        
-      } 
-      else 
-      {
-        ## If we don't want a full save then just save the Loggers as usual
-        res <- sim.out
-        
-      }
+      ## If we don't want a full save then just save the Loggers as usual
+      res[[years]] <- sim.out
       
     }
     
+  } 
+  else
+  {
+    
+    ## Set up update for years long
+    pl2 <- Param_List_Simulation_Update_Create(years = years, ft = ft, statePtr = sim.out$Ptr)
+    
+    ## Now run the simulation
+    sim.out <- Simulation_R(paramList = pl2)
+    
+    ## If we have specified a full save or human save then we grab that and save it or just the human bits of interest
+    if(full_save || human_only_full_save)
+    {
+      
+      ## Now let's save the simulation in full
+      pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+      sim.save <- Simulation_R(pl2)
+      
+      ## If we want just the humans then get the keybits and save that instead
+      if(human_only_full_save)
+      {
+        Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
+        Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
+        res <- Humans
+      } 
+      else
+      {
+        res <- sim.save
+      }
+      
+    } 
+    else 
+    {
+      ## If we don't want a full save then just save the Loggers as usual
+      res <- sim.out
+      
+    }
+    
+  }
+  
   # Save the seed as an attribute adn return the result
   attr(res,"seed") <- seed
   return(res)

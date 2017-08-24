@@ -8,6 +8,7 @@
 #' @param rho Age-dependent biting parameter. Default = 0.85
 #' @param a0 Age-dependent biting parameter. Default = 2920
 #' @param sigma2 Variance of the log heterogeneity in biting rates. Default = 1.67
+#' @param max_age Maximum age in days. Default = 100*365
 #' @param rA Rate of leaving asymptomatic infection. Default = 0.00512821
 #' @param rT Rate of leaving treatment. Default = 0.2
 #' @param rD Rate of leaving clinical disease. Default = 0.2
@@ -86,12 +87,13 @@ Model_Param_List_Create <- function(
   rho = 0.85,
   a0 = 2920,
   sigma2 = 1.67,
+  max_age = 100*365,
   #  rate of leaving infection states
   rA = 0.00512821,
   rT = 0.2,
   rD = 0.2,
   rU = 0.00906627,
-  rP = 0.05,
+  rP = 1/15,
   #  human latent period and time lag from asexual parasites to
   dE  = 12,
   delayGam = 12.5,
@@ -109,8 +111,8 @@ Model_Param_List_Create <- function(
   aD = 8001.99,
   fD0 = 0.007055,
   gammaD = 4.8183,
-  alphaA = 0.757,
-  alphaU = 0.186,
+  alphaA = 0.75735,
+  alphaU = 0.185624,
   # Immunity reducing probability of infection
   b0 = 0.590076,
   b1 = 0.5,
@@ -175,6 +177,7 @@ Model_Param_List_Create <- function(
   mp.list$rho <- rho
   mp.list$a0 <- a0
   mp.list$sigma2 <- sigma2
+  mp.list$max_age <- max_age
   
   # rate of leaving infection states
   mp.list$rA <- rA
@@ -190,7 +193,7 @@ Model_Param_List_Create <- function(
   
   # infectiousness to mosquitoes
   mp.list$cD <- cD
-  mp.list$cT <- cT * cD
+  mp.list$cT <- cT
   mp.list$cU <- cU
   mp.list$gamma1 <- gamma1
 
@@ -270,16 +273,15 @@ Model_Param_List_Create <- function(
   mp.list$r_ITN1 <- r_ITN1
   mp.list$r_IRS0 <- r_IRS0
   mp.list$d_IRS0 <- d_IRS0
-  mp.list$irs_half_life <- irs_half_life * DY
-  mp.list$itn_half_life <- itn_half_life * DY
+  mp.list$irs_half_life <- irs_half_life
+  mp.list$itn_half_life <- itn_half_life 
   mp.list$IRS_interval <- IRS_interval
   mp.list$ITN_interval <- ITN_interval
   mp.list$irs_half_life <- 0.5 * mp.list$DY
   mp.list$itn_half_life <- 2.64 * mp.list$DY
   mp.list$irs_loss <- log(2)/mp.list$irs_half_life
   mp.list$itn_loss <- log(2)/mp.list$itn_half_life
-  mp.list$IRS_interval <- IRS_interval * DY
-  mp.list$ITN_interval <- ITN_interval * DY
+
   
   return(mp.list)
 }

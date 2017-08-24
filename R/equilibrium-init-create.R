@@ -33,11 +33,11 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   if(!is.numeric(age.vector)) stop("age.vector provided is not numeric")
   if(sum(diff(age.vector)>0) != (length(age.vector)-1)) stop("age.vector is not sequentially increasing brackets of age")
   if(!is.numeric(het.brackets)) stop("het.brackets proovided is not numeric")
-  if(!is.null(country) | is.character(country)) stop("country specified is not character string")
-  if(!is.null(admin.unit) | is.character(admin.unit)) stop("admin.unit specified is not character string")
+  if(!(is.null(country) | is.character(country))) stop("country specified is not character string")
+  if(!(is.null(admin.unit) | is.character(admin.unit))) stop("admin.unit specified is not character string")
   if(!is.numeric(ft)) stop("ft provided is not numeric")
   if(!is.numeric(EIR)) stop("EIR provided is not numeric")
-  if(!identical(names(mpl),c("DY","eta","rho","a0","sigma2","rA","rT",
+  if(!identical(names(mpl),c("DY","eta","rho","a0","sigma2","max_age","rA","rT",
                              "rD","rU","rP","dE","delayGam","cD","cT","cU",
                              "gamma1","d1","dID","ID0","kD","uD","aD","fD0",
                              "gammaD","alphaA","alphaU","b0","b1","dB","IB0",
@@ -99,7 +99,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   het_wt <- h$weights
   den_het <- outer(den, het_wt)
   
-  rel_foi <- exp(mpl$sigma2/2 + sqrt(mpl$sigma2) * het_x)/sum(het_wt * exp(mpl$sigma2/2 + sqrt(mpl$sigma2) * het_x))
+  rel_foi <- exp(-mpl$sigma2/2 + sqrt(mpl$sigma2) * het_x)/sum(het_wt * exp(-mpl$sigma2/2 + sqrt(mpl$sigma2) * het_x))
   
   
   ## EIR
@@ -143,8 +143,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   {
     for (i in 1:na)
     {
-      IB_eq[i, j] <- (ifelse(i == 1, 0, IB_eq[i - 1, j]) + EIR_eq[i, 
-                                                                  j]/(EIR_eq[i, j] * mpl$uB + 1) * x_I[i])/(1 + x_I[i]/mpl$dB)
+      IB_eq[i, j] <- (ifelse(i == 1, 0, IB_eq[i - 1, j]) + EIR_eq[i,j]/(EIR_eq[i, j] * mpl$uB + 1) * x_I[i])/(1 + x_I[i]/mpl$dB)
       FOI_eq[i, j] <- EIR_eq[i, j] * ifelse(IB_eq[i, j] == 0, mpl$b0, 
                                             mpl$b0 * ((1 - mpl$b1)/(1 + (IB_eq[i, j]/mpl$IB0)^mpl$kB) + mpl$b1))
       ID_eq[i, j] <- (ifelse(i == 1, 0, ID_eq[i - 1, j]) + FOI_eq[i, 
@@ -189,14 +188,18 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   Z_eq[1, , 3] <- aD[1, ] * Z_eq[1, , 1]
   Z_eq[1, , 4] <- aP[1, ] * Z_eq[1, , 1]
   
-  for (i in 2:na)
+  for (j in 1:nh)
   {
-    for (j in 1:nh)
-    {
-      Z_eq[i, j, 1] <- (den_het[i, j] - delta[i] * (Z_eq[i - 1, j, 
-                                                         2]/betaT[i, j] + Z_eq[i - 1, j, 3]/betaD[i, j] + (mpl$rT * 
-                                                                                                             Z_eq[i - 1, j, 2]/betaT[i, j] + Z_eq[i - 1, j, 4])/betaP[i, 
-                                                                                                                                                                      j]))/(1 + aT[i, j] + aD[i, j] + aP[i, j])
+    for (i in 2:na)
+      # 
+      # for (i in 2:na)
+      # {
+      #   for (j in 1:nh)
+      #     
+      {
+      Z_eq[i, j, 1] <- (den_het[i, j] - delta[i] * (Z_eq[i - 1, j, 2]/betaT[i, j] + 
+                                                      Z_eq[i - 1, j, 3]/betaD[i, j] + 
+                                                      (mpl$rT *  Z_eq[i - 1, j, 2]/betaT[i, j] + Z_eq[i - 1, j, 4])/betaP[i, j]))/(1 + aT[i, j] + aD[i, j] + aP[i, j])
       Z_eq[i, j, 2] <- aT[i, j] * Z_eq[i, j, 1] + delta[i] * Z_eq[i - 
                                                                     1, j, 2]/betaT[i, j]
       Z_eq[i, j, 3] <- aD[i, j] * Z_eq[i, j, 1] + delta[i] * Z_eq[i - 
@@ -300,22 +303,12 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   {
     x * P_eq
   }, mat)
-  IB_eq <- vapply(cov, FUN = function(x)
-  {
-    x * IB_eq
-  }, mat)
-  ID_eq <- vapply(cov, FUN = function(x)
-  {
-    x * ID_eq
-  }, mat)
-  ICA_eq <- vapply(cov, FUN = function(x)
-  {
-    x * ICA_eq
-  }, mat)
-  ICM_eq <- vapply(cov, FUN = function(x)
-  {
-    x * ICM_eq
-  }, mat)
+  
+  IB_eq = array(IB_eq, c(na, nh, num_int))
+  ID_eq = array(ID_eq, c(na, nh, num_int))
+  ICA_eq = array(ICA_eq, c(na, nh, num_int))
+  ICM_eq = array(ICM_eq, c(na, nh, num_int))
+  
   
   
   # find database seasonal parameters
@@ -377,8 +370,23 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
     ssa0 <- ssa1 <- ssa2 <- ssa3 <- ssb1 <- ssb2 <- ssb3 <- theta_c <- 0 
   }
   
+  # better het bounds for equilbirum initialisation in individual model
+  zetas <- rlnorm(n = 1e5,meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
+  while(sum(zetas>100)>0){
+    zetas[zetas>100] <- rlnorm(n = sum(zetas>100),meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
+  }
+  wt_cuts <- round(cumsum(het_wt)*1e5)
+  zeros <- which(wt_cuts==0)
+  wt_cuts[zeros] <- 1:length(zeros)
+  larges <- which(wt_cuts==1e5)
+  wt_cuts[larges] <- (1e5 - (length(larges)-1)):1e5
+  wt_cuts <- c(0,wt_cuts)
+  het_bounds <- sort(zetas)[wt_cuts]
+  het_bounds[length(het_bounds)] <- (mpl$max_age/365)+1
   
-  res <- list(S = S_eq, T = T_eq, D = D_eq, A = A_eq, U = U_eq, P = P_eq, 
+  
+  ## collate init
+  res <- list(S = S_eq, T = T_eq, D = D_eq, A = A_eq, U = U_eq, P = P_eq, Y = Y_eq,
               IB = IB_eq, ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, ICM_init_eq = ICM_init_eq, Iv = Iv_eq, 
               Sv = Sv_eq, Ev = Ev_eq, PL = PL_eq, LL = LL_eq, EL = EL_eq, age_rate = age_rate, 
               het_wt = het_wt, het_x = het_x, omega = omega, foi_age = foi_age, rel_foi = rel_foi, 
@@ -386,7 +394,9 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
               age_rate = age_rate, FOI = FOI_eq, EIR = EIR_eq, cA_eq = cA_eq, 
               den = den, age59 = age59, age05 = age05, ssa0 = ssa0, ssa1 = ssa1, 
               ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3, 
-              theta_c = theta_c, age_brackets = age.vector, ft = ft, FOIv_eq = FOIv_eq)
+              theta_c = theta_c, age_brackets = age.vector, ft = ft, FOIv_eq = FOIv_eq, U_eq=U_eq, S_eq=S_eq,
+              T_eq=T_eq, A_eq=A_eq, D_eq = D_eq, betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,
+              age2 = age2, het_bounds = het_bounds)
   
   res <- append(res,unlist(mpl))
   

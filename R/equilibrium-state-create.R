@@ -43,7 +43,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
                      omega = dat$omega,
                      pi = pi,
                      x_I = dat$x_I,
-                     K0 = dat$K0,
+                     #eov = dat$eov,
                      mv0 = dat$mv0,
                      ssa0 = dat$ssa0,
                      ssa1 = dat$ssa1,
@@ -67,6 +67,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
                      rP = dat$rP,
                      dE = dat$dE,
                      delayGam = dat$delayGam,
+                     delayMos = dat$delayM,
                      cD = dat$cD,
                      cT = dat$cT,
                      cU = dat$cU,
@@ -107,7 +108,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
                      dLL = dat$dLL,
                      dPL = dat$dPL,
                      gammaL = dat$gammaL,
-                     eov = dat$eov,
+                     beta_larval0 = dat$betaL,
                      num_int = dat$num_int,
                      itn_cov = dat$itn_cov,
                      irs_cov = dat$irs_cov,
@@ -115,6 +116,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
                      d_ITN0 = dat$d_ITN0,
                      r_ITN0 = dat$r_ITN0,
                      r_ITN1 = dat$r_ITN1,
+                     r_IRS0 = dat$r_IRS0,
                      d_IRS0 = dat$d_IRS0,
                      IRS_interval = dat$IRS_interval,
                      ITN_interval = dat$ITN_interval,
@@ -125,10 +127,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
   
   # Create odin generator
   odin_model_path <- system.file("extdata/odin_model.R",package="MAGENTA")
-  #odin_model_path <- "M:/OJ/MAGENTA/scripts/odin_model.R"
-  gen <- odin::odin(odin_model_path,verbose=FALSE)
-  
-  #eqInit$Ev <- diff(pexp(q = 1:11,rate=0.132))/ sum(diff(pexp(q = 1:11,rate=0.132))) * eqInit$Ev
+  gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
   
   #create model with initial values
   mod <- generate_default_model(ft=eqInit$ft,age=eqInit$age_brackets,dat=eqInit,generator=gen,dde=TRUE)
@@ -166,8 +165,8 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
   
   ## create equilibrium state for return
   Equilibrium_State <- list(
-    "age_brackets" = eqInit$age_brackets*365,
-    "het_brackets" = eqInit$rel_foi,
+    "age_brackets" = eqInit$age2,
+    "het_brackets" = eqInit$het_bounds,
     "Smat" = out$S[final,,,1],
     "Dmat" = out$D[final,,,1],
     "Amat" = out$A[final,,,1],
@@ -190,8 +189,8 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
     
     ## create equilibrium state for return
     Equilibrium_State <- list(
-      "age_brackets" = eqInit$age_brackets*365,
-      "het_brackets" = eqInit$rel_foi,
+      "age_brackets" = eqInit$age2,
+      "het_brackets" = eqInit$het_bounds,
       "Smat" = eqInit$S[,,1],
       "Dmat" = eqInit$D[,,1],
       "Amat" = eqInit$A[,,1],
