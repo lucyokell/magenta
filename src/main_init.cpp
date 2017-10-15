@@ -11,7 +11,10 @@
 //
 // ---------------------------------------------------------------------------
 
-#include <RcppArmadillo.h>
+
+
+
+//#include <RcppArmadillo.h>
 #include "stdafx.h"
 #include <iostream>
 #include "parameters.h"
@@ -42,6 +45,11 @@ struct Universe {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // START: MAIN
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//' Creates initial model simulation using paramter list provided
+//'
+//' @param paramList parameter list generated with \code{Param_List_Simulation_Init_Create}
+//' @return list with ptr to model state and loggers describing the current model state
+//' @export
 // [[Rcpp::export]]
 Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
 {
@@ -49,19 +57,17 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // prove that C++ code is being run
   Rcpp::Rcout << "Rcpp function is working!\n";
   
-  // start timer
-  chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
-  
   // Initialise parameters object
   Parameters parameters;
   
   // Grab these R parameters first so that they are used in the initialisation
   parameters.g_N = Rcpp::as<unsigned int>(paramList["N"]);
-  parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
-  parameters.g_years = Rcpp::as<double>(paramList["years"]);
   
   // Unpack the R equilibirum state parameter list object
   Rcpp::List eqSS = paramList["eqSS"];
+  
+  // Grab seasonality
+  parameters.g_theta = Rcpp::as<vector<double> >(eqSS["theta"]);
   
   // Mosquito steady state values at a population level
   double Sv = Rcpp::as<double>(eqSS["Sv"]);
@@ -83,8 +89,15 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   // Add the mosquito population, i.e. scourge
   std::vector<Mosquito> scourge;
-  scourge.reserve(static_cast<int>(parameters.g_N * (Sv + Ev + Iv)));
+  parameters.g_mean_mv = parameters.g_N * (Sv + Ev + Iv);
+  scourge.reserve(static_cast<int>(parameters.g_N * (Sv + Ev + Iv) * *std::max_element(parameters.g_theta.begin(), parameters.g_theta.end())));
+  parameters.g_scourge_today = parameters.g_mean_mv * parameters.g_theta[parameters.g_calendar_day];
   
+  
+  Rcpp::Rcout << "Mean mv = " << parameters.g_mean_mv << "!\n";
+  Rcpp::Rcout << "Sv = " << Sv << "!\n";
+  Rcpp::Rcout << "Ev = " << Ev << "!\n";
+  Rcpp::Rcout << "Iv = " << Iv << "!\n";
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: INITIALISATION
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -109,7 +122,6 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
   Rcpp::Rcout << "Matrix unpacking working!\n";
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -128,9 +140,11 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   int het_bracket_in = 0;
   std::vector<double> infection_state_probability(6);
   
-  // Temporary strain vector needed for initialisation
-  std::vector<Strain> temp_strains;
-  temp_strains.reserve(100);
+  // Temporary strain and pending strain vector needed for initialisation
+  std::vector<Strain> temp_strains(100);
+  std::vector<int> temp_infection_time_realisation_vector(100);         
+  std::vector<Person::InfectionStatus> temp_infection_state_realisation_vector(100); 
+  std::vector<barcode_t> temp_infection_barcode_realisation_vector(100);   
   
   for (unsigned int n=0; n < parameters.g_N; n++) 
   {
@@ -141,14 +155,18 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     
     // first find out what age bracket they are in
     // are they in the last - do this first for those people with ages that happen to be above the max age bracket
-    if(population[n].get_m_person_age() >= (age_brackets[num_age_brackets-1]))
+    if(population[n].get_m_person_age() >= (age_brackets[num_age_brackets-2]))
     {
       age_bracket_in = num_age_brackets-1;
     } 
-    // if not then loop up to last-1
-    for(int age_i = 0 ; age_i < (num_age_brackets-1) ; age_i++)
+    if(population[n].get_m_person_age() < age_brackets[0])
     {
-      if(population[n].get_m_person_age() >= age_brackets[age_i] && population[n].get_m_person_age() < age_brackets[age_i+1])
+      age_bracket_in = 0;
+    }
+    // if not then loop up to last-1
+    for(int age_i = 1 ; age_i < (num_age_brackets-1) ; age_i++)
+    {
+      if(population[n].get_m_person_age() >= age_brackets[age_i-1] && population[n].get_m_person_age() < age_brackets[age_i])
       {
         age_bracket_in = age_i;
       }
@@ -156,17 +174,17 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     
     // second find out what heterogeneity bracket they are in
     // are they in the last - do this first for those people with heterogeneities that happen to be above the max 
-    if(population[n].get_m_individual_biting_rate() >= het_brackets[num_het_brackets-1]) 
+    if(population[n].get_m_individual_biting_rate() >= het_brackets[num_het_brackets-2]) 
     {
       het_bracket_in = num_het_brackets-1;
     }
-    if(population[n].get_m_individual_biting_rate() < het_brackets[1])
+    if(population[n].get_m_individual_biting_rate() < het_brackets[0])
     {
       het_bracket_in = 0;
     }
     for(int het_i = 1 ; het_i < (num_het_brackets-1) ; het_i++)
     {
-      if(population[n].get_m_individual_biting_rate() >= het_brackets[het_i] && population[n].get_m_individual_biting_rate() < het_brackets[het_i+1])
+      if(population[n].get_m_individual_biting_rate() >= het_brackets[het_i-1] && population[n].get_m_individual_biting_rate() < het_brackets[het_i])
       {
         het_bracket_in = het_i;
       }
@@ -210,7 +228,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     if (population[n].get_m_infection_state() != Person::SUSCEPTIBLE && population[n].get_m_infection_state() != Person::PROPHYLAXIS) 
     {
       // TODO: Think about how we can correctly initialise MOI for a given EIR. Presumably there is a rarefaction of MOI vs EIR, and the MOI is lognormal*age_dependency
-      population[n].set_m_number_of_strains(static_cast<int>(population[n].get_m_individual_biting_rate() * 2) + 1);
+      population[n].set_m_number_of_strains(static_cast<int>(population[n].get_m_individual_biting_rate()) + 1);
+      population[n].set_m_number_of_realised_infections(population[n].get_m_number_of_strains());
       population[n].schedule_m_day_of_strain_clearance(parameters);
       
       // If they are subpatent or treated the strains we allocate should have no state change
@@ -243,12 +262,25 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
         }
       }
       
+      // Set infection time,state and barcode realisations
+      for (int s = 0; s < population[n].get_m_number_of_strains(); s++)
+      {
+        temp_infection_time_realisation_vector.emplace_back(parameters.g_current_time);
+        temp_infection_state_realisation_vector.emplace_back(population[n].get_m_infection_state());
+        temp_infection_barcode_realisation_vector.emplace_back(temp_strains[s].get_m_barcode());
+      }
+      
       // Set human strains and associated times of strain state changing and clearing
       population[n].set_m_active_strains(temp_strains);
       population[n].set_m_day_of_next_strain_state_change();
+      population[n].set_m_infection_time_realisation_vector_from_vector(temp_infection_time_realisation_vector);
+      population[n].set_m_infection_state_realisation_vector(temp_infection_state_realisation_vector);
+      population[n].set_m_infection_barcode_realisation_vector_from_vector(temp_infection_barcode_realisation_vector);
       temp_strains.clear();
+      temp_infection_time_realisation_vector.clear();
+      temp_infection_state_realisation_vector.clear();
+      temp_infection_barcode_realisation_vector.clear();
       infected_human_count.push_back(n);
-      population[n].set_m_day_of_next_strain_state_change();
       
     }
     
@@ -287,6 +319,9 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     // Set their id
     scourge.push_back(Mosquito(parameters));
     scourge[n].set_m_mosquito_ID(n);
+    
+    // Set if on/off season
+    if (n >= parameters.g_scourge_today) scourge[n].set_m_mosquito_off_season(true);
     
     // Set infection status
     scourge[n].set_m_mosquito_infection_state(static_cast<Mosquito::InfectionStatus>(sample1(mosquito_status_eq, mosquito_status_eq_sum)));
@@ -359,6 +394,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   Rcpp::Rcout << "Mosquito initilisation working\n";
+  
+  /*
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: TIMERS AND PRE LOOP
@@ -654,6 +691,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   Rcpp::Rcout << "Neg imm = " << negative_immunity_check << "\n";
   
+  */
+  
   // Final infection states
   std::vector<int> Infection_States(parameters.g_N);
   std::vector<double> Ages(parameters.g_N);
@@ -662,9 +701,38 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   std::vector<double> ICM(parameters.g_N);
   std::vector<double> ID(parameters.g_N);
   
-  // loop through population and grabages and immunities for error checking
+  // status eq for logging and other logging variables 
+  std::vector<double> status_eq = { 0,0,0,0,0,0 };
+  
+  // loop through population and grab ages and immunities for error checking
   for (unsigned int element = 0; element < parameters.g_N ; element++) 
   {
+
+      // Match infection state and schedule associated next state change
+      switch (population[element].get_m_infection_state())
+      {
+      case Person::SUSCEPTIBLE:
+        status_eq[0]++;
+        break;
+      case Person::DISEASED:
+        status_eq[1]++;
+        break;
+      case Person::ASYMPTOMATIC:
+        status_eq[2]++;
+        break;
+      case Person::SUBPATENT:
+        status_eq[3]++;
+        break;
+      case Person::TREATED:
+        status_eq[4]++;
+        break;
+      case Person::PROPHYLAXIS:
+        status_eq[5]++;
+        break;
+      default:
+        assert(NULL && "Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
+      break;
+      }
     
     // Ages and immunity 
     // TODO: Figure out the best way of standardising this logging 
@@ -680,12 +748,20 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     
   }
   
+  // divide by population size and log counter and print to give overview
+  Rcpp::Rcout << "S | D | A | U | T | P:\n" ;
+  
+  for (int element = 0; element < 6; element++) 
+  {
+    status_eq[element] /= (parameters.g_N);
+    Rcpp::Rcout << status_eq[element] << " | ";
+  }
+  
   // Create Rcpp loggers list
   Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
-                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],Rcpp::Named("Incidence")=total_incidence/log_counter,
-                                          Rcpp::Named("Incidence_05")=total_incidence_05/log_counter,Rcpp::Named("InfectionStates")=Infection_States,Rcpp::Named("Ages")=Ages,
-                                                      Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID,
-                                                        Rcpp::Named("Daily_Bites")=daily_bite_counters/log_counter);
+                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
+                                          Rcpp::Named("InfectionStates")=Infection_States, Rcpp::Named("Ages")=Ages, 
+                                          Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID);
   
   
   // Create universe ptr for memory-continuiation

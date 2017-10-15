@@ -505,6 +505,5 @@ output(s_ITN) <- s_ITN
 output(d_IRS) <- d_IRS
 output(r_IRS) <- r_IRS
 output(s_IRS) <- s_IRS
-output(w[]) <- w[i]
 output(cov[]) <- cov[i]
 output(K0) <- K0

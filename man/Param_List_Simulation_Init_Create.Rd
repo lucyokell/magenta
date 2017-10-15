@@ -4,12 +4,10 @@
 \alias{Param_List_Simulation_Init_Create}
 \title{Parameter List creation for MAGENTA simulation initialisation}
 \usage{
-Param_List_Simulation_Init_Create(N = 10000, years = 1, eqSS)
+Param_List_Simulation_Init_Create(N = 10000, eqSS)
 }
 \arguments{
 \item{N}{Population size. Default = 1e4}
-
-\item{years}{Length of simulation. Default = 1}
 
 \item{eqSS}{Output of \code{Equilibrium_Steady_State_Create}}
 }
@@ -17,4 +15,3 @@ Param_List_Simulation_Init_Create(N = 10000, years = 1, eqSS)
 \code{Param_List_Simulation_Init_Create} creates suitable parameter list for
 \code{Simulation_R} for the beginning of a simulation
 }
-

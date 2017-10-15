@@ -1,8 +1,15 @@
+#------------------------------------------------
+#' Brute force conversion of PfPR and ft to an EIR
+#'
+#' @param PfPR Parasite prevaence by PCR
+#' @param ft Treatment seeking
+#' 
+
 PfPR_to_EIR_heuristic <- function(PfPR,ft){
   
   mpl <- Model_Param_List_Create(eta = 1/(21*365))
   
-  num_het_brackets <- 20
+  num_het_brackets <- 5
   num_age_brackets <- 20
   max_age <- 100
   ## Create the geometric age brackets

@@ -4,9 +4,9 @@
 // Only Constructor
 Person::Person(const Parameters &parameters) :
   
-  m_individual_biting_rate{ set_initial_m_individual_biting_rate(parameters.g_zeta_meanlog, parameters.g_zeta_sdlog) },
-  m_person_age{ set_initial_m_person_age(parameters.g_average_age) },
-  m_age_dependent_biting_rate{ set_m_age_dependent_biting_rate(parameters.g_rho, parameters.g_a0) }
+  m_person_age{ set_initial_m_person_age(parameters.g_average_age, parameters.g_max_age) },
+  m_age_dependent_biting_rate{ set_m_age_dependent_biting_rate(parameters.g_rho, parameters.g_a0) },
+  m_individual_biting_rate{ set_initial_m_individual_biting_rate(parameters.g_zeta_meanlog, parameters.g_zeta_sdlog) }
   {
     // Allocate death day
     set_initial_m_day_of_death(parameters);
@@ -41,9 +41,12 @@ bool Person::reciprocal_infection_boolean(const Parameters &parameters)
     m_cA = (parameters.g_cU + (parameters.g_cD - parameters.g_cU) * (pow((parameters.g_d1 + ((1 - parameters.g_d1) / (1 + (1 - ((1 - parameters.g_fD0) / (1 + (pow((m_person_age / parameters.g_aD), parameters.g_gD))))) * (pow((m_ID / parameters.g_ID0), parameters.g_kD))))), parameters.g_gamma1)));
     m_cA_counter = false;
     // work out the number of strains that are gametocytogenic, i.e. they were realised more than delay_gam time earlier
-    m_gametocytogenic_infections = std::upper_bound(m_infection_time_realisation_vector.begin(), 
-                                                    m_infection_time_realisation_vector.end(), 
-                                                    parameters.g_current_time - parameters.g_delay_gam) - m_infection_time_realisation_vector.begin(); 
+    for(int n = 0 ; n < m_number_of_strains ; n++){
+      if(m_infection_time_realisation_vector[n] < parameters.g_current_time - parameters.g_delay_gam){
+        m_gametocytogenic_strains.emplace_back(n);
+        m_gametocytogenic_infections++;
+      }
+    }
   }
   
   // If there are gametocytogenic infections then work out whether they led to onward infecion of the mosquito, otherwise return false
@@ -87,10 +90,10 @@ std::vector<barcode_t> Person::sample_two_barcodes(const Parameters &parameters)
     
     // loop over the smaller of the number of strains or gametocytogenic infections - need to do this min to handle when strains are cleared,
     // as it might occur that there are fewer strains than realised infections that could have led to gametocytogenic infections (if they had not been cleared)
-    for (int n = 0; n < std::min(m_gametocytogenic_infections,m_number_of_strains); n++)
+    for (int n = 0; n < m_gametocytogenic_infections; n++)
     {
       // Match infection state and schedule associated next state change
-      switch (m_active_strains[n].get_m_strain_infection_status())
+      switch (m_active_strains[m_gametocytogenic_strains[n]].get_m_strain_infection_status())
       {
       case Strain::DISEASED:
         m_active_strain_contribution.emplace_back(parameters.g_cD);
@@ -130,7 +133,8 @@ std::vector<barcode_t> Person::sample_two_barcodes(const Parameters &parameters)
   {
   // TODO: Introduce effective selfing here, by making a m_temp_active_strain_contribution, for which the position that 
   // was drawn for the first barcode becomes x, such that p(selfing) = x/std::accumulate(m_temp_active_strain_contribution)
-    return(std::vector<barcode_t> { m_active_strains[sample1(m_active_strain_contribution, m_contribution_sum)].get_m_barcode(), m_active_strains[sample1(m_active_strain_contribution, m_contribution_sum)].get_m_barcode() });
+    return(std::vector<barcode_t> { m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode(), 
+           m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode() });
   }
 }
 
@@ -141,14 +145,18 @@ std::vector<barcode_t> Person::sample_two_barcodes(const Parameters &parameters)
 // Set person's individual biting rate
 double Person::set_initial_m_individual_biting_rate(double zeta_meanlog, double zeta_sdlog) {
   
-  return(rlognorm1(zeta_meanlog, zeta_sdlog));
+  double zeta = rlognorm1(zeta_meanlog, zeta_sdlog);
+  while(zeta > 100) zeta = rlognorm1(zeta_meanlog, zeta_sdlog);
+  return(zeta);
   
 }
 
 // Set person's age
-int Person::set_initial_m_person_age(double average_age) {
+int Person::set_initial_m_person_age(double average_age, int max_age) {
   
-  return(rexpint1(average_age));
+  int age = rexpint1(average_age);
+  while(age > max_age) age = rexpint1(average_age);
+  return(age);
   
 }
 
@@ -210,7 +218,7 @@ void Person::set_m_day_of_next_event() {
   
   else // find minimum that is not zero
   {
-    // Start next event as strain state change
+    // Start next event as death
     m_day_of_next_event = m_day_of_death;
     
     // Compare against strain state change
@@ -227,9 +235,11 @@ void Person::set_m_day_of_next_event() {
     }
     
     // Compare against strain clearance day
+    /*
     if (m_day_of_next_event > m_day_of_strain_clearance && m_day_of_strain_clearance != 0) {
       m_day_of_next_event = m_day_of_strain_clearance;
     }
+    */
     
     // Compare against infection status change day
     if (m_day_of_next_event > m_day_of_InfectionStatus_change && m_day_of_InfectionStatus_change != 0) {
@@ -441,6 +451,9 @@ void Person::schedule_m_day_of_strain_clearance(const Parameters &parameters)
     m_day_of_strain_clearance = possible_clearance_day;
   }
   
+  // FOR NOW
+  m_day_of_strain_clearance = 0;
+  
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -543,16 +556,7 @@ void Person::recover(const Parameters &parameters)
   m_infection_state = SUSCEPTIBLE;
   
   // Clear strains
-  if (m_number_of_strains > 0) {
     all_strain_clearance();
-  }
-  else 
-  {
-  // Clear waiting infection vectors
-  m_infection_time_realisation_vector.clear();
-  m_infection_state_realisation_vector.clear();
-  m_infection_barcode_realisation_vector.clear();
-  }
   
   // Reset other events to 0
   m_day_of_InfectionStatus_change = 0;
@@ -571,6 +575,7 @@ void Person::event_handle(const Parameters &parameters) {
   }
   else
   {
+    /*
     // All other events could happen theoretically on the same day though so within same else block
     // Clear strain if time to do so
     if (m_day_of_strain_clearance == m_day_of_next_event) {
@@ -583,6 +588,7 @@ void Person::event_handle(const Parameters &parameters) {
         m_day_of_strain_clearance = 0; // If the strain cleared was the second last strain then there will be no clearnance date as we don't want to remove the last strain
       }
     }
+    */
     
     // Change Infection Status due to recoveries etc if time to do so
     if (m_day_of_InfectionStatus_change == m_day_of_next_event) {
@@ -619,34 +625,55 @@ void Person::event_handle(const Parameters &parameters) {
     if (m_day_of_next_strain_state_change == m_day_of_next_event) {
       
       // if we have flagged that more than one strain is changing strain state today then loop through all the strains
-      if (m_more_than_one_strain_to_change_today_bool)
+      if (true)
       {
-        for (auto &strain : m_active_strains)
+        for (int n = 0 ; n < m_number_of_strains ; n++)
         {
           // if the strain is changing today then switch it accordingly
-          if (strain.get_m_day_of_strain_infection_status_change() == parameters.g_current_time)
+          if (m_active_strains[n].get_m_day_of_strain_infection_status_change() == parameters.g_current_time)
           {
             // We might end up looping through all the strains when a new treated strain is given to a human which has the same strain state change
             // day as a previous strain - in this case just pass over the treated strain as ultimatel
-            if (strain.get_m_strain_infection_status() != Strain::TREATED) 
+            if (m_active_strains[n].get_m_strain_infection_status() != Strain::TREATED)
             {
-              switch (strain.get_m_strain_infection_status())
+              switch (m_active_strains[n].get_m_strain_infection_status())
               {
               case Strain::DISEASED:
                 // If strain to change state is diseased it will become asymptomatic and its following state change must be the same as the humans
-                strain.set_m_strain_infection_status(Strain::ASYMPTOMATIC);
-                strain.set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change);
+                m_active_strains[n].set_m_strain_infection_status(Strain::ASYMPTOMATIC);
+                m_active_strains[n].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change);
                 break;
               case Strain::ASYMPTOMATIC:
                 // If strain to change state is asymptomatic it will become subpatent and its following state change will not occur
-                strain.set_m_strain_infection_status(Strain::SUBPATENT);
-                strain.set_m_day_of_strain_infection_status_change(0);
+                m_active_strains[n].set_m_strain_infection_status(Strain::SUBPATENT);
+                // If the human has only one strain then the state change for this strain should be the same, if not then random given U duration mean
+                if (m_infection_state == SUBPATENT)
+                {
+                  m_active_strains[n].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change);
+                }
+                else
+                {
+                  m_active_strains[n].set_m_day_of_strain_infection_status_change(rexpint1(parameters.g_dur_U) + parameters.g_current_time + 1);
+                }
+                break;
+              case Strain::SUBPATENT:
+                // If strain is subpatent to change then we clear it.
+                // Swap the strain pointer and strain acquisition date at that position to the back
+                std::swap(m_active_strains[n], m_active_strains.back());
+                
+                // Pop thus deleting the random strain pointer
+                m_active_strains.pop_back();
+                
+                // Lower strain counter and decrease n so that we check the strain we just put here
+                m_number_of_strains--;
+                n--;
+                if(m_number_of_strains==0) Rcpp::Rcout << "removed last strain\n!";
                 break;
               default:
-                assert(NULL && "Strain state change equested on strain that is not diseasod of asymptomatic");
+                assert(NULL && "Strain state change equested on strain that is not diseasod or asymptomatic or subpatent");
               break;
               }
-            } 
+            }
           }
         }
         set_m_day_of_next_strain_state_change();
@@ -662,12 +689,31 @@ void Person::event_handle(const Parameters &parameters) {
           m_active_strains[m_temp_strain_to_next_change].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change);
           break;
         case Strain::ASYMPTOMATIC:
-          // If strain to change state is asymptomatic it will become subpatent and its following state change will not occur
+          // If strain to change state is asymptomatic it will become subpatent and its following state change is assumed to be that of a subpatent infection
           m_active_strains[m_temp_strain_to_next_change].set_m_strain_infection_status(Strain::SUBPATENT);
-          m_active_strains[m_temp_strain_to_next_change].set_m_day_of_strain_infection_status_change(0);
+          // If the human has only one strain then the state change for this strain should be the same, if not then random given U duration mean
+          if(m_number_of_strains == 1)
+          {
+            m_active_strains[m_temp_strain_to_next_change].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change);
+          }
+          else
+          {
+            m_active_strains[m_temp_strain_to_next_change].set_m_day_of_strain_infection_status_change(rexpint1(parameters.g_dur_U) + parameters.g_current_time + 1);
+          }
           break;
+        case Strain::SUBPATENT:
+          // If strain is subpatent to change then we clear it.
+          // Swap the strain pointer and strain acquisition date at that position to the back
+          std::swap(m_active_strains[m_temp_strain_to_next_change], m_active_strains.back());
+        
+          // Pop thus deleting the random strain pointer
+          m_active_strains.pop_back();
+        
+          // Lower strain counter
+          m_number_of_strains--;
+        break;
         default:
-          assert(NULL && "Strain state change equested on strain that is not diseasod of asymptomatic");
+          assert(NULL && "Strain state change equested on strain that is not diseasod or asymptomatic or subpatent");
         break;
         }
         set_m_day_of_next_strain_state_change();
@@ -726,15 +772,12 @@ void Person::event_handle(const Parameters &parameters) {
             m_number_of_realised_infections++;
             
             // Schedule new strain clearance day if there is more than one strain
+            /*
             if (m_number_of_strains > 1)
             {
               schedule_m_day_of_strain_clearance(parameters);
             }
-
-            // since they are being treated
-            m_infection_time_realisation_vector.clear();
-            m_infection_state_realisation_vector.clear();
-            m_infection_barcode_realisation_vector.clear();
+            */
             
           }
           // Otherwise pop the time and state and schedule state change
@@ -770,10 +813,12 @@ void Person::event_handle(const Parameters &parameters) {
             m_number_of_realised_infections++;
             
             // Schedule new strain clearance day if there is more than one strain
+            /*
             if (m_number_of_strains > 1)
             {
               schedule_m_day_of_strain_clearance(parameters);
             }
+            */
             
           }
           
@@ -823,6 +868,8 @@ double Person::update(Parameters &parameters)
   m_contribution_counter = 0;
   m_cA_counter = true;
   m_active_strain_contribution.clear();
+  m_gametocytogenic_infections = 0;
+  m_gametocytogenic_strains.clear();
   
   // Throw if the next event date is still today
   assert(m_day_of_next_event != parameters.g_current_time &&
@@ -875,7 +922,7 @@ int Person::log_daily_incidence(const Parameters &parameters) {
   if (m_infection_state == SUSCEPTIBLE || m_infection_state == ASYMPTOMATIC || m_infection_state == SUBPATENT)
   {
     // Do they have any infections pending
-    if (!m_infection_time_realisation_vector.empty())
+    if (m_infection_time_realisation_vector.size() > m_number_of_realised_infections)
     {
       // Is that infection pending for tomorrow (thuis we assume that this function is always called at the end of a day before the next day starts)
       if (m_infection_time_realisation_vector[m_number_of_realised_infections] == parameters.g_current_time + 1)

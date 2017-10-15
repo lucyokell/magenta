@@ -3,6 +3,8 @@
 Parameters::Parameters() {
   
   g_current_time = 1;
+  g_calendar_day = 1;
+  g_theta = std::vector<double>(365,1.0);
   g_years = 1;
   // demographic parameters
   g_N = 10000;
@@ -14,8 +16,9 @@ Parameters::Parameters() {
   g_rho = 0.85;
   g_zeta_meanlog = -1.67 / 2.0;
   g_zeta_sdlog = sqrt(1.67);
+  g_importation_human = 0.01;
+  g_importation_mosquito = 0.005;
   // diagnostic parameters
-  g_theta = 1;
   g_ft = 0.4;
   // entomological parameters
   g_mu0 = 0.132;
@@ -24,6 +27,10 @@ Parameters::Parameters() {
   g_beta_intercept = 0.07108894;
   g_ak = 0.30677;
   g_Q0 = 0.92;
+  // entomolgical time keeping
+  g_mosquito_deficit = 0; 
+  g_scourge_today = 0;
+  g_mean_mv = 0;
   // delays and durations
   g_delay_mos = 10;
   g_delay_gam = 12.5;

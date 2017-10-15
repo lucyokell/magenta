@@ -4,17 +4,28 @@
 \alias{Pipeline}
 \title{Pipeline for cluster submission}
 \usage{
-Pipeline(EIR = 120, N = 1e+05, years = 20, num_het_brackets = 200,
-  num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100,
-  use_odin = FALSE, full_save = FALSE, human_only_full_save = FALSE,
-  yearly_save = FALSE, saved_state_path = NULL)
+Pipeline(EIR = 120, ft = 0.4, N = 1e+05, years = 20,
+  update_length = 365, country = NULL, admin = NULL,
+  num_het_brackets = 20, num_age_brackets = 200,
+  geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE,
+  full_save = FALSE, human_only_full_save = FALSE, yearly_save = FALSE,
+  saved_state_path = NULL, seed = runif(1, 1, 10000))
 }
 \arguments{
 \item{EIR}{Numeric for desired annual EIR. Default = 120}
 
+\item{ft}{Frequency of treatment. Default = 0.4}
+
 \item{N}{Population Size. Default = 100000}
 
 \item{years}{Lenth of simulation. Default = 20}
+
+\item{update_length}{How long each update is run for in days. Default = 365}
+
+\item{country}{Character for country within which admin2 is in. Default = NULL}
+
+\item{admin}{Character for admin region. Some fuzzy logic will be used to match. If 
+not provided then no seasonality is introduced. Default = NULL}
 
 \item{num_het_brackets}{Number of heterogeinity brackets to use in initialisation. Default = 200}
 
@@ -34,7 +45,9 @@ first. Default = FALSE while the model is still buggy.}
 \item{yearly_save}{Boolean detailing whether the logging output is saved each year up to years. Default = FALSE}
 
 \item{saved_state_path}{Full file path to a saved model state to be loaded and continued. Default = NULL,
-which will trigger initialisation
+which will trigger initialisation}
+
+\item{seed}{Random seed. Default is Random
 
 \code{Pipeline}}
 }
@@ -44,4 +57,3 @@ initialisation and steady state creation before checking and passing suitable
 parameters to the simulation. This is then saved. If a path to a savedState is
 provided then this state is loaded and continued.
 }
-

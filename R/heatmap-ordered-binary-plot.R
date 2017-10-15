@@ -31,7 +31,7 @@ Heatmap_ordered_binary_plot <- function(sim.save, years, EIR, ordered = TRUE,sav
     sorted_row_pos <- unlist(sapply(names(tabled),function(x){return(which(ID==as.numeric(x)))}) )
     
     if(is.null(save_path)){
-      windows()
+      dev.new(noRStudioGD = TRUE)
       heatmap(mat[sorted_row_pos,],Rowv = NA,Colv = NA,main = paste0( years," years | EIR = ",EIR),scale="none",labRow = "")
     } else {
       tiff(save_path,width=620,height=620,units="mm",res=300,pointsize = 36, compression="lzw",family="Times New Roman")
@@ -40,7 +40,7 @@ Heatmap_ordered_binary_plot <- function(sim.save, years, EIR, ordered = TRUE,sav
     }
   } else {
     if(is.null(save_path)){
-      windows()
+      dev.new(noRStudioGD = TRUE)
       heatmap(mat,Rowv = NA,Colv = NA,main = paste0( years," years | EIR = ",EIR),scale="none",labRow = "")  
     } else {
       tiff(save_path,width=620,height=620,units="mm",res=300,pointsize = 36, compression="lzw",family="Times New Roman")
@@ -98,6 +98,10 @@ Convert_Barcode_Vectors <- function(sim.save){
 #' \code{Sample_COI} samples from a human save according to some age distirbution
 #' 
 #' @param sim.save Saved output of simulation
+#' @param sample_size Numeric for sample size
+#' @param age_densities Densitvy vector for age distribution required
+#' @param age_breaks Corresponding vector of age breaks for the density
+#' @param reps How many samples are made
 #' 
 #' 
 #' @export
@@ -139,6 +143,11 @@ return(list("ids"=ids,"COI"=COI_out$COI,"sim.save"=sim.save))
 #' 
 #' @param Sample_COI_out Output of Sample_COI
 #' @param x Which sample to plot
+#' @param span Smoothing parameter for loess
+#' @param ylimmax ylim max
+#' @param xlimmax xlim max
+#' @param plot Boolean to print the plot
+#' @importFrom ggplot2 ggplot aes geom_smooth theme_bw geom_point xlim ylim
 #' 
 #' 
 #' @export
@@ -152,7 +161,9 @@ COI_age_plot_sample_x <- function(Sample_COI_out,x,span=span,ylimmax=NULL,xlimma
   
   
   ids <- Sample_COI_out$ids[,x]
-  df <- data.frame("Ages"=Sample_COI_out$sim.save$Ages[ids]/365,"COI"=Sample_COI_out$COI[ids])
+  Ages <- Sample_COI_out$sim.save$Ages[ids]/365
+  COI <- Sample_COI_out$COI[ids]
+  df <- data.frame("Ages"=Ages,"COI"=COI)
   
   df$COI[df$COI>25] <- sample(df$COI[df$COI<25])
   df$Ages <- mround(df$Ages,1)

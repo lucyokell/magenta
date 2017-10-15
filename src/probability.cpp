@@ -27,6 +27,12 @@ bool rbernoulli_cU() {
 // --------------------------------------------------------------------------------------------------------------------------------
 
 //------------------------------------------------
+// sample from uniform(0,1) distribution
+double runif0_1() {
+  return(R::runif(0, 1));
+}
+
+//------------------------------------------------
 // sample from uniform(a,b) distribution
 double runif1(double a, double b) {
     return(R::runif(a, b));
@@ -50,6 +56,28 @@ int sample1(std::vector<double> &p, double pSum) {
             return i;
     }
     return(0);
+}
+
+//------------------------------------------------
+// sample given sorted random vector, cumsum vector, and n to sammple
+void samplerandoms(std::vector<double> &r, std::vector<double> &p, int n, std::vector<int> &bite_storage_queue) {
+  
+  int n_count = 0;
+  int iteration = 0;
+  while (n_count < n) 
+  {
+    if (r[n_count] <= p[iteration]) {
+      bite_storage_queue.emplace_back(iteration);
+      n_count++;
+      
+      while (r[n_count]<p[iteration]) {
+        bite_storage_queue.emplace_back(iteration);
+        n_count++;
+      }
+    }
+    iteration++;
+  }
+  
 }
 
 //------------------------------------------------
@@ -94,6 +122,52 @@ int rpoisson1(double mean) {
 // draw from binomial distribution
 int rbinomial1(int trials, double p) {
     return(R::rbinom(trials,p));
+}
+
+// Simple implementation of the rmultinom.c that emplaces the draws to the vector provided
+void rmultinomN(int n, std::vector<double> &prob, double p_tot, int K, std::vector<int> &output)
+{
+  int k;
+  int draw;
+  
+  for (k = 0; k < K - 1; k++) { /* (p_tot, n) are for "remaining binomial" */
+    
+    draw = rbinomial1(n, (prob[k] / p_tot));
+    n -= draw;
+    while (draw > 0) {
+      output.emplace_back(k);
+      draw--;
+    }
+    
+    if (n <= 0) /* we have all*/ return;
+    p_tot -= prob[k]; /* i.e. = sum(prob[(k+1):K]) */
+  }
+  while (n > 0) {
+    output.emplace_back(K - 1);
+    n--;
+  }
+  return;
+}
+
+//------------------------------------------------
+// draw from smarter binomial distribution
+int rbinomialsmarter1(unsigned int trials, double p) {
+  
+  double q = pow(1 - p, trials);
+  if (rbernoulli1(q)) {
+    return(0);
+  }
+  double r = 1 - q; // remaining mass
+  double tmp1 = p / (1 - p);
+  for (unsigned int i = 0; i<trials; i++) {
+    q *= (trials - i) / double(i + 1) * tmp1;
+    if (rbernoulli1(q / r)) {
+      return(i + 1);
+    }
+    r -= q;
+  }
+  return(-1);
+  
 }
 
 //------------------------------------------------

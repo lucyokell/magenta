@@ -9,7 +9,11 @@
 #' @param N Population Size. Default = 100000
 #' @param ft Frequency of treatment. Default = 0.4
 #' @param years Lenth of simulation. Default = 20
+#' @param update_length How long each update is run for in days. Default = 365
 #' @param EIR Numeric for desired annual EIR. Default = 120
+#' @param country Character for country within which admin2 is in. Default = NULL
+#' @param admin Character for admin region. Some fuzzy logic will be used to match. If 
+#' not provided then no seasonality is introduced. Default = NULL
 #' @param num_het_brackets Number of heterogeinity brackets to use in initialisation. Default = 200
 #' @param num_age_brackets Number of age brackets to use in initialisation. Default = 200
 #' @param geometric_age_brackets Boolean detailing whether age brackets are geometric. Default = TRUE
@@ -21,14 +25,15 @@
 #' @param yearly_save Boolean detailing whether the logging output is saved each year up to years. Default = FALSE
 #' @param saved_state_path Full file path to a saved model state to be loaded and continued. Default = NULL,
 #' which will trigger initialisation
+#' @param seed Random seed. Default is Random
 #' 
 #' \code{Pipeline}
 #' 
 #' @export
 
 
-Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20, 
-                     num_het_brackets = 200, num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, 
+Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365, country = NULL, admin = NULL,
+                     num_het_brackets = 20, num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, 
                      full_save = FALSE, human_only_full_save = FALSE, yearly_save = FALSE,
                      saved_state_path = NULL,seed=runif(1,1,10000)){
   
@@ -61,6 +66,8 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,
                                       het.brackets = num_het_brackets,
                                       ft = ft,
                                       EIR = EIR,
+                                      country = country,
+                                      admin = admin,
                                       model.param.list = mpl)
     
     ## Next create the near equilibrium steady state
@@ -88,16 +95,17 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,
   {
     
     res <- list()
-    length(res) <- years
+    length(res) <- round((years*365)/update_length)
     
-    for(i in 1:(years-1)){
-      pl2 <- Param_List_Simulation_Update_Create(years = 1, ft = ft, statePtr = sim.out$Ptr)
+    if(length(res) > 1){
+    for(i in 1:(length(res)-1)){
+      pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft, statePtr = sim.out$Ptr)
       sim.out <- Simulation_R(pl2)
       res[[i]] <- sim.out$Loggers
     }
-    
+    }
     ## final run
-    pl2 <- Param_List_Simulation_Update_Create(years = 1, ft = ft, statePtr = sim.out$Ptr)
+    pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft, statePtr = sim.out$Ptr)
     sim.out <- Simulation_R(pl2)
     
     ## If we have specified a full save then we grab that and save it or just the human bits of interest
@@ -113,18 +121,18 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,
       {
         Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
         Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
-        res[[years]] <- Humans
+        res[[length(res)]] <- Humans
       } 
       else
       {
-        res[[years]] <- sim.save
+        res[[length(res)]] <- sim.save
       }
       
     } 
     else 
     {
       ## If we don't want a full save then just save the Loggers as usual
-      res[[years]] <- sim.out
+      res[[length(res)]] <- sim.out
       
     }
     

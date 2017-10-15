@@ -10,7 +10,7 @@
 //
 // ---------------------------------------------------------------------------
 
-#include <RcppArmadillo.h>
+//#include <RcppArmadillo.h>
 #include "stdafx.h"
 #include <iostream>
 #include "parameters.h"
@@ -42,6 +42,11 @@ struct Universe {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // START: MAIN
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//' Creates initial model simulation using a saved model state
+//'
+//' @param paramList parameter list generated with \code{Param_List_Simulation_Get_Create}
+//' @return list with ptr to model state and loggers describing the current model state
+//' @export
 // [[Rcpp::export]]
 Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
 {
@@ -49,13 +54,8 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // prove that C++ code is being run
   Rcpp::Rcout << "Rcpp function is working!\n";
   
-  // start timer
-  chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
-  
   // Initialise parameters
   Parameters parameters;
-  parameters.g_years = Rcpp::as<double>(paramList["years"]);
-  parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
   
   // Unpack R List to Rcpp Lists
   Rcpp::List savedState = paramList["savedState"];
@@ -74,7 +74,11 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   parameters.g_mean_maternal_immunity = Rcpp::as<double>(parameters_List["g_mean_maternal_immunity"]);
   parameters.g_sum_maternal_immunity = Rcpp::as<double>(parameters_List["g_sum_maternal_immunity"]);
   parameters.g_total_mums = Rcpp::as<int>(parameters_List["g_total_mums"]);
-  parameters.g_years = Rcpp::as<double>(paramList["years"]);
+  parameters.g_theta = Rcpp::as<vector<double> >(parameters_List["g_theta"]);
+  parameters.g_calendar_day = Rcpp::as<int>(parameters_List["g_calendar_day"]);
+  parameters.g_mosquito_deficit = Rcpp::as<int>(parameters_List["g_mosquito_deficit"]);
+  parameters.g_scourge_today = Rcpp::as<int>(parameters_List["g_scourge_today"]);
+  parameters.g_mean_mv = Rcpp::as<int>(parameters_List["g_mean_mv"]);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: R -> C++ CONVERSIONS: parameters
@@ -145,6 +149,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   
   
   std::vector<int> Mosquito_Infection_States = Rcpp::as<vector<int> >(scourge_List["Mosquito_Infection_States"]);
+  std::vector<bool> Mosquito_Off_Season = Rcpp::as<vector<bool> >(scourge_List["Mosquito_Off_Season"]);
   std::vector<unsigned short int> Mosquito_Day_of_next_blood_meal = Rcpp::as<vector<unsigned short int> >(scourge_List["Mosquito_Day_of_next_blood_meal"]);
   std::vector<unsigned short int> Mosquito_Day_of_death = Rcpp::as<vector<unsigned short int> >(scourge_List["Mosquito_Day_of_death"]);
   std::vector<unsigned short int> Mosquito_Number_of_ruptured_oocysts = Rcpp::as<vector<unsigned short int> >(scourge_List["Mosquito_Number_of_ruptured_oocysts"]);
@@ -288,6 +293,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     // Set Day Changes
     scourge[n].set_m_day_of_next_blood_meal(Mosquito_Day_of_next_blood_meal[n]);
     scourge[n].set_m_day_of_death(Mosquito_Day_of_death[n]);
+    scourge[n].set_m_mosquito_off_season(Mosquito_Off_Season[n]);
     
     if(test ==0){
       Rcpp::Rcout << "Pre-mosquito_vectors working\n";
@@ -310,6 +316,8 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   Rcpp::Rcout << "Mosquito fetching working\n";
+  
+  /*
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: INITIALISATION
@@ -465,7 +473,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
       
       for (bite_sampling_internal_i = 0; bite_sampling_internal_i < individual_binomial_bite_draw; bite_sampling_internal_i++)
       {
-        /*	bite_storage_queue.push(n);*/
+        //	bite_storage_queue.push(n);
         bite_storage_queue.emplace_back(bite_sampling_i);
       }
       
@@ -601,6 +609,8 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   }
   
   
+  */
+  
   // Final infection states
   std::vector<int> Infection_States(parameters.g_N);
   std::vector<double> Ages(parameters.g_N);
@@ -609,9 +619,38 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   std::vector<double> ICM(parameters.g_N);
   std::vector<double> ID(parameters.g_N);
   
-  // loop through population and grabages and immunities for error checking
+  // status eq for logging and other logging variables
+  std::vector<double> status_eq = { 0,0,0,0,0,0 };
+  
+  // loop through population and grab ages and immunities for error checking
   for (unsigned int element = 0; element < parameters.g_N ; element++) 
   {
+    
+    // Match infection state and schedule associated next state change
+    switch (population[element].get_m_infection_state())
+    {
+    case Person::SUSCEPTIBLE:
+      status_eq[0]++;
+      break;
+    case Person::DISEASED:
+      status_eq[1]++;
+      break;
+    case Person::ASYMPTOMATIC:
+      status_eq[2]++;
+      break;
+    case Person::SUBPATENT:
+      status_eq[3]++;
+      break;
+    case Person::TREATED:
+      status_eq[4]++;
+      break;
+    case Person::PROPHYLAXIS:
+      status_eq[5]++;
+      break;
+    default:
+      assert(NULL && "Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
+    break;
+    }
     
     // Ages and immunity 
     // TODO: Figure out the best way of standardising this logging 
@@ -627,11 +666,22 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     
   }
   
+  // divide by population size and log counter and print to give overview
+  Rcpp::Rcout << "S | D | A | U | T | P:\n" ;
+  
+  for (int element = 0; element < 6; element++) 
+  {
+    status_eq[element] /= (parameters.g_N);
+    Rcpp::Rcout << status_eq[element] << " | ";
+  }
+  
   // Create Rcpp loggers list
-  Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
-                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],Rcpp::Named("Incidence")=total_incidence/log_counter,
-                                          Rcpp::Named("Incidence_05")=total_incidence_05/log_counter,Rcpp::Named("InfectionStates")=Infection_States,Rcpp::Named("Ages")=Ages,
-                                                      Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID);
+  Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0], 
+                                          Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
+                                                                                                  Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
+                                                                                                                                                                                        Rcpp::Named("InfectionStates")=Infection_States, Rcpp::Named("Ages")=Ages, 
+                                                                                                                                                                                        Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID
+                                            );
   
   
   // Create universe ptr for memory-continuiation

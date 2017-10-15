@@ -180,7 +180,8 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
     "Sv" = out$Sv[final],
     "Ev" = sum(out$Ev[final,]),
     "Iv" = out$Iv[final],
-    "MaternalImmunity" = sum(out$ICA[final,maternal,,1] * (eqInit$het_wt))* mpl$PM
+    "MaternalImmunity" = sum(out$ICA[final,maternal,,1] * (eqInit$het_wt))* eqInit$PM,
+    "theta" = seasonal_profile(eqInit$country,eqInit$admin)
   )
   
   } else {
@@ -191,6 +192,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
     Equilibrium_State <- list(
       "age_brackets" = eqInit$age2,
       "het_brackets" = eqInit$het_bounds,
+      #"het_brackets" = eqInit$rel_foi,
       "Smat" = eqInit$S[,,1],
       "Dmat" = eqInit$D[,,1],
       "Amat" = eqInit$A[,,1],
@@ -204,9 +206,12 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
       "Sv" = eqInit$Sv * eqInit$mv0,
       "Ev" = eqInit$Ev * eqInit$mv0,
       "Iv" = eqInit$Iv * eqInit$mv0,
-      "MaternalImmunity" = sum(eqInit$ICA[maternal,,1] * (eqInit$het_wt))* eqInit$PM
+      "MaternalImmunity" = sum(eqInit$ICA[maternal,,1] * (eqInit$het_wt))* eqInit$PM,
+      "theta" = seasonal_profile(eqInit$country,eqInit$admin)
     )
-    
+   
+    eqInit$rel_foi[5] <- 101.00
+     
   }
   
   return(Equilibrium_State)

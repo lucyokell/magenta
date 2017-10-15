@@ -42,13 +42,28 @@ void Mosquito::allocate_gametocytes(const Parameters &parameters, std::vector<ba
 
 
 // Schedule mosquito's death day
-void Mosquito::schedule_m_day_of_death(const Parameters &parameters)
+// Also return true if the scheduled day is one such that we care about bites this mosquito takes, i.e.
+// it will live long enought to become infectious
+bool Mosquito::schedule_m_day_of_death(const Parameters &parameters)
 {
-  // Throw if called on mosquito which is not SUSCEPTIBLE
-  assert(m_mosquito_infection_state == SUSCEPTIBLE && "Death day schedule called for mosquito which is not susceptible");
   
   // Exponential waiting time plus current day and 1 so not the same day
-  m_day_of_death = rexpint1(parameters.g_mean_mosquito_age) + parameters.g_current_time + 1;
+  // If less than 11 also move their blood meal day  to after their death
+  // and set next event to their death day as 
+  // and return true so we don't bother resetting anything else about the mosquito in the die function
+  m_day_of_death = rexpint1(parameters.g_mean_mosquito_age);
+  
+  if (m_day_of_death < 11) {
+    m_day_of_next_blood_meal = parameters.g_current_time + 12;
+    
+    m_day_of_death += parameters.g_current_time + 1;
+    m_day_of_next_event = m_day_of_death;
+    return(false);
+  }
+  
+  m_day_of_death += parameters.g_current_time + 1;
+  return(true);
+  
 }
 
 // Schedule mosquito's day of next blood meal
@@ -90,10 +105,18 @@ void Mosquito::schedule_m_day_of_next_event()
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Kill mosquito, i.e. reset age to 0, infections to 0, state to susceptible, ino barcodes etc
-void Mosquito::die(const Parameters & parameters)
+// Returns true if mosquito lives long enough to surive incubation, otherwise false
+bool Mosquito::die(const Parameters & parameters)
 {
   
-  // TODO: Add seasonality hook here to only replace upon death if seasonality is allowing
+  // Reset whether mosquito is off season to false, as if we are killing th mosquito we must be considering it
+  m_mosquito_off_season = false;
+  
+  // Schedule death day. If returns true, i.e. mosquito won't survive incubation, then return early as
+  // no need to reset everything else
+  if (!schedule_m_day_of_death(parameters)) {
+    return (false);
+  }
   
   // Reset mosquito's age and infection status changes
   m_ruptured_oocyst_count = 0;
@@ -108,53 +131,61 @@ void Mosquito::die(const Parameters & parameters)
   // Make mosquito susceptible again
   m_mosquito_infection_state = SUSCEPTIBLE;
   
-  // Schedule next blood meal and death
+  // Schedule next blood meal
+  // schedule_m_day_of_blood_meal(parameters);
   schedule_m_day_of_blood_meal(parameters);
-  schedule_m_day_of_death(parameters);
+  
   
   // Schedule next event
   schedule_m_day_of_next_event();
   
+  return(true);
 }
 
-// Daily update function, i.e. check events through event_handle, and returns either -1 or moqsuito ID if mosquito is biting today
+
+// Daily update function, i.e. check for sesonal mosquitoes and then handle any events
 bool Mosquito::update(Parameters &parameters)
 {
+  // if the mosquito is off season, and there is a positive deficit, i.e. a surplus of mosquitoes then return early
+  if (m_mosquito_off_season && parameters.g_mosquito_deficit > 0) {
+    return(false);
+  } 
+  
+  // if the mosquito is off season, and there is a deficit, i.e. a need of mosquitoes then return true early as will be biting today
+  // DEPRECATED IF STATEMENT
+  // This will never be reached as when a new mosquito first comes back on season we don't update it we simply copy an already on season one
+  // in order to keep the correct mosquito popualtion infection. 
+  if (m_mosquito_off_season && parameters.g_mosquito_deficit < 0) {
+    parameters.g_mosquito_deficit++;
+    return(die(parameters));
+  }
   
   // Handle any events that are happening today
   if (m_day_of_next_event == parameters.g_current_time) {
-    event_handle(parameters);
+    // if event handle returns true the mosquito is biting today 
+    return(event_handle(parameters)); 
   }
   
-  // Throw if the next event date is still today
-  assert(m_day_of_next_event != parameters.g_current_time &&
-    "Update function failed to handle event update as next event is still today");
-  
-  // If mosquito is biting today return its ID otherwise return -1
-  if (m_day_of_next_blood_meal == (parameters.g_current_time + 3)) {
-    return(true);
-  }
-  else
-  {
-    return(false);
-  }
+  // if there was no event or seasonality then return false
+  return(false);
   
 }
 
-// Event handle, i.e. mosquito death, state change, biting handle
-void Mosquito::event_handle(const Parameters & parameters)
+// Event handle, i.e. mosquito death, state change, biting handle.
+// If it returns true then the mosquito is biting today
+bool Mosquito::event_handle(const Parameters &parameters)
 {
   
   // If death occurs then no need to explore the other events
-  if (m_day_of_death == m_day_of_next_event) 
+  if (m_day_of_death == m_day_of_next_event)
   {
-    die(parameters);
+    return(die(parameters));
   }
   else
   {
     // All other events could happen theoretically on the same day though so within same else block
     // Update blood meal day
-    if (m_day_of_next_blood_meal == m_day_of_next_event) 
+    if (m_day_of_next_blood_meal == m_day_of_next_event)
     {
       
       // Schedule next blood meal
@@ -207,7 +238,21 @@ void Mosquito::event_handle(const Parameters & parameters)
     
     // Update the day of next event
     schedule_m_day_of_next_event();
+    
+    // Throw if the next event is in the past unless mosquito is off season
+    assert((m_day_of_next_event > parameters.g_current_time || m_mosquito_off_season) &&
+      "Mosquitoes stuck in the past");
+    
+    // If mosquito is biting today return true
+    if (m_day_of_next_blood_meal == (parameters.g_current_time + 3)) {
+      return(true);
+    }
+    else
+    {
+      return(false);
+    }
   }
+  
   
   
 }

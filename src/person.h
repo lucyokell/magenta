@@ -3,7 +3,7 @@
 //  person.h
 //
 //  Created: OJ on 12/01/2017
-//	Most recent edits: OJ on 10/03/2017
+//  Most recent edits: OJ on 10/03/2017
 //
 //  Distributed under the MIT software licence - see Notes.c file for details
 //
@@ -32,12 +32,12 @@ class Person {
 public:
   enum InfectionStatus
   {
-    SUSCEPTIBLE,	// 0
-    DISEASED,		// 1
-    ASYMPTOMATIC,	// 2
-    SUBPATENT,		// 3
-    TREATED,		// 4
-    PROPHYLAXIS,	// 5
+    SUSCEPTIBLE,  // 0
+    DISEASED,   // 1
+    ASYMPTOMATIC, // 2
+    SUBPATENT,    // 3
+    TREATED,    // 4
+    PROPHYLAXIS,  // 5
     NUMBER_OF_STATES = 6
   };
   
@@ -50,16 +50,16 @@ private:
   // Person identifiers, age, infection states, transition rates etc.
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  int m_person_ID;						// member variable ID	- fine to be public as constant
-  int m_person_age;						// Person's age
-  InfectionStatus m_infection_state;		// Infection Status enum
+  int m_person_ID;            // member variable ID - fine to be public as constant
+  int m_person_age;           // Person's age
+  InfectionStatus m_infection_state;    // Infection Status enum
   
   // Person's age dependent biting rate (psi) - See Griffin 2010 S1 for this specific origin
   double m_age_dependent_biting_rate;
   // Person's symptom success rate (phi) - See Griffin 2010 S1 for this specific origin
   double m_symptom_success_rate;
   // Person's individual relative biting rate (zeta) due to mosquito biting heterogeneity following a lognormal distribution
-  double m_individual_biting_rate;		// Set for life
+  double m_individual_biting_rate;    // Set for life
   
   // Person's transition probabilities, i.e. the probabilty, given their acquired immunity and the treatment seeking rate, that they 
   // become diseased, treated or asymptomatic. Initialisation just for memory initialisation reasons, not used values
@@ -98,22 +98,22 @@ private:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Person's pre-erythrocytic immunity (IB), i.e. infection blocking
-  double m_IB;								// infection-blocking immunity 
-  double m_biting_success_rate = 0;			// Temporary biting success rate (b) dependent on age and pre-erythocytic immunity
-  double m_IB_last_boost_time = runif1(0.0, 1.0);				// time that IB was last boosted
-  int m_IB_last_calculated_time = 0;			// time IB was last calculated
+  double m_IB;                // infection-blocking immunity 
+  double m_biting_success_rate = 0;     // Temporary biting success rate (b) dependent on age and pre-erythocytic immunity
+  double m_IB_last_boost_time = runif1(0.0, 1.0);       // time that IB was last boosted
+  int m_IB_last_calculated_time = 0;      // time IB was last calculated
   
   // Person's acquired disease blocking immunity 
   double m_ICM_init;
-  double m_ICM;								// maternally acquired immunty (ICM)
-  double m_ICA;								// exposure acquired immunity (ICA)
-  double m_ICA_last_boost_time = runif1(0.0, 1.0);				// time that ICA was last boosted
-  int m_I_C_D_CM_last_calculated_time = 0;		// time IC and ID was last calculated
+  double m_ICM;               // maternally acquired immunty (ICM)
+  double m_ICA;               // exposure acquired immunity (ICA)
+  double m_ICA_last_boost_time = runif1(0.0, 1.0);        // time that ICA was last boosted
+  int m_I_C_D_CM_last_calculated_time = 0;    // time IC and ID was last calculated
   
   // Person's blood stage immunity (I.D), i.e. reducing probability of detectiona ond onwards contribution to infectiousness
-  double m_ID;								// infection-blocking immunity 
-  double m_ID_last_boost_time = runif1(0.0, 1.0);				// time that ID was last boosted
-  double m_cA;								// individuals contribution to onwards infection from asymptomatic case
+  double m_ID;                // infection-blocking immunity 
+  double m_ID_last_boost_time = runif1(0.0, 1.0);       // time that ID was last boosted
+  double m_cA;                // individuals contribution to onwards infection from asymptomatic case
   
   // Important to note the above runifs as these are key in ensuring that the last boost times represent random times in the day
   // that biting occurs
@@ -123,22 +123,23 @@ private:
   // EVENT VARIABLES 
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  int m_day_of_InfectionStatus_change = 0;	                                  // Person's time of InfectionStatus state change
-  int m_day_of_strain_clearance = 0;																				 	// Person's time of clearing a strain
-  int m_day_of_death = 0;	                                                    // Person's time of death
-  int m_day_of_next_strain_state_change = std::numeric_limits<int>::max();		// Person's next strain state change day. Start with very large number due to person functions being written to compare against thsis often
-  int m_day_of_next_event = 0;			                                       		// Person's closest event day
-  int m_temp_day_of_next_strain_state_change = 0;	                            // Temp next day of state change
-  int m_temp_strain_to_next_change = 0;		                                  	// temp variable so we know what strain is changing next
+  int m_day_of_InfectionStatus_change = 0;                                    // Person's time of InfectionStatus state change
+  int m_day_of_strain_clearance = 0;                                          // Person's time of clearing a strain
+  int m_day_of_death = 0;                                                     // Person's time of death
+  int m_day_of_next_strain_state_change = std::numeric_limits<int>::max();    // Person's next strain state change day. Start with very large number due to person functions being written to compare against thsis often
+  int m_day_of_next_event = 0;                                                // Person's closest event day
+  int m_temp_day_of_next_strain_state_change = 0;                             // Temp next day of state change
+  int m_temp_strain_to_next_change = 0;                                       // temp variable so we know what strain is changing next
   bool m_more_than_one_strain_to_change_today_bool = false;                   // bool that declares whether there are more than one strain changing states today
   
-  std::vector<int> m_infection_time_realisation_vector{};					// First pending infection time in position 0 to handle multiple infections times that have not been realised yet
-  std::vector<InfectionStatus> m_infection_state_realisation_vector{};	// First pending infection state in position 0 to handle multiple infections states that have not been realised yet
-  std::vector<barcode_t> m_infection_barcode_realisation_vector{};		// First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
+  std::vector<int> m_infection_time_realisation_vector{};         // First pending infection time in position 0 to handle multiple infections times that have not been realised yet
+  std::vector<InfectionStatus> m_infection_state_realisation_vector{};  // First pending infection state in position 0 to handle multiple infections states that have not been realised yet
+  std::vector<barcode_t> m_infection_barcode_realisation_vector{};    // First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
   
-  int m_infection_realisation_empty_catch = 1;	// Variable that allows a check for empty vectors when dealing with more than one infection realisation on a day
-  int m_number_of_realised_infections = 0;	// Count of realised infections
-  int m_gametocytogenic_infections = 0;         // Count of realised infections that occurred earlier than the current time - 12.5 days.
+  int m_infection_realisation_empty_catch = 1;  // Variable that allows a check for empty vectors when dealing with more than one infection realisation on a day
+  unsigned int m_number_of_realised_infections = 0;  // Count of realised infections
+  int m_gametocytogenic_infections = 0;         // Count of any realised infections  occurred earlier than the current time - 12.5 days.
+  std::vector<int> m_gametocytogenic_strains{}; // Vector of which strains are gametocytogenic - strains may not be always be in order of being acquired as we swap and pop when clearing strains 
   
 public:
   
@@ -272,7 +273,7 @@ public:
   double set_m_age_dependent_biting_rate(double rho, double a0);
   
   // Set person's intial age given the maximum and average age
-  int set_initial_m_person_age(double average_age);
+  int set_initial_m_person_age(double average_age, int max_age);
   
   // Set person's initial death day
   void set_initial_m_day_of_death(const Parameters &parameters);
@@ -355,6 +356,17 @@ public:
       m_infection_state_realisation_vector.emplace_back(static_cast<Person::InfectionStatus>(x[i]));
     }
   }
+  
+  // Set person's infection state realisation vector
+  void set_m_infection_state_realisation_vector(std::vector<InfectionStatus> x) { m_infection_state_realisation_vector = x; }
+  
+  // Set person's infection barcode realisation vector
+  void set_m_infection_barcode_realisation_vector_from_vector(std::vector<barcode_t> x)
+    {
+      for (unsigned int i = 0; i < x.size(); i++) {
+        m_infection_barcode_realisation_vector.emplace_back(x[i]);
+      }
+    }
   
   // Set person's barcode realisation vector from a vector<vector<bool> >
   void set_m_infection_barcode_realisation_vector_from_vector_of_vector_bool(std::vector<std::vector<bool> > x)

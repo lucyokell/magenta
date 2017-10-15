@@ -1,33 +1,44 @@
-contextualise <- function(root = "M:/OJ/MAGENTA_Results/Mosquito_EIR_Prev_Check_max_age_with_plusmodf_and_gamtcg_and_new_seeds"){
+contextualise <- function(new_dir = "tests",new_context=NULL){
 
-didehpc::didehpc_config_global(credentials="C:\\Users\\Oliver\\.smbcredentials",
-                               temp=didehpc::path_mapping("tmp","T:","//fi--didef3.dide.ic.ac.uk/tmp","T:"),
-                               home=didehpc::path_mapping("OJ","M:","//fi--didef3.dide.ic.ac.uk/Malaria","M:"))
-didehpc::web_login()
-didehpc::didehpc_config()
+  
+  workdir <- "M:/OJ/MAGENTA_Results"
+  dir.create(paste0(workdir,"/",new_dir))
+  didehpc::didehpc_config_global(workdir=workdir,
+                                 credentials="C:\\Users\\Oliver\\.smbcredentials",
+                                 temp=didehpc::path_mapping("tmp",
+                                                            "T:",
+                                                            "//fi--didef3.dide.ic.ac.uk/tmp",
+                                                            "T:"),
+                                 home=didehpc::path_mapping("OJ",
+                                                            "M:",
+                                                            "//fi--didef3.dide.ic.ac.uk/Malaria",
+                                                            "M:"))
+  didehpc::web_login()
+  if(!is.null(new_context)){
+  root <- file.path(workdir, new_context)
+  }
+  packages.vector <- c("MAGENTA")
+  context::context_log_start()
 
-packages.vector <- c("Rcpp","stringi","statmod", "magrittr","ring","dde","odin","MAGENTA")
 
-context::context_log_start()
+## set up context
 ctx <- context::context_save(root,
                              packages = packages.vector,
-                             package_sources= provisionr::package_sources(github=c("richfitz/ring","richfitz/dde","richfitz/odin"),
-                                                                          local="M:/OJ/MAGENTA"))
+                             package_sources = provisionr::package_sources(local=getwd()))
+
 config <- didehpc::didehpc_config(use_workers = TRUE)
-obj <- didehpc::queue_didehpc(ctx, config = config)
-didehpc::web_login()
 obj <- didehpc::queue_didehpc(ctx, config = config)
 
 return(obj)
 }
 
-workers <- obj$submit_workers(1)
+workers <- obj$submit_workers(60)
 
 bm <- read.csv("inst/extdata/bm.txt",sep="\t")
 pos <- floor(seq(1,50,length.out = 20))
 # 
-cpdf <- data.frame("EIR"=as.numeric(seq(1,99,length.out = 50)),"N"=1e4,"years"=20, full_save=FALSE,yearly_save=FALSE)
-#cpdf <- data.frame("EIR"=as.numeric(bm$EIRY_eq),"N"=1e5,"years"=100, full_save=TRUE,yearly_save=FALSE)
+#cpdf <- data.frame("EIR"=as.numeric(seq(1,99,length.out = 50)),"N"=1e4,"years"=20, full_save=FALSE,yearly_save=FALSE)
+cpdf <- data.frame("EIR"=as.numeric(bm$EIRY_eq),"N"=2e4,"years"=20, full_save=FALSE,yearly_save=FALSE)
 grp <- queuer::enqueue_bulk(X = cpdf,FUN = Pipeline, obj = obj, timeout=0, name="EIR_1_to_100_20years",overwrite = T)
 # 
 cpdfeq <- data.frame("EIR"=c(rep(3,10)),"N"=1e5,"years"=100, full_save=TRUE,yearly_save=FALSE)

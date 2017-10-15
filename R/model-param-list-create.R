@@ -42,7 +42,7 @@
 #' @param IC0 Scale parameter. Default = 18.02366
 #' @param kC Shape parameter. Default = 2.36949
 #' @param uCA Duration in which immunity is not boosted. Default = 6.06349
-#' @param PM New-born immunity relative to mother’s. Default = 0.774368
+#' @param PM New-born immunity relative to mother. Default = 0.774368
 #' @param dCM Inverse of decay rate of maternal immunity. Default = 67.6952
 #' @param delayM Extrinsic incubation period. Default = 10
 #' @param tau1 Duration of host seeking, assumed to be constant between species. Default = 0.69

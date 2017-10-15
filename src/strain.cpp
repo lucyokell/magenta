@@ -49,7 +49,7 @@ void Strain::set_random_barcode()
   m_barcode = std::bitset<barcode_length>(runiform_int_1(1, barcode_length_max_bits));
 }
 
-// Generate a random recombinant barcode given two barcodes
+// Generate a random recombinant barcode 
 barcode_t Strain::generate_random_barcode()
 {
   return(std::bitset<barcode_length>(runiform_int_1(1, barcode_length_max_bits)));

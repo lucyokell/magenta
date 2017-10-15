@@ -41,6 +41,7 @@ public:
 private:
   
   int m_mosquito_ID;							// mosquito ID
+  bool m_mosquito_off_season = false;			// is mosquito off season, i.e. currently "dead" due to lack of seasonality relatd carrying capacity
   InfectionStatus m_mosquito_infection_state;	// infection status associated with a strain
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -76,6 +77,9 @@ public:
   
   // Get mosquito ID
   int get_m_mosquito_ID() { return(m_mosquito_ID); }
+  
+  // Get mosquito off season
+  bool get_m_mosquito_off_season() { return(m_mosquito_off_season); }
   
   // Get mosquito infection status
   InfectionStatus get_m_mosquito_infection_state() { return(m_mosquito_infection_state); }
@@ -113,6 +117,9 @@ public:
   
   // Set mosquito ID
   void set_m_mosquito_ID(int x) { m_mosquito_ID = x; }
+  
+  // Set mosquito's seasonality, i.e. is the mosquito off consideration due to seasonality
+  void set_m_mosquito_off_season(bool x) { m_mosquito_off_season = x; }
   
   // Set strain infection status
   void set_m_mosquito_infection_state(InfectionStatus x) { m_mosquito_infection_state = x; }
@@ -210,7 +217,7 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Schedule mosquitos's death day
-  void schedule_m_day_of_death(const Parameters &parameters);
+  bool schedule_m_day_of_death(const Parameters &parameters);
   
   // Schedule mosquito's next strain clearance
   void schedule_m_day_of_blood_meal(const Parameters &parameters);
@@ -223,13 +230,13 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Kill mosquito, i.e. reset age to 0, infections to 0, state to susceptible, ino barcodes etc
-  void die(const Parameters &parameters);
+  bool die(const Parameters &parameters);
   
   // Daily update function, i.e. check events through event_handle, and returns either -1 or moqsuito ID if mosquito is biting today
   bool update(Parameters &parameters);
   
   // Event handle, i.e. mosquito death, state change, biting handle
-  void event_handle(const Parameters &parameters);
+  bool event_handle(const Parameters &parameters);
   
   
 };

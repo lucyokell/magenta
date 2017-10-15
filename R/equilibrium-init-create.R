@@ -9,10 +9,10 @@
 #' will attempt to be loaded using just the admin unit, however if there is ambiguity
 #' in the admin unit an error will be thrown. If both NULL then no seasonality is 
 #' assumed. Default = NULL.
-#' @param admin.unit String for admin unit with country for loading seasonal
+#' @param admin String for admin unit with country for loading seasonal
 #' parameters. If country is NULL, the admin unit will attempt to be located,however 
 #' if there is ambiguity in the admin unit an error will be thrown. If both country
-#' and admin.unit are NULL then no seasonality is assumed. Default = NULL.
+#' and admin are NULL then no seasonality is assumed. Default = NULL.
 #' @param ft Numeric for the frequency of people seeking treatment.
 #' @param EIR Numeric for desired annual EIR.
 #' @param model.param.list List of epidemiological parameters created by 
@@ -22,7 +22,7 @@
 #' @export
 
 Equilibrium_Init_Create <- function(age.vector, het.brackets,
-                                    country = NULL, admin.unit = NULL, ft,
+                                    country = NULL, admin = NULL, ft,
                                     EIR, model.param.list)
 {
   
@@ -34,7 +34,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   if(sum(diff(age.vector)>0) != (length(age.vector)-1)) stop("age.vector is not sequentially increasing brackets of age")
   if(!is.numeric(het.brackets)) stop("het.brackets proovided is not numeric")
   if(!(is.null(country) | is.character(country))) stop("country specified is not character string")
-  if(!(is.null(admin.unit) | is.character(admin.unit))) stop("admin.unit specified is not character string")
+  if(!(is.null(admin) | is.character(admin))) stop("admin specified is not character string")
   if(!is.numeric(ft)) stop("ft provided is not numeric")
   if(!is.numeric(EIR)) stop("EIR provided is not numeric")
   if(!identical(names(mpl),c("DY","eta","rho","a0","sigma2","max_age","rA","rT",
@@ -55,7 +55,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   # database for admin units is all in Latin-ASCII for CRAN reasons so must 
   # encode parameters accordingly
   if(!is.null(country)) country <- stringi::stri_trans_general(country,"Latin-ASCII")
-  if(!is.null(admin.unit)) admin.unit <- stringi::stri_trans_general(admin.unit, "Latin-ASCII")
+  if(!is.null(admin)) admin <- stringi::stri_trans_general(admin, "Latin-ASCII")
   
   age <- age.vector * mpl$DY
   na <- as.integer(length(age))  # number of age groups
@@ -316,16 +316,16 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   # intiialise admin match as no match
   admin.matches <- 0
   
-  if(!is.null(admin.unit)){
+  if(!is.null(admin)){
     
     # if there is no country given then search for the admin unit
     if(is.null(country)){
       
       # find exact match
-      admin.matches <- grep(paste("^",admin.unit,"\\b",sep=""),admin_units_seasonal$admin1)
+      admin.matches <- grep(paste("^",admin,"\\b",sep=""),admin_units_seasonal$admin1)
       # if exact does not match try fuzzy match up to dist of 4 which should catch having nop spaces or separators etc
       if(length(admin.matches)==0){
-        admin.matches <- which(adist(admin_units_seasonal$admin1,admin.unit)<=4)
+        admin.matches <- which(adist(admin_units_seasonal$admin1,admin)<=4)
       }
       if(length(admin.matches)>1) stop("Admin unit string specified is ambiguous without country")
       
@@ -345,14 +345,14 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
       }
       
       # find exact match
-      admin.sub.matches <- grep(paste("^",admin.unit,"\\b",sep=""),admin_units_seasonal$admin1[country.matches])
+      admin.sub.matches <- grep(paste("^",admin,"\\b",sep=""),admin_units_seasonal$admin1[country.matches])
       # if exact does not match try fuzzy match up to dist of 4 which should catch having nop spaces or separators etc
       if(length(admin.sub.matches)==0){
-        admin.sub.matches <- which(adist(admin_units_seasonal$admin1[country.matches],admin.unit)<=4)
+        admin.sub.matches <- which(adist(admin_units_seasonal$admin1[country.matches],admin)<=4)
       }
-      if(length(admin.matches)>1) stop("Admin unit string specified is not close enougth to those in the database")
+      if(length(admin.sub.matches)>1) stop("Admin unit string specified is not close enougth to those in the database")
       
-      admin.matches <- which(admin_units_seasonal$admin1 == admin_units_seasonal$admin1[country.matches][admin.matches])
+      admin.matches <- which(admin_units_seasonal$admin1 == admin_units_seasonal$admin1[country.matches][admin.sub.matches])
     }
     
   }
@@ -396,7 +396,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
               ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3, 
               theta_c = theta_c, age_brackets = age.vector, ft = ft, FOIv_eq = FOIv_eq, U_eq=U_eq, S_eq=S_eq,
               T_eq=T_eq, A_eq=A_eq, D_eq = D_eq, betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,
-              age2 = age2, het_bounds = het_bounds)
+              age2 = age2, het_bounds = het_bounds,country = country,admin = admin)
   
   res <- append(res,unlist(mpl))
   

@@ -19,4 +19,3 @@ for end.year length. Default = False while the model is still buggy.}
 running an ODE compartment version of the Imperial Malaria model, using
 as an initialisation the output of \code{Equilibrium_Init_Create}
 }
-

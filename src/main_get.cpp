@@ -10,7 +10,7 @@
 //
 // ---------------------------------------------------------------------------
 
-#include <RcppArmadillo.h>
+//#include <RcppArmadillo.h>
 #include "stdafx.h"
 #include <iostream>
 #include "parameters.h"
@@ -42,6 +42,11 @@ struct Universe {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // START: MAIN
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//' Returns whole model to R in series of nested lists
+//'
+//' @param paramList parameter list generated with \code{Param_List_Simulation_Get_Create}
+//' @return list of 4 lists with the entire model state
+//' @export
 // [[Rcpp::export]]
 Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
 {
@@ -237,7 +242,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     unsigned int scourge_size = universe_ptr->scourge.size();
   
     std::vector<int> Mosquito_Infection_States(scourge_size);
-    std::vector<unsigned short int> Mosquito_Day_of_next_blood_meal(scourge_size);		
+    std::vector<unsigned short int> Mosquito_Day_of_next_blood_meal(scourge_size);	
+    std::vector<bool> Mosquito_Off_Season(scourge_size);	
     std::vector<unsigned short int> Mosquito_Day_of_death(scourge_size);
     std::vector<unsigned short int> Mosquito_Number_of_ruptured_oocysts (scourge_size);
     std::vector<std::vector<unsigned short int> > Mosquito_Oocyst_rupture_time_vectors(scourge_size);
@@ -266,6 +272,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
 
       Mosquito_Day_of_next_blood_meal[element] = universe_ptr->scourge[element].get_m_day_of_next_blood_meal();
 
+      Mosquito_Off_Season[element] = universe_ptr->scourge[element].get_m_mosquito_off_season();
+      
       // Ruptured oocyst Numbers 
       Mosquito_Number_of_ruptured_oocysts[element] = static_cast<unsigned short int>(universe_ptr->scourge[element].get_m_ruptured_oocyst_count());
 
@@ -352,6 +360,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   Rcpp::List scourge_List = Rcpp::List::create(
     Rcpp::Named("Mosquito_Infection_States")=Mosquito_Infection_States,
     Rcpp::Named("Mosquito_Day_of_next_blood_meal")=Mosquito_Day_of_next_blood_meal,
+    Rcpp::Named("Mosquito_Off_Season")=Mosquito_Off_Season,
     Rcpp::Named("Mosquito_Day_of_death")=Mosquito_Day_of_death,
     Rcpp::Named("Mosquito_Number_of_ruptured_oocysts")=Mosquito_Number_of_ruptured_oocysts,
     Rcpp::Named("Mosquito_Oocyst_rupture_time_vectors")=Mosquito_Oocyst_rupture_time_vectors,
@@ -366,7 +375,12 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Rcpp::Named("g_mean_maternal_immunity")=universe_ptr->parameters.g_mean_maternal_immunity,
     Rcpp::Named("g_sum_maternal_immunity")=universe_ptr->parameters.g_sum_maternal_immunity,
     Rcpp::Named("g_total_mums")=universe_ptr->parameters.g_total_mums,
-    Rcpp::Named("g_N")=universe_ptr->parameters.g_N
+    Rcpp::Named("g_N")=universe_ptr->parameters.g_N,
+    Rcpp::Named("g_theta")=universe_ptr->parameters.g_theta,
+    Rcpp::Named("g_calendar_day")=universe_ptr->parameters.g_calendar_day,
+    Rcpp::Named("g_mosquito_deficit")=universe_ptr->parameters.g_mosquito_deficit,
+    Rcpp::Named("g_scourge_today")=universe_ptr->parameters.g_scourge_today,
+    Rcpp::Named("g_mean_mv")=universe_ptr->parameters.g_mean_mv
   );
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -375,7 +389,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   
   std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  std::cout << "Time elapsed in fetching state: " << duration << " seconds" << std::endl;
+   Rcpp::Rcout << "Time elapsed in fetching state: " << duration << " seconds" << std::endl;
   
   // Return Named List with population and parameters
   return Rcpp::List::create(

@@ -24,6 +24,8 @@ class Parameters {
 public:
   
   int g_current_time;
+  int g_calendar_day;
+  std::vector<double> g_theta;
   double g_years;
   // demographic parameters;
   unsigned int g_N;
@@ -35,8 +37,9 @@ public:
   double g_rho;
   double g_zeta_meanlog;
   double g_zeta_sdlog;
+  double g_importation_human;
+  double g_importation_mosquito;
   // diagnostic parameters;
-  double g_theta;
   double g_ft;
   // entomological parameters;
   double g_mu0;
@@ -45,6 +48,10 @@ public:
   double g_beta_intercept;
   double g_ak;
   double g_Q0;
+  // entomological time keeping variables
+  int g_mosquito_deficit;
+  unsigned int g_scourge_today;
+  int g_mean_mv;
   // delays and durations;
   double g_delay_mos;
   double g_delay_gam;
