@@ -10,3 +10,5 @@ plots
 ^tutorials$
 tutorials
 ^data-raw$
+.*.rds$
+inst/include

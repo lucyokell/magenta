@@ -17,7 +17,9 @@ Imports:
     statmod,
     magrittr,
     ggplot2,
-    odin
+    odin,
+    plyr,
+    redux
 Remotes: 
     mrc-ide/odin
 LinkingTo: Rcpp

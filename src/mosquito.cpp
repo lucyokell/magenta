@@ -67,12 +67,15 @@ bool Mosquito::schedule_m_day_of_death(const Parameters &parameters)
 }
 
 // Schedule mosquito's day of next blood meal
-void Mosquito::schedule_m_day_of_blood_meal(const Parameters & parameters)
+void Mosquito::schedule_m_day_of_blood_meal(Parameters &parameters)
 {
   
-  // Current day plus 3 for the moment, but might change in future for multiple biting etc so 
-  m_day_of_next_blood_meal = parameters.g_current_time + 3;
+  // Current day plus next biting. Next biting is a vector of values giving the next biting day. 
+  // If there are no interventions this will always be 3, but will sometimes be 4 given interventions
+  m_day_of_next_blood_meal = parameters.g_current_time + parameters.g_mosquito_next_biting_day_vector[parameters.g_mosquito_biting_counter++];
   
+  // If we are at end of biting day vector with our counter then reset it to 0
+  if(parameters.g_mosquito_biting_counter == parameters.g_max_mosquito_biting_counter) parameters.g_mosquito_biting_counter=0;
 }
 
 // Set day of next event
@@ -106,7 +109,7 @@ void Mosquito::schedule_m_day_of_next_event()
 
 // Kill mosquito, i.e. reset age to 0, infections to 0, state to susceptible, ino barcodes etc
 // Returns true if mosquito lives long enough to surive incubation, otherwise false
-bool Mosquito::die(const Parameters & parameters)
+bool Mosquito::die(Parameters & parameters)
 {
   
   // Reset whether mosquito is off season to false, as if we are killing th mosquito we must be considering it
@@ -122,6 +125,7 @@ bool Mosquito::die(const Parameters & parameters)
   m_ruptured_oocyst_count = 0;
   m_day_of_next_event = 0;
   m_mosquito_infected = false;
+  m_mosquito_biting_today = true;
   
   // Clear vectors
   m_oocyst_rupture_time_vector.clear();
@@ -146,6 +150,10 @@ bool Mosquito::die(const Parameters & parameters)
 // Daily update function, i.e. check for sesonal mosquitoes and then handle any events
 bool Mosquito::update(Parameters &parameters)
 {
+  
+  // assume not biting
+  m_mosquito_biting_today = false;
+  
   // if the mosquito is off season, and there is a positive deficit, i.e. a surplus of mosquitoes then return early
   if (m_mosquito_off_season && parameters.g_mosquito_deficit > 0) {
     return(false);
@@ -173,7 +181,7 @@ bool Mosquito::update(Parameters &parameters)
 
 // Event handle, i.e. mosquito death, state change, biting handle.
 // If it returns true then the mosquito is biting today
-bool Mosquito::event_handle(const Parameters &parameters)
+bool Mosquito::event_handle(Parameters &parameters)
 {
   
   // If death occurs then no need to explore the other events
@@ -190,6 +198,9 @@ bool Mosquito::event_handle(const Parameters &parameters)
       
       // Schedule next blood meal
       schedule_m_day_of_blood_meal(parameters);
+      
+      // Set to biting today
+      m_mosquito_biting_today = true;
       
     }
     
@@ -244,13 +255,7 @@ bool Mosquito::event_handle(const Parameters &parameters)
       "Mosquitoes stuck in the past");
     
     // If mosquito is biting today return true
-    if (m_day_of_next_blood_meal == (parameters.g_current_time + 3)) {
-      return(true);
-    }
-    else
-    {
-      return(false);
-    }
+    return(m_mosquito_biting_today);
   }
   
   

@@ -4,7 +4,7 @@
 \name{irs_2010_2015}
 \alias{irs_2010_2015}
 \title{IRS for 2000 to 2015}
-\format{A list of 5 elements:
+\format{A dataframe of 5 elements:
 
   \code{$irs_2010_2015}: A dataframe of admin units and their seasonal parameters
     \itemize{

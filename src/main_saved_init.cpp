@@ -125,6 +125,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   std::vector<int> Day_of_InfectionStatus_change = Rcpp::as<vector<int> >(populations_event_and_strains_List["Day_of_InfectionStatus_change"]);
   std::vector<int> Day_of_strain_clearance = Rcpp::as<vector<int> >(populations_event_and_strains_List["Day_of_strain_clearance"]);
   std::vector<int> Day_of_death = Rcpp::as<vector<int> >(populations_event_and_strains_List["Day_of_death"]);
+  std::vector<int> Day_of_last_treatment = Rcpp::as<vector<int> >(populations_event_and_strains_List["Day_of_last_treatment"]);
   std::vector<int> Number_of_Strains = Rcpp::as<vector<int> >(populations_event_and_strains_List["Number_of_Strains"]);
   std::vector<int> Number_of_Realised_Infections = Rcpp::as<vector<int> >(populations_event_and_strains_List["Number_of_Realised_Infections"]);
   
@@ -215,6 +216,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     population[n].set_m_day_of_InfectionStatus_change(Day_of_InfectionStatus_change[n]);
     population[n].set_m_day_of_strain_clearance(Day_of_strain_clearance[n]);
     population[n].set_m_day_of_death(Day_of_death[n]);
+    population[n].set_m_day_last_treated(Day_of_last_treatment[n]);
     
     // Strain Numbers
     population[n].set_m_number_of_strains(Number_of_Strains[n]);

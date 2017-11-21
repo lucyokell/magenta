@@ -15,12 +15,22 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS)
   ## CHECKS ##
   ##---------------------------------------------
   if(class(eqSS)!="list") stop("eqSS is not of class list")
-  if(!identical(names(eqSS),
-                c("age_brackets","het_brackets","Smat",
-                  "Dmat","Amat","Umat","Tmat","Pmat",
-                  "IBmat","ICAmat","ICMmat","IDmat",
-                  "Sv","Ev","Iv","MaternalImmunity",
-                  "theta"))) stop("Incorrect variable names within equilibrium.steady.state")
+  
+  if(is.element("spatial",names(eqSS))){
+    if(!identical(names(eqSS),
+                  c("age_brackets","het_brackets","Smat",
+                    "Dmat","Amat","Umat","Tmat","Pmat",
+                    "IBmat","ICAmat","ICMmat","IDmat",
+                    "Sv","Ev","Iv","MaternalImmunity",
+                    "theta","spatial"))) stop("Incorrect variable names within equilibrium.steady.state")
+  } else {
+    if(!identical(names(eqSS),
+                  c("age_brackets","het_brackets","Smat",
+                    "Dmat","Amat","Umat","Tmat","Pmat",
+                    "IBmat","ICAmat","ICMmat","IDmat",
+                    "Sv","Ev","Iv","MaternalImmunity",
+                    "theta"))) stop("Incorrect variable names within equilibrium.steady.state")
+  }
   dims.1 <- lapply(eqSS,function(x){return(dim(x)[1])})
   dims.2 <- lapply(eqSS,function(x){return(dim(x)[2])})
   if(unique(unlist(dims.1[grep("mat",names(eqSS))]))!=length(eqSS$age_brackets)) stop("Dimensions 1 error in equilibrium.stead.state matrices")
@@ -47,22 +57,48 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS)
 #'
 #' @param years Length of simulation. Default = 1
 #' @param ft Treatments seeking value
+#' @param mu_vec Vector of mosquito mortalities for each day with years. Default = NULL, which
+#' will result in rep(0.132,floor(years*365))
+#' @param fv_vec Vector of mosquito bitings for each day with years. Default = NULL, which
+#' will result in rep(1/3,floor(years*365))
+#' @param imported_barcodes Default = NULL. If doing spatial
 #' @param statePtr Pointer for current model state as return by \code{Simulation_R}$Ptr
 #' 
 #' @export
 
-Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4, statePtr)
+Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
+                                                mu_vec = NULL, fv_vec = NULL,
+                                                imported_barcodes = NULL,
+                                                statePtr)
 {
   
   ## CHECKS ##
   ##---------------------------------------------
   if(class(statePtr)!="externalptr") stop("state.ptr is not of class externalptr")
   if(!is.numeric(years)) stop("years provided is not numeric")
+  if(!is.numeric(ft)) stop("ft provided is not numeric")
+  if(!is.null(mu_vec)){
+    if(!(length(mu_vec) == floor(years*365))) stop("mu_vec not long enough")
+  }
+  if(!is.null(fv_vec)){
+    if(!(length(fv_vec) == floor(years*365))) stop("fv_vec not long enough")
+  }
   
   ##---------------------------------------------
   
+  # generate mu_vec if needed
+  if(is.null(mu_vec)){
+    mu_vec <- rep(0.132,floor(years*365))
+  }
+  # generate fv_vec if needed
+  if(is.null(fv_vec)){
+    fv_vec <- rep(1/3,floor(years*365))
+  }
+  
   # Create paramlist
-  paramList <- list(years = years, ft = ft, statePtr = statePtr)
+  paramList <- list(years = years, ft = ft, mu_vec = mu_vec,
+                    fv_vec = fv_vec, imported_barcodes = imported_barcodes,
+                    statePtr = statePtr)
   
   return(paramList)
   
@@ -140,7 +176,6 @@ Param_List_Simulation_Saved_Init_Create <- function(savedState)
 # with the Rcpp package. Do not alter!
 #' @useDynLib MAGENTA
 #' @importFrom Rcpp evalCpp
-#' @exportPattern '^[[:alpha:]]+'
 
 Simulation_R <- function(paramList)
 {
@@ -192,9 +227,9 @@ Simulation_R <- function(paramList)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==3)
+    if(length(paramList)==6)
     {
-      stopifnot(identical(names(paramList), c("years","ft", "statePtr")))  
+      stopifnot(identical(names(paramList), c("years","ft","mu_vec","fv_vec","imported_barcodes","statePtr")))  
     }
     else 
     {

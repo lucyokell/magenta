@@ -9,11 +9,12 @@
 #' @name MAGENTA
 #' 
 #' @useDynLib MAGENTA
-#' @importFrom stats rlnorm heatmap runif
-#' @importFrom utils adist read.csv
+#' @importFrom stats rlnorm heatmap runif qt sd
+#' @importFrom utils adist read.csv tail
 #' @importFrom ggplot2 ggplot
-#' @importFrom grDevices dev.off tiff windows dev.new
+#' @importFrom grDevices dev.off tiff windows dev.new hcl
+#' @importFrom odin odin
 #'
 "_PACKAGE"
 
-globalVariables(c("admin_units_seasonal","irs_2000_2015","itn_2000_2015"))
+globalVariables(c("admin_units_seasonal","irs_2000_2015","itn_2000_2015",""))

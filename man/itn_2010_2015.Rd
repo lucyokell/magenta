@@ -4,9 +4,9 @@
 \name{itn_2010_2015}
 \alias{itn_2010_2015}
 \title{ITN for 2000 to 2015}
-\format{A list of 5 elements:
+\format{A dataframe of 5 elements:
 
-  \code{$itn_2010_2015}: A dataframe of admin units and their seasonal parameters
+  \code{itn_2010_2015}: A dataframe of admin units and their seasonal parameters
     \itemize{
       \item intervention: String stating ITN
       \item country: Country string

@@ -18,6 +18,7 @@
 #include <vector>
 #include <queue>
 #include <bitset>
+#include "strain.h"
 
 class Parameters {
   
@@ -27,6 +28,13 @@ public:
   int g_calendar_day;
   std::vector<double> g_theta;
   double g_years;
+  // spatial
+  unsigned int g_spatial_imports;
+  unsigned int g_spatial_exports;
+  unsigned int g_spatial_import_counter;
+  unsigned int g_spatial_export_counter;
+  std::vector<barcode_t> g_exported_barcodes;
+  std::vector<barcode_t> g_imported_barcodes;
   // demographic parameters;
   unsigned int g_N;
   int g_max_age;
@@ -52,6 +60,9 @@ public:
   int g_mosquito_deficit;
   unsigned int g_scourge_today;
   int g_mean_mv;
+  std::vector<int> g_mosquito_next_biting_day_vector;
+  int g_mosquito_biting_counter;
+  int g_max_mosquito_biting_counter;
   // delays and durations;
   double g_delay_mos;
   double g_delay_gam;

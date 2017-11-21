@@ -6,7 +6,7 @@
 \title{Admin level 1 africa seasonal parameters}
 \format{A dataframe of 576 observations of 13 variables:
 
-  \code{$admin_units_seasonal}: A dataframe of admin units and their seasonal parameters
+  \code{admin_units_seasonal}: A dataframe of admin units and their seasonal parameters
     \itemize{
       \item country: Country string
       \item admin1: Admin 1 string

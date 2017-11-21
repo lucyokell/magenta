@@ -37,6 +37,7 @@ public:
   };
   
   bool m_mosquito_infected = false;					// bool for infection speed
+  bool m_mosquito_biting_today = false;
   
 private:
   
@@ -220,7 +221,7 @@ public:
   bool schedule_m_day_of_death(const Parameters &parameters);
   
   // Schedule mosquito's next strain clearance
-  void schedule_m_day_of_blood_meal(const Parameters &parameters);
+  void schedule_m_day_of_blood_meal(Parameters &parameters);
   
   // Set day of next event
   void schedule_m_day_of_next_event();
@@ -230,13 +231,13 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Kill mosquito, i.e. reset age to 0, infections to 0, state to susceptible, ino barcodes etc
-  bool die(const Parameters &parameters);
+  bool die(Parameters &parameters);
   
   // Daily update function, i.e. check events through event_handle, and returns either -1 or moqsuito ID if mosquito is biting today
   bool update(Parameters &parameters);
   
   // Event handle, i.e. mosquito death, state change, biting handle
-  bool event_handle(const Parameters &parameters);
+  bool event_handle(Parameters &parameters);
   
   
 };

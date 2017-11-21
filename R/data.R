@@ -8,7 +8,7 @@
 ##'
 ##' @format A dataframe of 576 observations of 13 variables:
 ##'
-##'   \code{$admin_units_seasonal}: A dataframe of admin units and their seasonal parameters
+##'   \code{admin_units_seasonal}: A dataframe of admin units and their seasonal parameters
 ##'     \itemize{
 ##'       \item country: Country string
 ##'       \item admin1: Admin 1 string
@@ -26,7 +26,6 @@
 ##'     }
 ##'
 ##' @rdname admin_units_seasonal
-##'
 ##' @aliases admin_units_seasonal
 ##'
 ##'
@@ -38,7 +37,7 @@
 ##'
 ##' @docType data
 ##'
-##' @format A list of 5 elements:
+##' @format A dataframe of 5 elements:
 ##'
 ##'   \code{$irs_2010_2015}: A dataframe of admin units and their seasonal parameters
 ##'     \itemize{
@@ -50,7 +49,6 @@
 ##'     }
 ##'
 ##' @rdname irs_2010_2015
-##'
 ##' @aliases irs_2010_2015
 ##'
 ##'
@@ -62,9 +60,9 @@
 ##'
 ##' @docType data
 ##'
-##' @format A list of 5 elements:
+##' @format A dataframe of 5 elements:
 ##'
-##'   \code{$itn_2010_2015}: A dataframe of admin units and their seasonal parameters
+##'   \code{itn_2010_2015}: A dataframe of admin units and their seasonal parameters
 ##'     \itemize{
 ##'       \item intervention: String stating ITN
 ##'       \item country: Country string
@@ -74,8 +72,27 @@
 ##'     }
 ##'
 ##' @rdname itn_2010_2015
-##'
 ##' @aliases itn_2010_2015
 ##'
 ##'
 "itn_2010_2015"
+
+##'  Mixing Matrix 
+##'
+##'  Importation data for admin units in admin_units_seasonal
+##'
+##' @docType data
+##'
+##' @format A matrix of 576x576:
+##'
+##'   \code{mixing_matrix}: A matrix of numbers between 0 and 1 showing the proportion of casese
+##'   due to importations by each other admin region. Along a row for a region, the number is the 
+##'   proportion of infections due to importations from each region.
+##'
+##' @rdname mixing_matrix
+##' @aliases mixing_matrix
+##'
+##'
+"mixing_matrix"
+
+

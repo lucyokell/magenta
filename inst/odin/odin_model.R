@@ -1,3 +1,9 @@
+#------------------------------------------------
+#' odin_model
+#'
+#' \code{odin_model} creates a deterministic model for the transmission model
+#' that takes a series of parameters. 
+
 ## MODEL VARIABLES
 ##------------------------------------------------------------------------------
 
@@ -337,10 +343,10 @@ tau1 <- user() # duration of host-seeking behaviour
 tau2 <- user() # duration of resting behaviour
 p10 <- user() # prob of surviving 1 feeding cycle
 p2 <- user() #prob of surviving one resting cycle
-beta_larval0 <- user() # maximum number of eggs per oviposition per mosq
+betaL <- user() # maximum number of eggs per oviposition per mosq
 
 # Entomological variables:
-eov <- beta_larval0/mu*(exp(mu/fv)-1)
+eov <- betaL/mu*(exp(mu/fv)-1)
 beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
 lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu*dLL*(1+dPL*muPL))) 
@@ -507,11 +513,11 @@ dim(den) <- na
 age59 <- user()
 # index of the age vector above 5 years
 age05 <- user()
-# index of age above 2 years
-age2years <- user()
-# index of age above 10 years
-age10years <- user()
-two_to_10_length <- user()
+# # index of age above 2 years
+# age2years <- user()
+# # index of age above 10 years
+# age10years <- user()
+# two_to_10_length <- user()
 
 # slide positivity in 0 -5 year age bracket
 dim(prev0to59) <- c(age59,nh,num_int)

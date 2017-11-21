@@ -6,6 +6,13 @@ Parameters::Parameters() {
   g_calendar_day = 1;
   g_theta = std::vector<double>(365,1.0);
   g_years = 1;
+  // spatial 
+  g_spatial_exports = 0;
+  g_spatial_imports = 0;
+  g_spatial_import_counter = 0;
+  g_spatial_export_counter = 0;
+  g_exported_barcodes = std::vector<barcode_t>();
+  g_imported_barcodes = std::vector<barcode_t>();
   // demographic parameters
   g_N = 10000;
   g_max_age = 100 * 365;
@@ -31,6 +38,9 @@ Parameters::Parameters() {
   g_mosquito_deficit = 0; 
   g_scourge_today = 0;
   g_mean_mv = 0;
+  g_max_mosquito_biting_counter = 1000;
+  g_mosquito_next_biting_day_vector = std::vector<int>(g_max_mosquito_biting_counter,3);
+  g_mosquito_biting_counter = 0;
   // delays and durations
   g_delay_mos = 10;
   g_delay_gam = 12.5;

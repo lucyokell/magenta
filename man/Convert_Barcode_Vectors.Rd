@@ -4,10 +4,12 @@
 \alias{Convert_Barcode_Vectors}
 \title{Convert human barcodes to numerics}
 \usage{
-Convert_Barcode_Vectors(sim.save)
+Convert_Barcode_Vectors(sim.save, sub_patents_included = TRUE)
 }
 \arguments{
-\item{sim.save}{Saved output of simulation
+\item{sim.save}{Saved output of simulation}
+
+\item{sub_patents_included}{Boolean as to whether subpatents are included. Default = TRUE
 
 \code{Convert_Barcode_Vectors}}
 }

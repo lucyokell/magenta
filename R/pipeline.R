@@ -14,6 +14,16 @@
 #' @param country Character for country within which admin2 is in. Default = NULL
 #' @param admin Character for admin region. Some fuzzy logic will be used to match. If 
 #' not provided then no seasonality is introduced. Default = NULL
+#' @param spatial Default = NULL If spatial is wanted then provide a vector of daily export
+#' rates for exportation.  
+#' @param redis_environment Default = NULL. If spatial is required, then pass the redisenvironment
+#' here as a parameter
+#' @param fv_vec Numeric for how fv_vec changes as calculated from odin model
+#' @param mu_vec Numeric for hor mu_vec changes as calculated from odin model
+#' @param use_historic_interventions Boolean as to whether the historic interventions are incorporated.
+#' This will occur by using the length of years and taking the most recent years back in time. Therefore
+#' if years > 15, then there will be burn in time, when no interventions are assumed. Default = FALSE, and
+#' only is used if country and admin are suitably provided.  
 #' @param num_het_brackets Number of heterogeinity brackets to use in initialisation. Default = 200
 #' @param num_age_brackets Number of age brackets to use in initialisation. Default = 200
 #' @param geometric_age_brackets Boolean detailing whether age brackets are geometric. Default = TRUE
@@ -22,7 +32,10 @@
 #' first. Default = FALSE while the model is still buggy. 
 #' @param full_save Boolean detailing whether the entire simulation is saved. Default = FALSE
 #' @param human_only_full_save Boolean detailing whether just the human component of the simulation is saved within full_save. Default = FALSE
-#' @param yearly_save Boolean detailing whether the logging output is saved each year up to years. Default = FALSE
+#' @param yearly_save Boolean detailing whether the logging output is saved each update_length up to years. Default = FALSE
+#' @param human_yearly_save Boolean detailing if the human state is also saved during each update_length. Default = FALSE
+#' @param summary_saves_only Boolean if summary tables about COI are saved within human yearly save only. Dataframes of age, clinical status
+#' binned COI.
 #' @param saved_state_path Full file path to a saved model state to be loaded and continued. Default = NULL,
 #' which will trigger initialisation
 #' @param seed Random seed. Default is Random
@@ -32,13 +45,16 @@
 #' @export
 
 
-Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365, country = NULL, admin = NULL,
-                     num_het_brackets = 20, num_age_brackets = 200, geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, 
-                     full_save = FALSE, human_only_full_save = FALSE, yearly_save = FALSE,
+Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365, country = NULL, admin = NULL, 
+                     spatial = NULL, redis_environment = NULL,
+                     use_historic_interventions = FALSE, num_het_brackets = 20, num_age_brackets = 20, 
+                     geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, mu_vec=NULL, fv_vec=NULL,
+                     full_save = FALSE, human_only_full_save = FALSE, yearly_save = FALSE, human_yearly_save = FALSE,
+                     summary_saves_only = FALSE,
                      saved_state_path = NULL,seed=runif(1,1,10000)){
   
   ## Pipeline
-  #Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
+  Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
   
   ## if no seed is specified then save the seed
   set.seed(seed)
@@ -54,7 +70,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
     ## Create age brackets, either geometric or evenly spaced
     if(geometric_age_brackets){
       ## Create the geometric age brackets
-      ratio <- (max_age/0.1)^(1/num_age_brackets)
+      ratio <- (max_age/0.1)^(1/num_age_brackets) 
       age.vector <- 0.1 * ratio ** (1:num_age_brackets)
       age.vector[1] <- 0
     } else {
@@ -71,7 +87,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
                                       model.param.list = mpl)
     
     ## Next create the near equilibrium steady state
-    eqSS <- Equilibrium_SS_Create(eqInit = eqInit, end.year=5, use_odin = use_odin)
+    eqSS <- Equilibrium_SS_Create(eqInit = eqInit, end.year=5, use_odin = use_odin, spatial = round(sum(spatial *N,na.rm=TRUE)) )
     
     ## Now check and create the parameter list for use in the Rcpp simulation
     pl <- Param_List_Simulation_Init_Create(N=N,eqSS=eqSS)
@@ -89,23 +105,230 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
   ## Create model simulation state
   sim.out <- Simulation_R(paramList = pl)
   
-  # If we have specified a yearly save we iterate through the total time in year chunks saving the loggers at each stage
-  ## TODO: Put the human state save in the year chuck section as well 
+  ## if it's spatial set up the necessary redis lists
+  # set this up here anyway and then less if loops later
+  imported_barcodes <- NULL
+  if(!is.null(spatial)){
+    
+    # create barcode as binary string
+    barcodes <- lapply(sim.out$Exported_Barcodes,as.numeric) %>% lapply(paste0,collapse="") %>% unlist
+    
+    # work out here how many barcodes are going to which other simulation
+    export_proportions <- round((spatial/(sum(spatial,na.rm=TRUE)))*round(sum(spatial *N,na.rm=TRUE)))
+    export_positions <- list()
+    import_positions <- list()
+    check_barcodes <- list()
+    epc <- 1
+    metapopulation_number <- which(is.na(spatial))
+    
+    # Create the necessary redis lists and push the barcodes
+    for(i in 1:length(export_proportions)){
+      if(!is.na(export_proportions[i])){
+        export_positions[[i]] <- epc:(epc+export_proportions[i]-1)
+        import_positions[[i]] <- paste0(i,metapopulation_number)
+        check_barcodes[[i]] <- paste0(i,"DONE")
+        epc <- epc+export_proportions[i]
+        redis_environment$SET(paste0(metapopulation_number,i),redux::object_to_bin(barcodes[export_positions[[i]]]))
+      } else {
+        export_positions[[i]] <- export_proportions[i]
+        import_positions[[i]] <- NULL
+        check_barcodes[[i]] <- NULL
+      }
+    }  
+  
+    ## clear the blank ones
+    import_positions[[metapopulation_number]] <- NULL
+    check_barcodes[[metapopulation_number]] <- NULL
+    
+    # Say that this metapopulation is finished
+    redis_environment$SET(paste0(metapopulation_number,"DONE"),1)
+
+    ## create the redis object for grabbing other barcodes
+    redis <- redux::redis
+    get_barcodes_cmds <- lapply(import_positions, function(x){ (redis$GET(x))})
+    check_barcodes_cmds <- lapply(check_barcodes, function(x){ (redis$GET(x))})
+    
+    # sit on a while loop here untill all populations are ready
+    cannot_import <- TRUE
+    while(cannot_import){
+      barcode_checks <- redis_environment$pipeline(.commands = check_barcodes_cmds) %>% unlist
+      if(sum(is.null(barcode_checks))==0){
+        cannot_import <- FALSE
+      }
+    }
+    
+    # once they are all ready set the done to 0 
+    redis_environment$SET(paste0(metapopulation_number,"DONE"),0)
+    
+    # fetch and format the barcodes for import
+    imported_barcodes <- lapply(redis_environment$pipeline(.commands = get_barcodes_cmds),redux::bin_to_object) %>% unlist
+    imported_barcodes <- lapply(imported_barcodes,function(x){strsplit(x,"") %>% unlist %>% as.numeric %>% as.logical}) 
+  }
+  
+  ## incorporate historic interventions as needed
+  if(use_historic_interventions){
+
+    ## THIS WILL COME BACK WHEN CAN GET ODIN WORKING AGAIN
+    
+    # if(!is.null(admin)){
+    #   eqInit$itn_cov <- rep(0,ceiling(years))
+    #   eqInit$irs_cov <- rep(0,ceiling(years))
+    #   eqInit$int_len <- length(eqInit$itn_cov)
+    #   eqInit$ITN_IRS_on <- -1
+    # } else {
+    # 
+    # # incorporate hitoric interventions
+    # eqInit$itn_cov <- itn_2010_2015$value[which(itn_2010_2015$admin==admin & itn_2010_2015$country==country)]
+    # eqInit$irs_cov <- irs_2010_2015$value[which(irs_2010_2015$admin==admin & irs_2010_2015$country==country)]
+    # 
+    # if(length(eqInit$irs_cov)!=16){
+    #   eqInit$irs_cov <- irs_2010_2015$value[which(irs_2010_2015$country==country)]  
+    # }
+    # 
+    # if(length(eqInit$irs_cov)!=16){
+    #   if(length(eqInit$itn_cov==1)){
+    #     eqInit$irs_cov <- 0
+    #   } else {
+    #   eqInit$irs_cov <- rep(0,16)
+    #   }
+    # }
+    # eqInit$int_len <- length(eqInit$itn_cov)
+    # eqInit$ITN_IRS_on <- (years - 16)*365
+    # }
+    # 
+    # # # create model
+    # # user_vars <- names(formals(odin_model)$user)[-match(c("","age"),names(formals(odin_model)$user))]
+    # # 
+    # # # create temp tp store generator
+    # # temp <- tempfile(fileext = ".txt")
+    # # 
+    # # # create the needed funciton call and run 
+    # # writeLines(text = paste0("model <- odin_model(",paste0(sapply(user_vars, function(x){(paste0(x,"=eqInit$",x,",\n") )}),collapse = ""),
+    # #                          "age = eqInit$age*365,\n",
+    # #                          "use_dde=TRUE)"),con = temp)
+    # # source(temp,local = TRUE)
+    # 
+    # odin_model_path <- system.file("extdata/odin_model.R",package="MAGENTA")
+    # gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
+    # 
+    # model <- generate_default_model(ft=eqInit$ft,age=eqInit$age_brackets,dat=eqInit,generator=gen,dde=TRUE)
+    # 
+    # 
+    # #create model and simulate
+    # tt <- seq(0,years*365,1)
+    # mod_run <- model$run(tt)
+    # out <- model$transform_variables(mod_run)
+  
+    out <- data.frame("mu"=mu_vec,"fv"=fv_vec)
+  }
+  
+  # If we have specified a yearly save we iterate through the total time in chunks saving the loggers at each stage
   if(yearly_save)
   {
     
     res <- list()
     length(res) <- round((years*365)/update_length)
     
+ 
+    
+    # adapt intervetnion datframe to match
+    if(use_historic_interventions){
+      mu_needed <- tail(out$mu,length(res)*30)
+      fv_needed <- tail(out$fv,length(res)*30)
+      out <- data.frame("mu"=mu_needed,"fv"=fv_needed)
+    }
+    
     if(length(res) > 1){
     for(i in 1:(length(res)-1)){
-      pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft, statePtr = sim.out$Ptr)
+      
+      ## if historical or not set up the parameter list accordingly
+      if(use_historic_interventions){
+      pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft,
+                                                 mu_vec = out$mu[1:update_length + ((i-1)*update_length)],
+                                                 fv_vec = out$fv[1:update_length + ((i-1)*update_length)], 
+                                                 imported_barcodes = imported_barcodes,
+                                                 statePtr = sim.out$Ptr)
+      } else {
+        pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft,
+                                                   imported_barcodes = imported_barcodes,
+                                                   statePtr = sim.out$Ptr)  
+      }
+      
+      # carry out simulation
       sim.out <- Simulation_R(pl2)
-      res[[i]] <- sim.out$Loggers
+      
+      # what are saving, does it include the humans
+      if(human_yearly_save){
+        pl3 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+        sim.save <- Simulation_R(pl3)
+        
+        # do we just want the summary data frame 
+        if(summary_saves_only){
+          if(i%%12 == 0 && i >= (length(res)-180)){
+          res[[i]] <- COI_df_create(sim.save,barcodes=TRUE)
+          } else {
+          res[[i]] <- COI_df_create(sim.save)
+          }
+          
+        # or do we want the full human popualation
+        } else {
+          Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
+          Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
+          res[[i]] <- Humans
+        }
+        
+      # or are we just saving the loggers
+      } else {
+        res[[i]] <- sim.out$Loggers
+      }
+     
+      ## spatial export
+      if(!is.null(spatial)){
+        
+        # Push barcodes to redis
+        for(i in 1:length(export_proportions)){
+          if(!is.na(export_proportions[i])){
+            redis_environment$SET(paste0(metapopulation_number,i),redux::object_to_bin(barcodes[export_positions[[i]]]))
+          }
+        }  
+        
+        # once pushed set the done to 1
+        redis_environment$SET(paste0(metapopulation_number,"DONE"),1)
+        
+        # sit on a while loop here untill all populations are ready
+        cannot_import <- TRUE
+        while(cannot_import){
+          barcode_checks <- redis_environment$pipeline(.commands = check_barcodes_cmds) %>% unlist
+          if(sum(barcode_checks==0)==0){
+            cannot_import <- FALSE
+          }
+        }
+        
+        # once they are all ready set the done to 0 
+        redis_environment$SET(paste0(metapopulation_number,"DONE"),0)
+        
+        # fetch and format the barcodes for import
+        imported_barcodes <- lapply(redis_environment$pipeline(.commands = get_barcodes_cmds),redux::bin_to_object) %>% unlist
+        imported_barcodes <- lapply(imported_barcodes,function(x){strsplit(x,"") %>% unlist %>% as.numeric %>% as.logical}) 
+        
+      }
+       
     }
     }
     ## final run
-    pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft, statePtr = sim.out$Ptr)
+    ## if historical or not
+    if(use_historic_interventions){
+      pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft,
+                                                 mu_vec = out$mu[1:update_length + ((i)*update_length)],
+                                                 fv_vec = out$fv[1:update_length + ((i)*update_length)],
+                                                 imported_barcodes = imported_barcodes,
+                                                 statePtr = sim.out$Ptr)
+    } else {
+      pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft,
+                                                 imported_barcodes = imported_barcodes,
+                                                 statePtr = sim.out$Ptr)  
+    }
+
     sim.out <- Simulation_R(pl2)
     
     ## If we have specified a full save then we grab that and save it or just the human bits of interest
@@ -141,7 +364,16 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
   {
     
     ## Set up update for years long
-    pl2 <- Param_List_Simulation_Update_Create(years = years, ft = ft, statePtr = sim.out$Ptr)
+    ## if historical or not
+    if(use_historic_interventions){
+      pl2 <- Param_List_Simulation_Update_Create(years = years, ft = ft,
+                                                 mu_vec = out$mu,
+                                                 fv_vec = out$fv,
+                                                 statePtr = sim.out$Ptr)
+    } else {
+      pl2 <- Param_List_Simulation_Update_Create(years = years, ft = ft, statePtr = sim.out$Ptr)
+    }
+
     
     ## Now run the simulation
     sim.out <- Simulation_R(paramList = pl2)

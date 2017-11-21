@@ -50,11 +50,26 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP odin_model_contents(SEXP);
+RcppExport SEXP odin_model_create(SEXP, SEXP);
+RcppExport SEXP odin_model_initialise(SEXP, SEXP);
+RcppExport SEXP odin_model_output_order(SEXP);
+RcppExport SEXP odin_model_set_initial(SEXP, SEXP, SEXP);
+RcppExport SEXP odin_model_variable_order(SEXP);
+RcppExport SEXP r_odin_model_set_user(SEXP, SEXP);
+
 static const R_CallMethodDef CallEntries[] = {
     {"_MAGENTA_Simulation_Get_cpp", (DL_FUNC) &_MAGENTA_Simulation_Get_cpp, 1},
     {"_MAGENTA_Simulation_Init_cpp", (DL_FUNC) &_MAGENTA_Simulation_Init_cpp, 1},
     {"_MAGENTA_Simulation_Saved_Init_cpp", (DL_FUNC) &_MAGENTA_Simulation_Saved_Init_cpp, 1},
     {"_MAGENTA_Simulation_Update_cpp", (DL_FUNC) &_MAGENTA_Simulation_Update_cpp, 1},
+    {"odin_model_contents",                (DL_FUNC) &odin_model_contents,                1},
+    {"odin_model_create",                  (DL_FUNC) &odin_model_create,                  2},
+    {"odin_model_initialise",              (DL_FUNC) &odin_model_initialise,              2},
+    {"odin_model_output_order",            (DL_FUNC) &odin_model_output_order,            1},
+    {"odin_model_set_initial",             (DL_FUNC) &odin_model_set_initial,             3},
+    {"odin_model_variable_order",          (DL_FUNC) &odin_model_variable_order,          1},
+    {"r_odin_model_set_user",              (DL_FUNC) &r_odin_model_set_user,              2},
     {NULL, NULL, 0}
 };
 

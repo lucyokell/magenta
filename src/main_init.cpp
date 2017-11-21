@@ -69,6 +69,10 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // Grab seasonality
   parameters.g_theta = Rcpp::as<vector<double> >(eqSS["theta"]);
   
+  // Grab spatial
+  parameters.g_spatial_exports = Rcpp::as<unsigned int>(eqSS["spatial"]);
+  
+  
   // Mosquito steady state values at a population level
   double Sv = Rcpp::as<double>(eqSS["Sv"]);
   double Ev = Rcpp::as<double>(eqSS["Ev"]);
@@ -309,6 +313,16 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   std::vector<barcode_t> pending_oocyst_barcode_male{ Strain::generate_random_barcode() };
   std::vector<barcode_t> pending_oocyst_barcode_female{ Strain::generate_random_barcode() };
   
+  // exported barcodes vector set up
+  if(parameters.g_spatial_exports)
+  {
+    parameters.g_spatial_export_counter = 0;
+    parameters.g_exported_barcodes.reserve(parameters.g_spatial_exports);
+    parameters.g_spatial_import_counter = 0;
+    parameters.g_imported_barcodes.reserve(parameters.g_spatial_imports);
+  }
+  
+  
   Rcpp::Rcout << "Mosquito preallocation initilisation working\n";
   Rcpp::Rcout << scourge.capacity() << "\n";
   Rcpp::Rcout << infected_human_count.size() << "\n";
@@ -346,6 +360,16 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
         scourge[n].set_m_oocyst_barcode_female_vector(population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode());
       }
 
+      // exported barcodes vector add barcode
+      if(parameters.g_spatial_exports)
+      {
+        if(parameters.g_spatial_export_counter < parameters.g_spatial_exports)
+          {
+          parameters.g_exported_barcodes.emplace_back(population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode());
+          parameters.g_spatial_export_counter++;
+        }
+      }
+      
       // Set the oocyst rupture count to 1
       scourge[n].set_m_ruptured_oocyst_count(1);
       scourge[n].m_mosquito_infected = true;
@@ -395,303 +419,33 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   Rcpp::Rcout << "Mosquito initilisation working\n";
   
-  /*
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // START: TIMERS AND PRE LOOP
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-  auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  Rcpp::Rcout << "Time elapsed in initialisation: " << duration << " seconds\n";
-  
-  // Start from day 2
-  parameters.g_current_time++;
-  
-  // End of simulation time
-  int g_end_time = static_cast<int>(parameters.g_current_time + (parameters.g_years * 365));
-  
-  // Preallocations;
-  unsigned int num_bites = 0;
-  unsigned int increasing_bites = 0;
-  unsigned int individual_binomial_bite_draw = 0;
-  double psi_sum = 0;
-  unsigned int scourge_size = scourge.size();
-  
-  // status eq for logging and other logging variables
-  std::vector<double> status_eq = { 0,0,0,0,0,0 };
-  unsigned int log_counter = 0;
-  double total_incidence = 0;
-  double total_incidence_05 = 0;
-  int daily_incidence_return = 0;
-  int daily_bite_counters = 0;
-  
-  // For loop preallocations
-  unsigned int human_update_i = 0;
-  unsigned int mosquito_update_i = 0;
-  unsigned int bite_sampling_i = 0;
-  unsigned int bite_sampling_internal_i = 0;
-  unsigned int num_bites_i = 0;
-  int negative_immunity_check = 0;
-  
-  // Maternal 
-  double mean_psi = 0;
-  double pi_cum_sum = 0;
-  double pi_sum = 0;
-  
-  // Bites
-  std::vector<int> mosquito_biting_queue;
-  mosquito_biting_queue.reserve(scourge.size());
-  std::vector<int> bite_storage_queue;
-  bite_storage_queue.reserve(scourge.size());
-  
-  
-  // resetart timer
-  t0 = std::chrono::high_resolution_clock::now();
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // START SIMULATION LOOP
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  for ( ; parameters.g_current_time < g_end_time ; parameters.g_current_time++)
-  {
-    
-    // Counter print
-    if (parameters.g_current_time % 100 == 0) 
-    { 
-      Rcpp::Rcout << parameters.g_current_time << " days" << "\n"; 
-    }
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // DAILY UPDATING AND EVENT HANDLING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // First calculate the mean maternal immunity from yesterday
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // Calculate yesterday's mean maternal immunity
-    parameters.g_mean_maternal_immunity = parameters.g_sum_maternal_immunity / parameters.g_total_mums;
-    
-    // Reset maternal immunity sums
-    parameters.g_sum_maternal_immunity = 0;
-    parameters.g_total_mums = 0;
-    
-    // Reset age dependent biting rate sum
-    psi_sum = 0;
-    
-    // Loop through each person and mosquito and update
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    // PARALLEL_TODO: This loop could easily be parallelised as each person will not require any shared memory (except for parameters)
-    
-    // Human update loop
-    for (human_update_i = 0; human_update_i < parameters.g_N; human_update_i++)
-    {
-      psi_sum += psi_vector[human_update_i] = population[human_update_i].update(parameters);
-    }
-    
-    // Reset number of bites for each day and update each mosquito. Update returns whether the mosquito is biting today
-    num_bites = 0;
-    
-    // Mosquito update loop
-    for (mosquito_update_i = 0; mosquito_update_i < scourge_size; mosquito_update_i++)
-    {
-      if (scourge[mosquito_update_i].update(parameters))
-      {
-        mosquito_biting_queue.emplace_back(mosquito_update_i);
-        num_bites++;
-      }
-    }
-    
-    // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
-    shuffle_integer_vector(mosquito_biting_queue);
-    
-    // Adjust the number of bites to account for anthrophagy
-    num_bites *= parameters.g_Q0;
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // BITE HANDLING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // First calculate mean age dependent biting heterogeneity (psi)
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // Calculate mean age dependent biting rate
-    mean_psi = psi_sum / parameters.g_N;
-    
-    // Create normalised psi by dividing by the mean age dependent biting rate
-    std::transform(psi_vector.begin(), psi_vector.end(), psi_vector.begin(),
-                   std::bind1st(std::multiplies<double>(), 1 / mean_psi));
-    
-    // Create overall relative biting rate, pi, i.e. the product of individual biting heterogeneity and age dependent heterogeneity
-    std::transform(psi_vector.begin(), psi_vector.end(),
-                   zeta_vector.begin(), pi_vector.begin(),
-                   std::multiplies<double>());
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // START: BITE ALLOCATIONS
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // Multinomial step //
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // Caluclate total probability of being bitten within population
-    pi_sum = std::accumulate(pi_vector.begin(), pi_vector.end(), 0.0);
-    
-    // multinomial procedure for everyone and breaking when n_bites is reached
-    for (bite_sampling_i = 0; bite_sampling_i < parameters.g_N - 1; bite_sampling_i++)
-    {
-      
-      individual_binomial_bite_draw = rbinomial1(num_bites - increasing_bites, pi_vector[bite_sampling_i] / (pi_sum - pi_cum_sum));
-      
-      for (bite_sampling_internal_i = 0; bite_sampling_internal_i < individual_binomial_bite_draw; bite_sampling_internal_i++)
-      {
-        bite_storage_queue.push_back(bite_sampling_i);
-      }
-      
-      pi_cum_sum += pi_vector[bite_sampling_i];
-      increasing_bites += individual_binomial_bite_draw;
-      if (increasing_bites >= num_bites) break;
-      
-    }
-    
-    // catch rounding errors so just place this here outside loop
-    if (increasing_bites < num_bites)
-    {
-      individual_binomial_bite_draw = num_bites - increasing_bites;
-      for (bite_sampling_internal_i = 0; bite_sampling_internal_i < individual_binomial_bite_draw; bite_sampling_internal_i++)
-      {
-        //bite_storage_queue.push(parameters.g_N - 1);
-        bite_storage_queue.push_back(parameters.g_N - 1);
-      }
-    }
-    
-    
-    // Reset bite and sum of biting rates
-    increasing_bites = 0;
-    pi_cum_sum = 0;
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // END: BITE ALLOCATION SAMPLING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    // ALLOCATE BITES
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // PARALLEL_TODO: Don't know how this could be parallelised yet - come back to with mosquitos in.
-    for (num_bites_i = 0; num_bites_i < num_bites; num_bites_i++)
-    {
-      // allocate bite to human if mosquito is infected
-      if (scourge[mosquito_biting_queue[num_bites_i]].m_mosquito_infected) {
-        population[bite_storage_queue[num_bites_i]].allocate_bite(parameters, scourge[mosquito_biting_queue[num_bites_i]]);
-        if (parameters.g_current_time > g_end_time - 7)
-        {
-        daily_bite_counters++;
-        }
-      }
-      
-      // if human would cause infection to mosquito then allocate gametocytes
-      if (population[bite_storage_queue[num_bites_i]].reciprocal_infection_boolean(parameters)) {
 
-        // TODO: Here draw from a zero truncated ngeative binomial for number of oocysts that will form
-        // and then loop over this that many times. 
-        scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(parameters, population[bite_storage_queue[num_bites_i]].sample_two_barcodes(parameters));
-      }
-      
-    }
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // BEGIN: LOGGING AND RETURN
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  
+  // convert exproted barcodes to vector of vector of bool
+  std::vector<std::vector<bool> >  Exported_Barcodes_Booleans(parameters.g_spatial_exports);
+  if(parameters.g_spatial_exports)
+  {
+    std::vector<bool> temp_barcode_vector(barcode_length);
     
-    // clear biting storage vectors
-    bite_storage_queue.clear();
-    mosquito_biting_queue.clear();
-    
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // START: SUMMARY LOGGING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // Log the last week //
-    
-    if (parameters.g_current_time > g_end_time - 7)
+    for(unsigned int temp_status_iterator = 0; temp_status_iterator < parameters.g_spatial_exports ; temp_status_iterator++)
     {
       
-      log_counter++;
-      
-      for (auto &element : population)
+      // fetch barcode and turn into vector<bool>
+      for(unsigned int temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
       {
-        // Match infection state and schedule associated next state change
-        switch (element.get_m_infection_state())
-        {
-        case Person::SUSCEPTIBLE:
-          status_eq[0]++;
-          break;
-        case Person::DISEASED:
-          status_eq[1]++;
-          break;
-        case Person::ASYMPTOMATIC:
-          status_eq[2]++;
-          break;
-        case Person::SUBPATENT:
-          status_eq[3]++;
-          break;
-        case Person::TREATED:
-          status_eq[4]++;
-          break;
-        case Person::PROPHYLAXIS:
-          status_eq[5]++;
-          break;
-        default:
-          assert(NULL && "Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
-        break;
-        }
-        
-        // log incidence
-        daily_incidence_return = element.log_daily_incidence(parameters);
-        if(daily_incidence_return == 2)
-        {
-          total_incidence++;
-          total_incidence_05++;
-        } 
-        if (daily_incidence_return == 1) 
-        {
-          total_incidence++;
-        }
-        
-        if(element.get_m_ICM() < 0 || element.get_m_ICA() < 0 || element.get_m_IB() < 0 || element.get_m_ID() < 0 ){
-          negative_immunity_check = 1;
-        }
-        
+        temp_barcode_vector[temp_barcode_iterator] = parameters.g_exported_barcodes[temp_status_iterator][temp_barcode_iterator];
       }
+      
+      Exported_Barcodes_Booleans[temp_status_iterator] = temp_barcode_vector;
+      
     }
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // END: SUMMARY LOGGING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    
-  };
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // END TIMERS
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  t1 = std::chrono::high_resolution_clock::now();
-  duration = std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  Rcpp::Rcout << "Time elapsed total: " << duration << " seconds\n";
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // SUMMARY LOGGING AVERAGING AND VARIABLE RETURN
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  // divide by population size and log counter and print to give overview
-  Rcpp::Rcout << "S | D | A | U | T | P:\n" ;
-  
-  for (int element = 0; element < 6; element++) 
-  {
-    status_eq[element] /= (parameters.g_N * log_counter);
-    Rcpp::Rcout << status_eq[element] << " | ";
   }
+
   
-  Rcpp::Rcout << "Neg imm = " << negative_immunity_check << "\n";
-  
-  */
   
   // Final infection states
   std::vector<int> Infection_States(parameters.g_N);
@@ -769,7 +523,15 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
                                     true);
   
   // Return Named List with pointer and loggers
+  // If spatial also required then export the barcodes
+  if(parameters.g_spatial_exports)
+  {
+  return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers, Rcpp::Named("Exported_Barcodes")=Exported_Barcodes_Booleans);
+  } 
+  else
+  {
   return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers);
+  }
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // fini
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

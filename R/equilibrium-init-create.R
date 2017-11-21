@@ -37,18 +37,6 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   if(!(is.null(admin) | is.character(admin))) stop("admin specified is not character string")
   if(!is.numeric(ft)) stop("ft provided is not numeric")
   if(!is.numeric(EIR)) stop("EIR provided is not numeric")
-  if(!identical(names(mpl),c("DY","eta","rho","a0","sigma2","max_age","rA","rT",
-                             "rD","rU","rP","dE","delayGam","cD","cT","cU",
-                             "gamma1","d1","dID","ID0","kD","uD","aD","fD0",
-                             "gammaD","alphaA","alphaU","b0","b1","dB","IB0",
-                             "kB","uB","phi0","phi1","dCA","IC0","kC","uCA","PM",
-                             "dCM","delayM","tau1","tau2","mu0","Q0","chi","bites_Bed",
-                             "bites_Indoors","fv0","av0","Surv0","p10","p2","muEL","muLL",
-                             "muPL","dEL","dLL","dPL","gammaL","km","cm","betaL","eov",
-                             "b_lambda","lambda","num_int","itn_cov","irs_cov","ITN_IRS_on",
-                             "cov","d_ITN0","r_ITN0","r_ITN1","r_IRS0","d_IRS0","irs_half_life",
-                             "itn_half_life","IRS_interval","ITN_interval","irs_loss",
-                             "itn_loss"))) stop("Incorrect variable names within model.param.list")
   
   
   ## Handle parameters
@@ -85,6 +73,8 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   age59 <- which(age.vector * 12 > 59)[1] - 1  # index of age vector before age is >59 months
   age05 <- which(age.vector > 5)[1] - 1  # index of age vector before age is 5 years
   
+  age2years <- which(age.vector > 2)[1] - 1  # index of age vector before age is 2 years
+  age10years <- which(age.vector > 10)[1] - 1  # index of age vector before age is 10 years
   ## force of infection
   foi_age <- c()
   for (i in 1:na)
@@ -308,8 +298,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   ID_eq = array(ID_eq, c(na, nh, num_int))
   ICA_eq = array(ICA_eq, c(na, nh, num_int))
   ICM_eq = array(ICM_eq, c(na, nh, num_int))
-  
-  
+  p_det_eq = array(p_det_eq, c(na, nh, num_int))
   
   # find database seasonal parameters
   
@@ -387,16 +376,19 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   
   ## collate init
   res <- list(S = S_eq, T = T_eq, D = D_eq, A = A_eq, U = U_eq, P = P_eq, Y = Y_eq,
-              IB = IB_eq, ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, ICM_init_eq = ICM_init_eq, Iv = Iv_eq, 
-              Sv = Sv_eq, Ev = Ev_eq, PL = PL_eq, LL = LL_eq, EL = EL_eq, age_rate = age_rate, 
-              het_wt = het_wt, het_x = het_x, omega = omega, foi_age = foi_age, rel_foi = rel_foi, 
-              K0 = K0, mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I, 
+              IB = IB_eq, ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, ICM_init_eq = ICM_init_eq, Iv = Iv_eq,
+              Sv = Sv_eq, Ev = Ev_eq, PL = PL_eq, LL = LL_eq, EL = EL_eq, pi = pi, int_len = 1,
+              init_S = S_eq, init_T = T_eq, init_D = D_eq, init_A = A_eq, init_U = U_eq, init_P = P_eq, init_Y = Y_eq,
+              init_IB = IB_eq, init_ID = ID_eq, init_ICA = ICA_eq, init_ICM = ICM_eq, ICM_init_eq = ICM_init_eq, init_Iv = Iv_eq,
+              init_Sv = Sv_eq, init_Ev = Ev_eq, init_PL = PL_eq, init_LL = LL_eq, init_EL = EL_eq,
+              age_rate = age_rate, het_wt = het_wt, het_x = het_x, omega = omega, foi_age = foi_age, rel_foi = rel_foi, 
+              K0 = K0, mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I, p_det_eq = p_det_eq,
               age_rate = age_rate, FOI = FOI_eq, EIR = EIR_eq, cA_eq = cA_eq, 
               den = den, age59 = age59, age05 = age05, ssa0 = ssa0, ssa1 = ssa1, 
               ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3, 
-              theta_c = theta_c, age_brackets = age.vector, ft = ft, FOIv_eq = FOIv_eq, U_eq=U_eq, S_eq=S_eq,
-              T_eq=T_eq, A_eq=A_eq, D_eq = D_eq, betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,
-              age2 = age2, het_bounds = het_bounds,country = country,admin = admin)
+              theta_c = theta_c, age_brackets = age.vector, age = age.vector, ft = ft, FOIv_eq = FOIv_eq, U_eq=U_eq, S_eq=S_eq,
+              T_eq=T_eq, A_eq=A_eq, D_eq = D_eq, betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,midages=age2,
+              age02 = age2years, age2years = age2years, age10years = age10years, het_bounds = het_bounds,country = country,admin = admin)
   
   res <- append(res,unlist(mpl))
   

@@ -12,11 +12,11 @@ Person::Person(const Parameters &parameters) :
     set_initial_m_day_of_death(parameters);
     
     // Reserve storage space for vectors - trialing suggests the below should fit about right in terms of minimising vector resizing
-    m_active_strains.reserve(static_cast<int>(100*m_individual_biting_rate));
-    m_active_strain_contribution.reserve(static_cast<int>(100*m_individual_biting_rate));
-    m_infection_time_realisation_vector.reserve(static_cast<int>(100*m_individual_biting_rate));			// First pending infection time in position 0 to handle multiple infections times that have not been realised yet
-    m_infection_state_realisation_vector.reserve(static_cast<int>(100*m_individual_biting_rate));			// First pending infection state in position 0 to handle multiple infections states that have not been realised yet
-    m_infection_barcode_realisation_vector.reserve(static_cast<int>(100*m_individual_biting_rate));		// First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
+    m_active_strains.reserve(static_cast<int>(100 * m_individual_biting_rate));
+    m_active_strain_contribution.reserve(static_cast<int>(100 * m_individual_biting_rate));
+    m_infection_time_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));			// First pending infection time in position 0 to handle multiple infections times that have not been realised yet
+    m_infection_state_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));			// First pending infection state in position 0 to handle multiple infections states that have not been realised yet
+    m_infection_barcode_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));		// First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
   }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -256,7 +256,7 @@ void Person::set_m_day_of_next_event() {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Allocate bite to person
-void Person::allocate_bite(const Parameters &parameters, Mosquito &mosquito)
+void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
 {
   // If we have already allocated a bite to this indivdual in this time step then we know we won't need to assess the immunity boosting again
   if (!m_number_of_bites)
@@ -301,7 +301,7 @@ void Person::allocate_bite(const Parameters &parameters, Mosquito &mosquito)
   }
 
 // Allocate an infection to person, i.e. individuals who return >0 from allocate_force_of_infection()
-void Person::allocate_infection(const Parameters &parameters, Mosquito &mosquito)
+void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
 {
   // Only need to calculate this once per day step
   if (!m_number_of_succesful_bites)
@@ -342,7 +342,7 @@ void Person::allocate_infection(const Parameters &parameters, Mosquito &mosquito
     // N -> D
     m_transition_probabilities[0] = m_symptom_success_rate * (1 - parameters.g_ft);
     // N -> T
-    m_transition_probabilities[1] = m_symptom_success_rate *parameters.g_ft;
+    m_transition_probabilities[1] = m_symptom_success_rate * parameters.g_ft;
     // N -> A
     m_transition_probabilities[2] = 1 - m_symptom_success_rate;
     
@@ -361,8 +361,6 @@ void Person::allocate_infection(const Parameters &parameters, Mosquito &mosquito
   m_number_of_succesful_bites++;
   
   //TODO: Add here a truncated neg binomial that details the possibility that more than one stain is pushed - if there is you simply loop through the following three lines
-  // TODO: Introduce here a carrying capacity - it makes sense that an individual with ahve their immunity increased without
-  // gaining a new strain
 
   // Push the resultant state of infection
   m_infection_state_realisation_vector.emplace_back(m_transition_vector[sample1(m_transition_probabilities, m_sum_transition_probabilities)]);
@@ -371,28 +369,47 @@ void Person::allocate_infection(const Parameters &parameters, Mosquito &mosquito
   m_infection_time_realisation_vector.emplace_back(static_cast<int>(parameters.g_dur_E + parameters.g_current_time));
   
   // Allocate strains from mosquito
-  if (mosquito.get_m_ruptured_oocyst_count() == 1)
-  {
-    m_infection_barcode_realisation_vector.emplace_back(
-      Strain::generate_recombinant_barcode(
-        mosquito.get_m_oocyst_barcode_male_vector(0),
-        mosquito.get_m_oocyst_barcode_female_vector(0)
-      )
-    );
+  
+  // if we are doing spatial then use the exported barcodes first - the human biting quueue is shuffled so distributed across humans fine.
+  if(parameters.g_spatial_import_counter < parameters.g_spatial_imports){
+  
+      // asign the exported barcode and increase the count
+      m_infection_barcode_realisation_vector.emplace_back(parameters.g_exported_barcodes[parameters.g_spatial_import_counter]);
+      parameters.g_spatial_import_counter++;
+      
   }
-  else
+  else 
   {
-    m_infection_barcode_realisation_vector.emplace_back(
-      Strain::generate_recombinant_barcode(
-        mosquito.get_m_oocyst_barcode_male_vector(runiform_int_1(1, mosquito.get_m_ruptured_oocyst_count()) - 1),
-        mosquito.get_m_oocyst_barcode_female_vector(runiform_int_1(1, mosquito.get_m_ruptured_oocyst_count()) - 1)
-      )
-    );
-  }
+    if (mosquito.get_m_ruptured_oocyst_count() == 1)
+    {
+      m_infection_barcode_realisation_vector.emplace_back(
+        Strain::generate_recombinant_barcode(
+          mosquito.get_m_oocyst_barcode_male_vector(0),
+          mosquito.get_m_oocyst_barcode_female_vector(0)
+        )
+      );
+    }
+    else
+    {
+      m_infection_barcode_realisation_vector.emplace_back(
+        Strain::generate_recombinant_barcode(
+          mosquito.get_m_oocyst_barcode_male_vector(runiform_int_1(1, mosquito.get_m_ruptured_oocyst_count()) - 1),
+          mosquito.get_m_oocyst_barcode_female_vector(runiform_int_1(1, mosquito.get_m_ruptured_oocyst_count()) - 1)
+        )
+      );
+    }
+    
+    // export a barcode if doing spacial
+    if(parameters.g_spatial_export_counter < parameters.g_spatial_exports)
+    {
+      parameters.g_exported_barcodes[parameters.g_spatial_export_counter] = m_infection_barcode_realisation_vector.back();
+      parameters.g_spatial_export_counter++;  
+    }
   
   // Set next event date as may have changed as a result of the bite
   set_m_day_of_next_event();
-  
+
+  }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -608,6 +625,7 @@ void Person::event_handle(const Parameters &parameters) {
         break;
       case TREATED:
         m_infection_state = PROPHYLAXIS;
+        m_day_last_treated = parameters.g_current_time;
         schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
         all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
         break;
@@ -849,7 +867,7 @@ double Person::update(Parameters &parameters)
 {
   // Update age
   m_person_age++;
-  m_age_dependent_biting_rate = 1 - (parameters.g_rho*exp(-m_person_age / parameters.g_a0));
+  m_age_dependent_biting_rate = 1 - (parameters.g_rho * exp(-m_person_age / parameters.g_a0));
   
   // Find out if pregnacy age
   if (m_person_age > (15 * 365) && m_person_age < (25 * 365)) {

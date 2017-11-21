@@ -57,13 +57,14 @@ Heatmap_ordered_binary_plot <- function(sim.save, years, EIR, ordered = TRUE,sav
 #' \code{Convert_Barcode_Vectors} converts human barcode vectors to nums
 #' 
 #' @param sim.save Saved output of simulation
+#' @param sub_patents_included Boolean as to whether subpatents are included. Default = TRUE
 #' 
 #' \code{Convert_Barcode_Vectors}
 #' 
 #' @export
 
 
-Convert_Barcode_Vectors <- function(sim.save){
+Convert_Barcode_Vectors <- function(sim.save, sub_patents_included=TRUE){
   
   
   bitsToInt<-function(x) {
@@ -85,7 +86,15 @@ Convert_Barcode_Vectors <- function(sim.save){
   )
   
   int.out <- lapply(lapply(intout,function(x){return(unlist(x))}),unlist)
+  
+  if(!sub_patents_included){
+    COI <- rep(0,length(int.out))
+    for(i in 1:length(int.out)){
+      COI[i] <- length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]!=3)]))
+    }
+  } else {
   COI <- unlist(lapply(int.out,function(x){return(length(unique(x)))}))
+  }
   COI[which(n.strains==0)] <- 0
   
   return(list("nums"=int.out,"COI"=COI))
@@ -187,6 +196,171 @@ COI_age_plot_sample_x <- function(Sample_COI_out,x,span=span,ylimmax=NULL,xlimma
   
 }
 
+
+#------------------------------------------------
+#' Create summary prev and genetic dataframes 
+#' 
+#' @param old_res list of simulation outputs
+#' @param update_length Days between sim saves in simulation. Default = 30
+#' @param years Years sims were run for
+#' 
+#' 
+summary_data_frames_from_sims <- function(old_res, update_length = 30,years){
+
+
+# set up list for final saves as these need to be replaced by COIs
+reps <- length(old_res)
+final_save <- list()
+length(final_save) <- reps
+
+# grab the final time point and convert them to the rest of the time points
+time_steps <- length(old_res[[1]])
+final_save <- lapply(old_res, function(x) {return(x[[time_steps]])})
+for(i in 1:length(old_res)){
+  # Convert the barcodes to COIs
+  COIS <- Convert_Barcode_Vectors(final_save[[i]],sub_patents_included=TRUE)
+  COIs <- COIS$COI
+  COIs[is.na(COIs)] <- 0
+  clonality <- table(table(unlist(COIS$nums)))
+
+  # grab the age, status etc
+  ages <- final_save[[i]]$Ages
+  ages[ages==0] <- 0.001
+  clinical_status <- final_save[[i]]$Infection_States
+  infection_state <- c("S","D","A","U","T","P")
+
+  #  bring into df
+  df <- data.frame("COI"=COIs,"Ages"=ages/365,"State"=infection_state[(clinical_status)+1],
+                   "Age_Bin" = cut(ages/365,breaks = c(0,1,3,5,10,20,40,60,100)),
+                   stringsAsFactors = FALSE)
+
+  # Add the non subpatent COIs
+  COIS <- Convert_Barcode_Vectors(final_save[[i]],sub_patents_included=FALSE)
+  COIs <- COIS$COI
+  COIs[is.na(COIs)] <- 0
+  df$COI_Detected_From_Model <- COIs
+
+  summary <- summarySE(df,measurevar = "COI",groupvars = c("Age_Bin","State"))
+
+  old_res[[i]][[time_steps]] <- list("Summary"=summary,"Clonality"=clonality)
+
+}
+
+# create vector of correspondng times
+full_time <- seq(update_length,years*365,update_length)/365 + 2015 - years
+
+# grab last 15 years of times
+time <- tail(full_time,floor(365*15/30))
+
+# positions of these times
+full_time_length <- 1:length(full_time)
+positions <- tail(full_time_length,length(time))
+
+
+times <- sort(rep(time,length(old_res)))
+meanCOI <- rep(0,length(times))
+meanCOI_0_2 <- meanCOI_2_5 <- meanCOI_5_10 <- meanCOI_10_20 <- meanCOI_20_100 <- rep(0,length(times))
+meanclonality <- rep(0,length(times))
+ciCOI <- rep(0,length(times))
+sdCOI <- rep(0,length(times))
+prevs <- rep(0,length(times))
+
+for(i in 1:(length(time))){
+
+  meanCOI[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    return(sum(x[[positions[i]]]$Summary$N[infs]*x[[positions[i]]]$Summary$COI[infs],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[infs],na.rm=TRUE))
+    }) %>% unlist
+  
+  meanCOI_0_2[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    kids <- c(x[[positions[i]]]$Summary$Age_Bin %in% levels(x[[positions[i]]]$Summary$Age_Bin)[1:2])
+    return(sum(x[[positions[i]]]$Summary$N[infs & kids]*x[[positions[i]]]$Summary$COI[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[infs & kids],na.rm=TRUE))
+  }) %>% unlist
+  
+  meanCOI_2_5[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    kids <- c(x[[positions[i]]]$Summary$Age_Bin %in% levels(x[[positions[i]]]$Summary$Age_Bin)[3:4])
+    return(sum(x[[positions[i]]]$Summary$N[infs & kids]*x[[positions[i]]]$Summary$COI[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[infs & kids],na.rm=TRUE))
+  }) %>% unlist
+
+  meanCOI_5_10[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    kids <- c(x[[positions[i]]]$Summary$Age_Bin %in% levels(x[[positions[i]]]$Summary$Age_Bin)[5])
+    return(sum(x[[positions[i]]]$Summary$N[infs & kids]*x[[positions[i]]]$Summary$COI[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[infs & kids],na.rm=TRUE))
+  }) %>% unlist
+  
+  meanCOI_10_20[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    kids <- c(x[[positions[i]]]$Summary$Age_Bin %in% levels(x[[positions[i]]]$Summary$Age_Bin)[6])
+    return(sum(x[[positions[i]]]$Summary$N[infs & kids]*x[[positions[i]]]$Summary$COI[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[infs & kids],na.rm=TRUE))
+  }) %>% unlist
+  
+  meanCOI_20_100[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    kids <- c(x[[positions[i]]]$Summary$Age_Bin %in% levels(x[[positions[i]]]$Summary$Age_Bin)[7:9])
+    return(sum(x[[positions[i]]]$Summary$N[infs & kids]*x[[positions[i]]]$Summary$COI[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[infs & kids],na.rm=TRUE))
+  }) %>% unlist
+  
+  ciCOI[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    return(sum(x[[positions[i]]]$Summary$N[infs]*x[[positions[i]]]$Summary$ci[infs],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[infs],na.rm=TRUE))
+  }) %>% unlist
+
+  sdCOI[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    return(sum(x[[positions[i]]]$Summary$N[infs]*x[[positions[i]]]$Summary$sd[infs],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[infs],na.rm=TRUE))
+  }) %>% unlist
+
+  meanclonality[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A","U"))
+    prods <- x[[positions[i]]]$Clonality * as.numeric(names(x[[positions[i]]]$Clonality))
+    if(is.element(el = "1",names(x[[positions[i]]]$Clonality))){
+    return(prods[1]/sum(prods,na.rm=TRUE))
+    } else {
+      return(0)
+    }
+  }) %>% unlist
+
+  prevs[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A"))
+    kids <- c(x[[positions[i]]]$Summary$Age_Bin %in% levels(x[[positions[i]]]$Summary$Age_Bin)[3:5])
+    return((sum(x[[positions[i]]]$Summary$N[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[kids],na.rm=TRUE)))
+  }) %>% unlist
+
+}
+
+df <- data.frame("Time" = times, "meanCOI" = meanCOI, "ciCOI" = ciCOI, "sdCOI" = sdCOI, "Clonality" = meanclonality,"Prev"=prevs,
+                 "meanCOI_0_2"=meanCOI_0_2, "meanCOI_2_5"=meanCOI_2_5, "meanCOI_5_10"=meanCOI_5_10, "meanCOI_10_20" = meanCOI_10_20,
+                 "meanCOI_20_100" =meanCOI_20_100)
+
+
+df_mean_COI <- summarySE(df,measurevar = "meanCOI",groupvars = "Time")
+df_mean_sdCOI <- summarySE(df,measurevar = "sdCOI",groupvars = "Time")
+df_mean_ciCOI <- summarySE(df,measurevar = "ciCOI",groupvars = "Time")
+df_mean_clonality <- summarySE(df,measurevar = "Clonality",groupvars = "Time")
+df_mean_COI$ciCOI <- df_mean_ciCOI$ciCOI
+df_mean_micro_prev <- summarySE(df,measurevar =  "Prev",groupvars = "Time")
+age_bands <- c("meanCOI_0_2","meanCOI_2_5","meanCOI_5_10","meanCOI_10_20","meanCOI_20_100")
+df_mean_COI_ages <- lapply(age_bands,function(x){return(summarySE(df,measurevar = x,groupvars = "Time"))})
+
+return(list("df"=df,"COI_df"=df_mean_COI,"Clonality_Df"=df_mean_clonality,"Prev_df"=df_mean_micro_prev,"COI_ages"=df_mean_COI_ages))
+
+
+}
+
+
+
+
+
+
+
+
+
+# 
+# ggplot(df_mean_COI,aes(x=Time,y=meanCOI)) + geom_line() + geom_ribbon(aes(x=Time,ymin=meanCOI - ciCOI,ymax=meanCOI+ciCOI))
+# 
+# ggplot(df_mean_clonality,aes(x=Time,y=Clonality)) + geom_line() + geom_ribbon(aes(x=Time,ymin=Clonality - ci,ymax=Clonality+ci))
 
 # 
 # 

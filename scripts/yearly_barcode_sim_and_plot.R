@@ -1,7 +1,7 @@
 
 
 
-sim.out <- Pipeline(10,ft = 0.2,N=1000,years=10)
+sim.out <- Pipeline(10,ft = 0.2,N=10000,years=10)
 
 res <- list()
 length(res) <- 30
@@ -85,21 +85,69 @@ ggplot(subset, aes(year, fill = ID)) +
 lapply(res,function(x){sum(x$population_List$Infection_States %in% c(1,2,3,4))})
 
 
-COIS <- lapply(res,function(x){(Convert_Barcode_Vectors(x$populations_event_and_strains_List))})
-COIs <- lapply(COIS,function(x){x$COI})
-ages <- lapply(res,function(x){x$population_List$Ages})
-clinical_status <- lapply(res,function(x){x$population_List$Infection_States})
-infection_state <- c("S","D","A","U","T","P")
-df <- data.frame("COI"=unlist(COIs),"Age"=unlist(ages),"State"=infection_state[unlist(clinical_status)+1],"Years"=sort(rep(1:30,10000)))
+
+
+#######################
+
+par(mfrow=c(3,3))
+windows()
+plot((seq(30,length(wh)*30,30)/365)+2015-20,lapply(wh,function(x){return((sum(x$Summary$N*x$Summary$COI)/sum(x$Summary$N))*mean(lin_Triplet+0.2))}) %>% unlist,
+     type="l",xlab = "Years",ylab="COI")
+for(i in 1:8){
+  plot((seq(30,length(wh)*30,30)/365)+2015-40,
+       lapply(wh,function(x){
+         bins <- x$Summary$Age_Bin==levels(x$Summary$Age_Bin)[i]
+         return((sum(x$Summary$N[bins]*x$Summary$COI[bins])/sum(x$Summary$N[bins]))*lin_Triplet[i])
+         }) %>% unlist,type="l",main = levels(x$Summary$Age_Bin)[i],xlab = "Years",ylab="COI")
+}
+
+
+prev <- lapply(wh[100:(length(wh)-1)],function(x) {return(sum(x$Summary$N[x$Summary$State %in% c("D","T","A","U") & x$Summary$Age_Bin %in% levels(x$Summary$Age_Bin)[3:5]])/
+                                                            sum(x$Summary$N[x$Summary$Age_Bin %in% levels(x$Summary$Age_Bin)[3:5]]))}) %>% unlist
+COI <- lapply(wh[100:(length(wh)-1)],function(x){return((sum(x$Summary$N[x$Summary$State %in% c("D","T","A","U")]*x$Summary$COI[x$Summary$State %in% c("D","T","A","U")])/sum(x$Summary$N[x$Summary$State %in% c("D","T","A","U")])))}) %>% unlist
+clons <- lapply(wh[100:(length(wh)-1)],function(x) {return(x$Clonality[1]/sum(x$Clonality))}) %>% unlist
+actual_prev <- MAP[MAP$Name=="Couffo",5:20]
+
+all_df <- data.frame("Prevalence"=prev,"COI"=COI,"Clonality"=clons)
+
+library(ggplot2)
+ggplot(all_df,aes(x=Prevalence,y=COI,colour=Clonality)) + geom_point() + geom_smooth(method = "lm")
+
+ 
+glm <- glm(prev~COI+clons)
+prev_predictons <- predict.lm(lm)
+
+
+
+####
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+df <- data.frame("COI"=unlist(COIs),"Age"=unlist(ages),"State"=infection_state[unlist(clinical_status)+1],"Years"=sort(rep(1:243,10000)))
 df$Age <- df$Age/365
-df <- dplyr::mutate(df,Age_Bin = cut(Age,breaks = c(0,2,5,10,15,100)))
+df <- dplyr::mutate(df,Age_Bin = cut(Age,breaks = c(0,1,3,5,10,20,40,60,100)))
 
 library(dplyr)
 library(magrittr)
 
-ggplot(subset(df, State %in% c("D","A","U") & Age<5),aes((Years),COI)) + geom_smooth(method="loess",span=0.4)
+ggplot(subset(df, State %in% c("D","A","U")),aes((Years),COI)) + geom_smooth(method="loess",span=0.4)
 
-+ 
+
   geom_point(data = subset(df, State %in% c("D","A","U") & Age<5)[sample(subset(df, State %in% c("D","A","U")) %>% dim %>% extract(1),size = 3000,replace=FALSE),],aes(Years,COI)) +
   facet_wrap(~Age_Bin,scales = "free_y")
 

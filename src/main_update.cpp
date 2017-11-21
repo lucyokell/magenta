@@ -69,6 +69,40 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   u_ptr->parameters.g_years = Rcpp::as<double>(paramList["years"]);
   u_ptr->parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
   
+  // Spatial initialisation
+  if(u_ptr->parameters.g_spatial_exports)
+  {
+    
+    // convert R vector
+    std::vector<std::vector<bool> > x = (Rcpp::as<std::vector<std::vector<bool> > >(paramList["imported_barcodes"]));
+    
+    // prep import barcode parameters and fill accordingly 
+    u_ptr->parameters.g_imported_barcodes.reserve(x.size());
+    
+    // generate temp barcode
+    barcode_t temp_barcode = Strain::generate_random_barcode();
+    unsigned int temp_barcode_iterator = 0;
+    
+    // loop through imported barcodes and set
+    for (unsigned int i = 0; i < x.size(); i++) 
+    {
+      // fetch vector<bool> and turn into barcode
+      for (temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length; temp_barcode_iterator++)
+      {
+        temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
+      }
+      u_ptr->parameters.g_imported_barcodes[i] = temp_barcode;
+    }
+    
+    // 
+    
+  }
+  
+  // Initialise the mosquito intervention parameter vectors
+  // These vectors detail how interventions have had an effect on mosquito behaviour for the update length considered
+  std::vector<double> mosquito_death_rates = Rcpp::as<vector<double> >(paramList["mu_vec"]);
+  std::vector<double> mosquito_biting_rates = Rcpp::as<vector<double> >(paramList["fv_vec"]);
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -96,6 +130,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   double psi_sum = 0;
   unsigned int scourge_size = u_ptr->scourge.size();
   unsigned int temp_deficit = 0;
+  int intervention_counter = 0;
+  std::vector<int> temp_biting_frequency_vector(u_ptr->parameters.g_max_mosquito_biting_counter);
+  int temp_biting_frequency_vector_iterator = 0;
   
   // status eq for logging and other logging variables
   std::vector<double> status_eq = { 0,0,0,0,0,0 };
@@ -130,7 +167,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START SIMULATION LOOP
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  for ( ; u_ptr->parameters.g_current_time < g_end_time ; u_ptr->parameters.g_current_time++)
+  for ( ; u_ptr->parameters.g_current_time < g_end_time ; u_ptr->parameters.g_current_time++, intervention_counter++)
   {
     
     // update the calendar day
@@ -157,10 +194,34 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // Reset maternal immunity sums
     u_ptr->parameters.g_sum_maternal_immunity = 0;
     u_ptr->parameters.g_total_mums = 0;
+    u_ptr->parameters.g_spatial_import_counter = 0;
+    u_ptr->parameters.g_spatial_export_counter = 0;
     
     // Reset age dependent biting rate sum
     psi_sum = 0;
 
+    // Second calculate the average biting rate and mosquito mortality for today given interventions
+    // --------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    // mortality changes due to interventions so we set it each day
+    u_ptr->parameters.g_mean_mosquito_age = 1.0/mosquito_death_rates[intervention_counter];
+    
+    // frequency of biting also changes due to repel effects of interventions so generate next biting times
+    temp_biting_frequency_vector_iterator = 1;
+    std::generate(temp_biting_frequency_vector.begin(),
+                  temp_biting_frequency_vector.end(),
+                  [&temp_biting_frequency_vector_iterator] { return temp_biting_frequency_vector_iterator++;}
+                  );
+    
+    // transform the vector of 
+    std::transform(temp_biting_frequency_vector.begin(), temp_biting_frequency_vector.end(), temp_biting_frequency_vector.begin(),
+                   std::bind1st(std::multiplies<double>(), (1.0/mosquito_biting_rates[intervention_counter])));
+    
+    std::adjacent_difference(temp_biting_frequency_vector.begin(),
+                             temp_biting_frequency_vector.end(),
+                             u_ptr->parameters.g_mosquito_next_biting_day_vector.begin());
+    
+    
     // Loop through each person and mosquito and update
     // --------------------------------------------------------------------------------------------------------------------------------------------------
     // PARALLEL_TODO: This loop could easily be parallelised as each person will not require any shared memory (except for u_ptr->parameters)
@@ -205,7 +266,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
         if(u_ptr->scourge[mosquito_update_i].get_m_mosquito_off_season()){
           u_ptr->scourge[mosquito_update_i] = u_ptr->scourge[runiform_int_1(0,mosquito_update_i-1)];
           u_ptr->parameters.g_mosquito_deficit++;
-          if (u_ptr->scourge[mosquito_update_i].get_m_day_of_next_blood_meal() == (u_ptr->parameters.g_current_time + 3)) {
+          if (u_ptr->scourge[mosquito_update_i].m_mosquito_biting_today) {
             mosquito_biting_queue.emplace_back(mosquito_update_i);
             num_bites++;
           }
@@ -251,6 +312,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
     // Multinomial bite decision
     rmultinomN(num_bites, u_ptr->pi_vector, pi_sum, u_ptr->parameters.g_N, bite_storage_queue);
+    
+    // shuffle the biting queue of humans instead of mosquito queue as smaller and then saves spatial clustering from importation
+    shuffle_integer_vector(bite_storage_queue);
     
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // START: BITE ALLOCATIONS
@@ -390,6 +454,28 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   // SUMMARY LOGGING AVERAGING AND VARIABLE RETURN
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
+  
+  // convert exproted barcodes to vector of vector of bool
+  std::vector<std::vector<bool> >  Exported_Barcodes_Booleans(u_ptr->parameters.g_spatial_exports);
+  if(u_ptr->parameters.g_spatial_exports)
+  {
+    std::vector<bool> temp_barcode_vector(24);
+    
+    for(unsigned int temp_status_iterator = 0; temp_status_iterator < u_ptr->parameters.g_spatial_exports ; temp_status_iterator++)
+    {
+      
+      // fetch barcode and turn into vector<bool>
+      for(unsigned int temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
+      {
+        temp_barcode_vector[temp_barcode_iterator] = u_ptr->parameters.g_exported_barcodes[temp_status_iterator][temp_barcode_iterator];
+      }
+      
+      Exported_Barcodes_Booleans[temp_status_iterator] = temp_barcode_vector;
+      temp_barcode_vector.clear();
+      
+    }
+  }
+  
   // divide by population size and log counter and print to give overview
   Rcpp::Rcout << "S | D | A | U | T | P:\n" ;
   
@@ -435,7 +521,15 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
   
   // Return Named List with pointer and loggers
-  return Rcpp::List::create(Rcpp::Named("Ptr") = u_ptr, Rcpp::Named("Loggers")=Loggers);
+  // If spatial also required then export the barcodes
+  if(u_ptr->parameters.g_spatial_exports)
+  {
+    return Rcpp::List::create(Rcpp::Named("Ptr") = u_ptr, Rcpp::Named("Loggers")=Loggers, Rcpp::Named("Exported_Barcodes")=Exported_Barcodes_Booleans);
+  } 
+  else
+  {
+    return Rcpp::List::create(Rcpp::Named("Ptr") = u_ptr, Rcpp::Named("Loggers")=Loggers);
+  }
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // fini
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

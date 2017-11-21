@@ -4,10 +4,14 @@
 \alias{PfPR_to_EIR_heuristic}
 \title{Brute force conversion of PfPR and ft to an EIR}
 \usage{
-PfPR_to_EIR_heuristic(PfPR, ft)
+PfPR_to_EIR_heuristic(PfPR = NULL, PfPR_micro = NULL, mv = NULL, ft)
 }
 \arguments{
 \item{PfPR}{Parasite prevaence by PCR}
+
+\item{PfPR_micro}{Parasite prevaence by microscopy (Default = NULL)}
+
+\item{mv}{Mosquito size if it's known. Default = NULL}
 
 \item{ft}{Treatment seeking}
 }

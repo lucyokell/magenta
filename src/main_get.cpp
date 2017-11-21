@@ -101,6 +101,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   std::vector<int> Number_of_Realised_Infections(universe_ptr->parameters.g_N);
   std::vector<int> Day_of_next_strain_state_change(universe_ptr->parameters.g_N);
   std::vector<int> Day_of_next_event(universe_ptr->parameters.g_N);
+  std::vector<int> Day_of_last_treatment(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Infection_time_realisation_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Infection_state_realisation_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<std::vector<bool> > > Infection_barcode_realisation_vectors(universe_ptr->parameters.g_N);
@@ -159,6 +160,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Day_of_InfectionStatus_change[element] = universe_ptr->population[element].get_m_day_of_InfectionStatus_change();
     Day_of_strain_clearance[element] = universe_ptr->population[element].get_m_day_of_strain_clearance();
     Day_of_death[element]	 = universe_ptr->population[element].get_m_day_of_death();
+    Day_of_last_treatment[element] = universe_ptr->population[element].get_m_day_last_treated(); 
     
     // Strain Numbers
     Number_of_Strains[element] = universe_ptr->population[element].get_m_number_of_strains();
@@ -347,6 +349,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Rcpp::Named("Number_of_Strains")=Number_of_Strains,
     Rcpp::Named("Day_of_next_strain_state_change")=Day_of_next_strain_state_change,
     Rcpp::Named("Day_of_next_event")=Day_of_next_event,
+    Rcpp::Named("Day_of_last_treatment")=Day_of_last_treatment,
     Rcpp::Named("Number_of_Realised_Infections")=Number_of_Realised_Infections,
     Rcpp::Named("Infection_time_realisation_vectors")=Infection_time_realisation_vectors,
     Rcpp::Named("Infection_state_realisation_vectors")=Infection_state_realisation_vectors,

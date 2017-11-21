@@ -131,6 +131,7 @@ private:
   int m_temp_day_of_next_strain_state_change = 0;                             // Temp next day of state change
   int m_temp_strain_to_next_change = 0;                                       // temp variable so we know what strain is changing next
   bool m_more_than_one_strain_to_change_today_bool = false;                   // bool that declares whether there are more than one strain changing states today
+  int m_day_last_treated = 0;                                                 // Day last treated
   
   std::vector<int> m_infection_time_realisation_vector{};         // First pending infection time in position 0 to handle multiple infections times that have not been realised yet
   std::vector<InfectionStatus> m_infection_state_realisation_vector{};  // First pending infection state in position 0 to handle multiple infections states that have not been realised yet
@@ -224,6 +225,9 @@ public:
   
   // Get person's next event day
   int get_m_day_of_next_event() { return(m_day_of_next_event); }
+  
+  // Get person's next event day
+  int get_m_day_last_treated() { return(m_day_last_treated); }
   
   // Get person's infection time realisation vector
   std::vector<int> get_m_infection_time_realisation_vector() { return (m_infection_time_realisation_vector); }
@@ -340,6 +344,9 @@ public:
   // Set person's time of death
   void set_m_day_of_death(int x) { m_day_of_death = x; }
   
+  // Set person's next event day
+  void set_m_day_last_treated(int x) { m_day_last_treated = x; }
+  
   // Set person's infection time realisation vector
   void set_m_infection_time_realisation_vector_from_vector(std::vector<int> x) 
   {
@@ -362,11 +369,11 @@ public:
   
   // Set person's infection barcode realisation vector
   void set_m_infection_barcode_realisation_vector_from_vector(std::vector<barcode_t> x)
-    {
-      for (unsigned int i = 0; i < x.size(); i++) {
-        m_infection_barcode_realisation_vector.emplace_back(x[i]);
-      }
+  {
+    for (unsigned int i = 0; i < x.size(); i++) {
+      m_infection_barcode_realisation_vector.emplace_back(x[i]);
     }
+  }
   
   // Set person's barcode realisation vector from a vector<vector<bool> >
   void set_m_infection_barcode_realisation_vector_from_vector_of_vector_bool(std::vector<std::vector<bool> > x)
@@ -395,10 +402,10 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Allocate bite to person
-  void allocate_bite(const Parameters &parameters, Mosquito &mosquito);
+  void allocate_bite(Parameters &parameters, Mosquito &mosquito);
   
   // Allocate an infection to person
-  void allocate_infection(const Parameters &parameters, Mosquito &mosquito);
+  void allocate_infection(Parameters &parameters, Mosquito &mosquito);
   
   // Allocate a strain to a person
   void allocate_strain_with_push(Strain x) { m_active_strains.push_back(x); }
