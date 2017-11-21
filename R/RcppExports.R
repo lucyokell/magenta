@@ -37,3 +37,7 @@ Simulation_Update_cpp <- function(paramList) {
     .Call('_MAGENTA_Simulation_Update_cpp', PACKAGE = 'MAGENTA', paramList)
 }
 
+test_bitset_serialisation <- function(x) {
+    .Call('_MAGENTA_test_bitset_serialisation', PACKAGE = 'MAGENTA', x)
+}
+
