@@ -49,27 +49,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-
-RcppExport SEXP odin_model_contents(SEXP);
-RcppExport SEXP odin_model_create(SEXP, SEXP);
-RcppExport SEXP odin_model_initialise(SEXP, SEXP);
-RcppExport SEXP odin_model_output_order(SEXP);
-RcppExport SEXP odin_model_set_initial(SEXP, SEXP, SEXP);
-RcppExport SEXP odin_model_variable_order(SEXP);
-RcppExport SEXP r_odin_model_set_user(SEXP, SEXP);
+// test_bitset_serialisation
+SEXP test_bitset_serialisation(SEXP x);
+RcppExport SEXP _MAGENTA_test_bitset_serialisation(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_bitset_serialisation(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_MAGENTA_Simulation_Get_cpp", (DL_FUNC) &_MAGENTA_Simulation_Get_cpp, 1},
     {"_MAGENTA_Simulation_Init_cpp", (DL_FUNC) &_MAGENTA_Simulation_Init_cpp, 1},
     {"_MAGENTA_Simulation_Saved_Init_cpp", (DL_FUNC) &_MAGENTA_Simulation_Saved_Init_cpp, 1},
     {"_MAGENTA_Simulation_Update_cpp", (DL_FUNC) &_MAGENTA_Simulation_Update_cpp, 1},
-    {"odin_model_contents",                (DL_FUNC) &odin_model_contents,                1},
-    {"odin_model_create",                  (DL_FUNC) &odin_model_create,                  2},
-    {"odin_model_initialise",              (DL_FUNC) &odin_model_initialise,              2},
-    {"odin_model_output_order",            (DL_FUNC) &odin_model_output_order,            1},
-    {"odin_model_set_initial",             (DL_FUNC) &odin_model_set_initial,             3},
-    {"odin_model_variable_order",          (DL_FUNC) &odin_model_variable_order,          1},
-    {"r_odin_model_set_user",              (DL_FUNC) &r_odin_model_set_user,              2},
+    {"_MAGENTA_test_bitset_serialisation", (DL_FUNC) &_MAGENTA_test_bitset_serialisation, 1},
     {NULL, NULL, 0}
 };
 

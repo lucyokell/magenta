@@ -26,3 +26,5 @@ LinkingTo: Rcpp
 LazyData: TRUE
 RoxygenNote: 6.0.1
 SystemRequirements: C++11
+Suggests:
+    testthat
