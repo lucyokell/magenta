@@ -9,10 +9,10 @@
 #' will attempt to be loaded using just the admin unit, however if there is ambiguity
 #' in the admin unit an error will be thrown. If both NULL then no seasonality is 
 #' assumed. Default = NULL.
-#' @param admin.unit String for admin unit with country for loading seasonal
+#' @param admin String for admin unit with country for loading seasonal
 #' parameters. If country is NULL, the admin unit will attempt to be located,however 
 #' if there is ambiguity in the admin unit an error will be thrown. If both country
-#' and admin.unit are NULL then no seasonality is assumed. Default = NULL.
+#' and admin are NULL then no seasonality is assumed. Default = NULL.
 #' @param ft Numeric for the frequency of people seeking treatment.
 #' @param EIR Numeric for desired annual EIR.
 #' @param model.param.list List of epidemiological parameters created by 
@@ -22,7 +22,7 @@
 #' @export
 
 Equilibrium_Init_Create <- function(age.vector, het.brackets,
-                                    country = NULL, admin.unit = NULL, ft,
+                                    country = NULL, admin = NULL, ft,
                                     EIR, model.param.list)
 {
   
@@ -33,29 +33,17 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   if(!is.numeric(age.vector)) stop("age.vector provided is not numeric")
   if(sum(diff(age.vector)>0) != (length(age.vector)-1)) stop("age.vector is not sequentially increasing brackets of age")
   if(!is.numeric(het.brackets)) stop("het.brackets proovided is not numeric")
-  if(!is.null(country) | is.character(country)) stop("country specified is not character string")
-  if(!is.null(admin.unit) | is.character(admin.unit)) stop("admin.unit specified is not character string")
+  if(!(is.null(country) | is.character(country))) stop("country specified is not character string")
+  if(!(is.null(admin) | is.character(admin))) stop("admin specified is not character string")
   if(!is.numeric(ft)) stop("ft provided is not numeric")
   if(!is.numeric(EIR)) stop("EIR provided is not numeric")
-  if(!identical(names(mpl),c("DY","eta","rho","a0","sigma2","rA","rT",
-                             "rD","rU","rP","dE","delayGam","cD","cT","cU",
-                             "gamma1","d1","dID","ID0","kD","uD","aD","fD0",
-                             "gammaD","alphaA","alphaU","b0","b1","dB","IB0",
-                             "kB","uB","phi0","phi1","dCA","IC0","kC","uCA","PM",
-                             "dCM","delayM","tau1","tau2","mu0","Q0","chi","bites_Bed",
-                             "bites_Indoors","fv0","av0","Surv0","p10","p2","muEL","muLL",
-                             "muPL","dEL","dLL","dPL","gammaL","km","cm","betaL","eov",
-                             "b_lambda","lambda","num_int","itn_cov","irs_cov","ITN_IRS_on",
-                             "cov","d_ITN0","r_ITN0","r_ITN1","r_IRS0","d_IRS0","irs_half_life",
-                             "itn_half_life","IRS_interval","ITN_interval","irs_loss",
-                             "itn_loss"))) stop("Incorrect variable names within model.param.list")
   
   
   ## Handle parameters
   # database for admin units is all in Latin-ASCII for CRAN reasons so must 
   # encode parameters accordingly
   if(!is.null(country)) country <- stringi::stri_trans_general(country,"Latin-ASCII")
-  if(!is.null(admin.unit)) admin.unit <- stringi::stri_trans_general(admin.unit, "Latin-ASCII")
+  if(!is.null(admin)) admin <- stringi::stri_trans_general(admin, "Latin-ASCII")
   
   age <- age.vector * mpl$DY
   na <- as.integer(length(age))  # number of age groups
@@ -72,8 +60,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
     age_rate[i] <- ifelse(i == na, 0, 1/(age[i + 1] - age[i]))  # vector of rates at which people leave each age group (1/age group width)
     if (i < na) 
       age2[i] <- 0.5 * (age2[i] + age2[i + 1])  # set age group vector to the midpoint of the group
-    age_width[i] <- ifelse(i == na, age_width[i], age[i] - age[i - 
-                                                                 1])
+    age_width[i] <- ifelse(i == na, age_width[i] - age[i - 1], age[i] - age[i - 1])
   }
   age_width <- age_width[-1]  # bet this will break at some point
   
@@ -86,11 +73,13 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   age59 <- which(age.vector * 12 > 59)[1] - 1  # index of age vector before age is >59 months
   age05 <- which(age.vector > 5)[1] - 1  # index of age vector before age is 5 years
   
+  age2years <- which(age.vector > 2)[1] - 1  # index of age vector before age is 2 years
+  age10years <- which(age.vector > 10)[1] - 1  # index of age vector before age is 10 years
   ## force of infection
   foi_age <- c()
   for (i in 1:na)
   {
-    foi_age[i] <- 1 - mpl$rho * exp(-age[i]/mpl$a0)  #force of infection for each age group
+    foi_age[i] <- 1 - (mpl$rho * exp(-age[i]/mpl$a0))  #force of infection for each age group
   }
   fden <- foi_age * den
   omega <- sum(fden)  #normalising constant
@@ -100,7 +89,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   het_wt <- h$weights
   den_het <- outer(den, het_wt)
   
-  rel_foi <- exp(mpl$sigma2/2 + sqrt(mpl$sigma2) * het_x)/sum(het_wt * exp(mpl$sigma2/2 + sqrt(mpl$sigma2) * het_x))
+  rel_foi <- exp(-mpl$sigma2/2 + sqrt(mpl$sigma2) * het_x)/sum(het_wt * exp(-mpl$sigma2/2 + sqrt(mpl$sigma2) * het_x))
   
   
   ## EIR
@@ -144,8 +133,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   {
     for (i in 1:na)
     {
-      IB_eq[i, j] <- (ifelse(i == 1, 0, IB_eq[i - 1, j]) + EIR_eq[i, 
-                                                                  j]/(EIR_eq[i, j] * mpl$uB + 1) * x_I[i])/(1 + x_I[i]/mpl$dB)
+      IB_eq[i, j] <- (ifelse(i == 1, 0, IB_eq[i - 1, j]) + EIR_eq[i,j]/(EIR_eq[i, j] * mpl$uB + 1) * x_I[i])/(1 + x_I[i]/mpl$dB)
       FOI_eq[i, j] <- EIR_eq[i, j] * ifelse(IB_eq[i, j] == 0, mpl$b0, 
                                             mpl$b0 * ((1 - mpl$b1)/(1 + (IB_eq[i, j]/mpl$IB0)^mpl$kB) + mpl$b1))
       ID_eq[i, j] <- (ifelse(i == 1, 0, ID_eq[i - 1, j]) + FOI_eq[i, 
@@ -190,14 +178,18 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   Z_eq[1, , 3] <- aD[1, ] * Z_eq[1, , 1]
   Z_eq[1, , 4] <- aP[1, ] * Z_eq[1, , 1]
   
-  for (i in 2:na)
+  for (j in 1:nh)
   {
-    for (j in 1:nh)
-    {
-      Z_eq[i, j, 1] <- (den_het[i, j] - delta[i] * (Z_eq[i - 1, j, 
-                                                         2]/betaT[i, j] + Z_eq[i - 1, j, 3]/betaD[i, j] + (mpl$rT * 
-                                                                                                             Z_eq[i - 1, j, 2]/betaT[i, j] + Z_eq[i - 1, j, 4])/betaP[i, 
-                                                                                                                                                                      j]))/(1 + aT[i, j] + aD[i, j] + aP[i, j])
+    for (i in 2:na)
+      # 
+      # for (i in 2:na)
+      # {
+      #   for (j in 1:nh)
+      #     
+      {
+      Z_eq[i, j, 1] <- (den_het[i, j] - delta[i] * (Z_eq[i - 1, j, 2]/betaT[i, j] + 
+                                                      Z_eq[i - 1, j, 3]/betaD[i, j] + 
+                                                      (mpl$rT *  Z_eq[i - 1, j, 2]/betaT[i, j] + Z_eq[i - 1, j, 4])/betaP[i, j]))/(1 + aT[i, j] + aD[i, j] + aP[i, j])
       Z_eq[i, j, 2] <- aT[i, j] * Z_eq[i, j, 1] + delta[i] * Z_eq[i - 
                                                                     1, j, 2]/betaT[i, j]
       Z_eq[i, j, 3] <- aD[i, j] * Z_eq[i, j, 1] + delta[i] * Z_eq[i - 
@@ -301,39 +293,28 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   {
     x * P_eq
   }, mat)
-  IB_eq <- vapply(cov, FUN = function(x)
-  {
-    x * IB_eq
-  }, mat)
-  ID_eq <- vapply(cov, FUN = function(x)
-  {
-    x * ID_eq
-  }, mat)
-  ICA_eq <- vapply(cov, FUN = function(x)
-  {
-    x * ICA_eq
-  }, mat)
-  ICM_eq <- vapply(cov, FUN = function(x)
-  {
-    x * ICM_eq
-  }, mat)
   
+  IB_eq = array(IB_eq, c(na, nh, num_int))
+  ID_eq = array(ID_eq, c(na, nh, num_int))
+  ICA_eq = array(ICA_eq, c(na, nh, num_int))
+  ICM_eq = array(ICM_eq, c(na, nh, num_int))
+  p_det_eq = array(p_det_eq, c(na, nh, num_int))
   
   # find database seasonal parameters
   
   # intiialise admin match as no match
   admin.matches <- 0
   
-  if(!is.null(admin.unit)){
+  if(!is.null(admin)){
     
     # if there is no country given then search for the admin unit
     if(is.null(country)){
       
       # find exact match
-      admin.matches <- grep(paste("^",admin.unit,"\\b",sep=""),admin_units_seasonal$admin1)
+      admin.matches <- grep(paste("^",admin,"\\b",sep=""),admin_units_seasonal$admin1)
       # if exact does not match try fuzzy match up to dist of 4 which should catch having nop spaces or separators etc
       if(length(admin.matches)==0){
-        admin.matches <- which(adist(admin_units_seasonal$admin1,admin.unit)<=4)
+        admin.matches <- which(adist(admin_units_seasonal$admin1,admin)<=4)
       }
       if(length(admin.matches)>1) stop("Admin unit string specified is ambiguous without country")
       
@@ -353,14 +334,14 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
       }
       
       # find exact match
-      admin.sub.matches <- grep(paste("^",admin.unit,"\\b",sep=""),admin_units_seasonal$admin1[country.matches])
+      admin.sub.matches <- grep(paste("^",admin,"\\b",sep=""),admin_units_seasonal$admin1[country.matches])
       # if exact does not match try fuzzy match up to dist of 4 which should catch having nop spaces or separators etc
       if(length(admin.sub.matches)==0){
-        admin.sub.matches <- which(adist(admin_units_seasonal$admin1[country.matches],admin.unit)<=4)
+        admin.sub.matches <- which(adist(admin_units_seasonal$admin1[country.matches],admin)<=4)
       }
-      if(length(admin.matches)>1) stop("Admin unit string specified is not close enougth to those in the database")
+      if(length(admin.sub.matches)>1) stop("Admin unit string specified is not close enougth to those in the database")
       
-      admin.matches <- which(admin_units_seasonal$admin1 == admin_units_seasonal$admin1[country.matches][admin.matches])
+      admin.matches <- which(admin_units_seasonal$admin1 == admin_units_seasonal$admin1[country.matches][admin.sub.matches])
     }
     
   }
@@ -378,16 +359,36 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
     ssa0 <- ssa1 <- ssa2 <- ssa3 <- ssb1 <- ssb2 <- ssb3 <- theta_c <- 0 
   }
   
+  # better het bounds for equilbirum initialisation in individual model
+  zetas <- rlnorm(n = 1e5,meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
+  while(sum(zetas>100)>0){
+    zetas[zetas>100] <- rlnorm(n = sum(zetas>100),meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
+  }
+  wt_cuts <- round(cumsum(het_wt)*1e5)
+  zeros <- which(wt_cuts==0)
+  wt_cuts[zeros] <- 1:length(zeros)
+  larges <- which(wt_cuts==1e5)
+  wt_cuts[larges] <- (1e5 - (length(larges)-1)):1e5
+  wt_cuts <- c(0,wt_cuts)
+  het_bounds <- sort(zetas)[wt_cuts]
+  het_bounds[length(het_bounds)] <- (mpl$max_age/365)+1
   
-  res <- list(S = S_eq, T = T_eq, D = D_eq, A = A_eq, U = U_eq, P = P_eq, 
-              IB = IB_eq, ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, Iv = Iv_eq, 
-              Sv = Sv_eq, Ev = Ev_eq, PL = PL_eq, LL = LL_eq, EL = EL_eq, age_rate = age_rate, 
-              het_wt = het_wt, omega = omega, foi_age = foi_age, rel_foi = rel_foi, 
-              K0 = K0, mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I, 
+  
+  ## collate init
+  res <- list(S = S_eq, T = T_eq, D = D_eq, A = A_eq, U = U_eq, P = P_eq, Y = Y_eq,
+              IB = IB_eq, ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, ICM_init_eq = ICM_init_eq, Iv = Iv_eq,
+              Sv = Sv_eq, Ev = Ev_eq, PL = PL_eq, LL = LL_eq, EL = EL_eq, pi = pi, int_len = 1,
+              init_S = S_eq, init_T = T_eq, init_D = D_eq, init_A = A_eq, init_U = U_eq, init_P = P_eq, init_Y = Y_eq,
+              init_IB = IB_eq, init_ID = ID_eq, init_ICA = ICA_eq, init_ICM = ICM_eq, ICM_init_eq = ICM_init_eq, init_Iv = Iv_eq,
+              init_Sv = Sv_eq, init_Ev = Ev_eq, init_PL = PL_eq, init_LL = LL_eq, init_EL = EL_eq,
+              age_rate = age_rate, het_wt = het_wt, het_x = het_x, omega = omega, foi_age = foi_age, rel_foi = rel_foi, 
+              K0 = K0, mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I, p_det_eq = p_det_eq,
               age_rate = age_rate, FOI = FOI_eq, EIR = EIR_eq, cA_eq = cA_eq, 
               den = den, age59 = age59, age05 = age05, ssa0 = ssa0, ssa1 = ssa1, 
               ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3, 
-              theta_c = theta_c, age_brackets = age.vector, ft = ft)
+              theta_c = theta_c, age_brackets = age.vector, age = age.vector, ft = ft, FOIv_eq = FOIv_eq, U_eq=U_eq, S_eq=S_eq,
+              T_eq=T_eq, A_eq=A_eq, D_eq = D_eq, betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,midages=age2,
+              age02 = age2years, age2years = age2years, age10years = age10years, het_bounds = het_bounds,country = country,admin = admin)
   
   res <- append(res,unlist(mpl))
   

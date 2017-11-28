@@ -8,6 +8,7 @@
 #' @param rho Age-dependent biting parameter. Default = 0.85
 #' @param a0 Age-dependent biting parameter. Default = 2920
 #' @param sigma2 Variance of the log heterogeneity in biting rates. Default = 1.67
+#' @param max_age Maximum age in days. Default = 100*365
 #' @param rA Rate of leaving asymptomatic infection. Default = 0.00512821
 #' @param rT Rate of leaving treatment. Default = 0.2
 #' @param rD Rate of leaving clinical disease. Default = 0.2
@@ -41,9 +42,9 @@
 #' @param IC0 Scale parameter. Default = 18.02366
 #' @param kC Shape parameter. Default = 2.36949
 #' @param uCA Duration in which immunity is not boosted. Default = 6.06349
-#' @param PM New-born immunity relative to mother’s. Default = 0.774368
+#' @param PM New-born immunity relative to mother. Default = 0.774368
 #' @param dCM Inverse of decay rate of maternal immunity. Default = 67.6952
-#' @param delayM Extrinsic incubation period. Default = 10
+#' @param delayMos Extrinsic incubation period. Default = 10
 #' @param tau1 Duration of host seeking, assumed to be constant between species. Default = 0.69
 #' @param tau2 Duration of mosquito resting after feed. Default = 2.31
 #' @param mu0 Daily mortality of adult mosquitos. Default = 0.132
@@ -86,12 +87,13 @@ Model_Param_List_Create <- function(
   rho = 0.85,
   a0 = 2920,
   sigma2 = 1.67,
+  max_age = 100*365,
   #  rate of leaving infection states
   rA = 0.00512821,
   rT = 0.2,
   rD = 0.2,
   rU = 0.00906627,
-  rP = 0.05,
+  rP = 1/15,
   #  human latent period and time lag from asexual parasites to
   dE  = 12,
   delayGam = 12.5,
@@ -109,8 +111,8 @@ Model_Param_List_Create <- function(
   aD = 8001.99,
   fD0 = 0.007055,
   gammaD = 4.8183,
-  alphaA = 0.757,
-  alphaU = 0.186,
+  alphaA = 0.75735,
+  alphaU = 0.185624,
   # Immunity reducing probability of infection
   b0 = 0.590076,
   b1 = 0.5,
@@ -128,7 +130,7 @@ Model_Param_List_Create <- function(
   PM = 0.774368,
   dCM = 67.6952,
   # entomological parameters
-  delayM = 10,
+  delayMos = 10,
   tau1 = 0.69,
   tau2 = 2.31,
   mu0 = 0.132,
@@ -175,6 +177,7 @@ Model_Param_List_Create <- function(
   mp.list$rho <- rho
   mp.list$a0 <- a0
   mp.list$sigma2 <- sigma2
+  mp.list$max_age <- max_age
   
   # rate of leaving infection states
   mp.list$rA <- rA
@@ -190,7 +193,7 @@ Model_Param_List_Create <- function(
   
   # infectiousness to mosquitoes
   mp.list$cD <- cD
-  mp.list$cT <- cT * cD
+  mp.list$cT <- cT
   mp.list$cU <- cU
   mp.list$gamma1 <- gamma1
 
@@ -227,7 +230,7 @@ Model_Param_List_Create <- function(
   mp.list$dCM <- dCM
   
   # entomological parameters
-  mp.list$delayM <- delayM
+  mp.list$delayMos <- delayMos
   mp.list$tau1 <- tau1
   mp.list$tau2 <- tau2
   mp.list$mu0 <- mu0
@@ -237,7 +240,7 @@ Model_Param_List_Create <- function(
   mp.list$bites_Indoors <- bites_Indoors
   mp.list$fv0 <- 1 / (tau1 + tau2)
   mp.list$av0 <- Q0 * mp.list$fv0 # daily feeeding rate on humans
-  mp.list$Surv0 <- exp(-mu0 * delayM) # probability of surviving incubation period
+  mp.list$Surv0 <- exp(-mu0 * delayMos) # probability of surviving incubation period
   mp.list$p10 <- exp(-mu0 * tau1)  # probability of surviving one feeding cycle
   mp.list$p2 <- exp(-mu0 * tau2)  # probability of surviving one resting cycle
   
@@ -270,16 +273,15 @@ Model_Param_List_Create <- function(
   mp.list$r_ITN1 <- r_ITN1
   mp.list$r_IRS0 <- r_IRS0
   mp.list$d_IRS0 <- d_IRS0
-  mp.list$irs_half_life <- irs_half_life * DY
-  mp.list$itn_half_life <- itn_half_life * DY
+  mp.list$irs_half_life <- irs_half_life
+  mp.list$itn_half_life <- itn_half_life 
   mp.list$IRS_interval <- IRS_interval
   mp.list$ITN_interval <- ITN_interval
   mp.list$irs_half_life <- 0.5 * mp.list$DY
   mp.list$itn_half_life <- 2.64 * mp.list$DY
   mp.list$irs_loss <- log(2)/mp.list$irs_half_life
   mp.list$itn_loss <- log(2)/mp.list$itn_half_life
-  mp.list$IRS_interval <- IRS_interval * DY
-  mp.list$ITN_interval <- ITN_interval * DY
+
   
   return(mp.list)
 }

@@ -14,4 +14,3 @@ Param_List_Simulation_Get_Create(statePtr)
 \code{Simulation_R} for continuing a simulation from memory within the active
 session.
 }
-

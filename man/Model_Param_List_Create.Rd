@@ -5,22 +5,23 @@
 \title{Model Parameter List Creation}
 \usage{
 Model_Param_List_Create(eta = 0.0001305, rho = 0.85, a0 = 2920,
-  sigma2 = 1.67, rA = 0.00512821, rT = 0.2, rD = 0.2, rU = 0.00906627,
-  rP = 0.05, dE = 12, delayGam = 12.5, cD = 0.0676909, cT = 0.322 *
-  cD, cU = 0.006203, gamma1 = 1.82425, d1 = 0.160527, dID = 3650,
-  ID0 = 1.577533, kD = 0.476614, uD = 9.44512, aD = 8001.99,
-  fD0 = 0.007055, gammaD = 4.8183, alphaA = 0.757, alphaU = 0.186,
-  b0 = 0.590076, b1 = 0.5, dB = 3650, IB0 = 43.8787, kB = 2.15506,
-  uB = 7.19919, phi0 = 0.791666, phi1 = 0.000737, dCA = 10950,
-  IC0 = 18.02366, kC = 2.36949, uCA = 6.06349, PM = 0.774368,
-  dCM = 67.6952, delayM = 10, tau1 = 0.69, tau2 = 2.31, mu0 = 0.132,
-  Q0 = 0.92, chi = 0.86, bites_Bed = 0.89, bites_Indoors = 0.97,
-  muEL = 0.0338, muLL = 0.0348, muPL = 0.249, dEL = 6.64, dLL = 3.72,
-  dPL = 0.643, gammaL = 13.25, km = 11, cm = 0.05, betaL = 21.2,
-  num_int = 4, itn_cov = 0, irs_cov = 0, ITN_IRS_on = -1, DY = 365,
-  d_ITN0 = 0.41, r_ITN0 = 0.56, r_ITN1 = 0.24, r_IRS0 = 0.6,
-  d_IRS0 = 1, irs_half_life = 0.5 * DY, itn_half_life = 2.64 * DY,
-  IRS_interval = 1 * DY, ITN_interval = 3 * DY)
+  sigma2 = 1.67, max_age = 100 * 365, rA = 0.00512821, rT = 0.2,
+  rD = 0.2, rU = 0.00906627, rP = 1/15, dE = 12, delayGam = 12.5,
+  cD = 0.0676909, cT = 0.322 * cD, cU = 0.006203, gamma1 = 1.82425,
+  d1 = 0.160527, dID = 3650, ID0 = 1.577533, kD = 0.476614,
+  uD = 9.44512, aD = 8001.99, fD0 = 0.007055, gammaD = 4.8183,
+  alphaA = 0.75735, alphaU = 0.185624, b0 = 0.590076, b1 = 0.5,
+  dB = 3650, IB0 = 43.8787, kB = 2.15506, uB = 7.19919,
+  phi0 = 0.791666, phi1 = 0.000737, dCA = 10950, IC0 = 18.02366,
+  kC = 2.36949, uCA = 6.06349, PM = 0.774368, dCM = 67.6952,
+  delayMos = 10, tau1 = 0.69, tau2 = 2.31, mu0 = 0.132, Q0 = 0.92,
+  chi = 0.86, bites_Bed = 0.89, bites_Indoors = 0.97, muEL = 0.0338,
+  muLL = 0.0348, muPL = 0.249, dEL = 6.64, dLL = 3.72, dPL = 0.643,
+  gammaL = 13.25, km = 11, cm = 0.05, betaL = 21.2, num_int = 4,
+  itn_cov = 0, irs_cov = 0, ITN_IRS_on = -1, DY = 365, d_ITN0 = 0.41,
+  r_ITN0 = 0.56, r_ITN1 = 0.24, r_IRS0 = 0.6, d_IRS0 = 1,
+  irs_half_life = 0.5 * DY, itn_half_life = 2.64 * DY, IRS_interval = 1 *
+  DY, ITN_interval = 3 * DY)
 }
 \arguments{
 \item{eta}{Death rate for expoential population distribtuion, i.e. 1/Mean Population Age. Default = 0.0001305}
@@ -30,6 +31,8 @@ Model_Param_List_Create(eta = 0.0001305, rho = 0.85, a0 = 2920,
 \item{a0}{Age-dependent biting parameter. Default = 2920}
 
 \item{sigma2}{Variance of the log heterogeneity in biting rates. Default = 1.67}
+
+\item{max_age}{Maximum age in days. Default = 100*365}
 
 \item{rA}{Rate of leaving asymptomatic infection. Default = 0.00512821}
 
@@ -97,11 +100,11 @@ Model_Param_List_Create(eta = 0.0001305, rho = 0.85, a0 = 2920,
 
 \item{uCA}{Duration in which immunity is not boosted. Default = 6.06349}
 
-\item{PM}{New-born immunity relative to mother’s. Default = 0.774368}
+\item{PM}{New-born immunity relative to mother. Default = 0.774368}
 
 \item{dCM}{Inverse of decay rate of maternal immunity. Default = 67.6952}
 
-\item{delayM}{Extrinsic incubation period. Default = 10}
+\item{delayMos}{Extrinsic incubation period. Default = 10}
 
 \item{tau1}{Duration of host seeking, assumed to be constant between species. Default = 0.69}
 
@@ -169,4 +172,3 @@ Model_Param_List_Create(eta = 0.0001305, rho = 0.85, a0 = 2920,
 \code{Model_Param_List_Create} creates list of model parameters to be used
 within \code{Equilibrium_Init_Create}
 }
-

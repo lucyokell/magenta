@@ -13,4 +13,3 @@ or from \code{Param_List_Simulation_Update_Create}}
 \description{
 This function triggers the main MAGENTA simulation from the R side
 }
-

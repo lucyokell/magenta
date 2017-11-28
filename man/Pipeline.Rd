@@ -4,20 +4,79 @@
 \alias{Pipeline}
 \title{Pipeline for cluster submission}
 \usage{
-Pipeline(EIR = 120, N = 1e+05, years = 20)
+Pipeline(EIR = 120, ft = 0.4, N = 1e+05, years = 20,
+  update_length = 365, country = NULL, admin = NULL, spatial = NULL,
+  redis_environment = NULL, use_historic_interventions = FALSE,
+  num_het_brackets = 20, num_age_brackets = 20,
+  geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE,
+  mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
+  human_only_full_save = FALSE, yearly_save = FALSE,
+  human_yearly_save = FALSE, summary_saves_only = FALSE,
+  saved_state_path = NULL, seed = runif(1, 1, 10000))
 }
 \arguments{
-\item{EIR}{Numeric for desired annual EIR. Default = 120
+\item{EIR}{Numeric for desired annual EIR. Default = 120}
 
-\code{Pipeline}}
+\item{ft}{Frequency of treatment. Default = 0.4}
 
 \item{N}{Population Size. Default = 100000}
 
-\item{years}{Lenth of simulation. Default = 10}
+\item{years}{Lenth of simulation. Default = 20}
+
+\item{update_length}{How long each update is run for in days. Default = 365}
+
+\item{country}{Character for country within which admin2 is in. Default = NULL}
+
+\item{admin}{Character for admin region. Some fuzzy logic will be used to match. If 
+not provided then no seasonality is introduced. Default = NULL}
+
+\item{spatial}{Default = NULL If spatial is wanted then provide a vector of daily export
+rates for exportation.}
+
+\item{redis_environment}{Default = NULL. If spatial is required, then pass the redisenvironment
+here as a parameter}
+
+\item{use_historic_interventions}{Boolean as to whether the historic interventions are incorporated.
+This will occur by using the length of years and taking the most recent years back in time. Therefore
+if years > 15, then there will be burn in time, when no interventions are assumed. Default = FALSE, and
+only is used if country and admin are suitably provided.}
+
+\item{num_het_brackets}{Number of heterogeinity brackets to use in initialisation. Default = 200}
+
+\item{num_age_brackets}{Number of age brackets to use in initialisation. Default = 200}
+
+\item{geometric_age_brackets}{Boolean detailing whether age brackets are geometric. Default = TRUE}
+
+\item{max_age}{Maximum age in age brackets. Default = 100}
+
+\item{use_odin}{Boolean detailing whether the intiial solution is run within the odin model 
+first. Default = FALSE while the model is still buggy.}
+
+\item{mu_vec}{Numeric for hor mu_vec changes as calculated from odin model}
+
+\item{fv_vec}{Numeric for how fv_vec changes as calculated from odin model}
+
+\item{full_save}{Boolean detailing whether the entire simulation is saved. Default = FALSE}
+
+\item{human_only_full_save}{Boolean detailing whether just the human component of the simulation is saved within full_save. Default = FALSE}
+
+\item{yearly_save}{Boolean detailing whether the logging output is saved each update_length up to years. Default = FALSE}
+
+\item{human_yearly_save}{Boolean detailing if the human state is also saved during each update_length. Default = FALSE}
+
+\item{summary_saves_only}{Boolean if summary tables about COI are saved within human yearly save only. Dataframes of age, clinical status
+binned COI.}
+
+\item{saved_state_path}{Full file path to a saved model state to be loaded and continued. Default = NULL,
+which will trigger initialisation}
+
+\item{seed}{Random seed. Default is Random
+
+\code{Pipeline}}
 }
 \description{
 \code{Pipeline} steps through creating the parameter list, the equilibrium
 initialisation and steady state creation before checking and passing suitable
-parameters to the simulation
+parameters to the simulation. This is then saved. If a path to a savedState is
+provided then this state is loaded and continued.
 }
-

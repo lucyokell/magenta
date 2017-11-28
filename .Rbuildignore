@@ -4,9 +4,11 @@ TODO.txt
 ^scripts$
 .travis.yml
 Results
-scripts
 plots
 ^Results$
 ^plots$
 ^tutorials$
 tutorials
+^data-raw$
+.*.rds$
+inst/include

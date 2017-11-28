@@ -4,10 +4,21 @@
 \alias{Param_List_Simulation_Update_Create}
 \title{Parameter List creation for MAGENTA simulation updating}
 \usage{
-Param_List_Simulation_Update_Create(years = 1, statePtr)
+Param_List_Simulation_Update_Create(years = 1, ft = 0.4, mu_vec = NULL,
+  fv_vec = NULL, imported_barcodes = NULL, statePtr)
 }
 \arguments{
 \item{years}{Length of simulation. Default = 1}
+
+\item{ft}{Treatments seeking value}
+
+\item{mu_vec}{Vector of mosquito mortalities for each day with years. Default = NULL, which
+will result in rep(0.132,floor(years*365))}
+
+\item{fv_vec}{Vector of mosquito bitings for each day with years. Default = NULL, which
+will result in rep(1/3,floor(years*365))}
+
+\item{imported_barcodes}{Default = NULL. If doing spatial}
 
 \item{statePtr}{Pointer for current model state as return by \code{Simulation_R}$Ptr}
 }
@@ -16,4 +27,3 @@ Param_List_Simulation_Update_Create(years = 1, statePtr)
 \code{Simulation_R} for continuing a simulation from memory within the active
 session.
 }
-

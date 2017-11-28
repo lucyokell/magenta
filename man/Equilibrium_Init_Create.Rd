@@ -5,7 +5,7 @@
 \title{Equilibrium initialisation list creation}
 \usage{
 Equilibrium_Init_Create(age.vector, het.brackets, country = NULL,
-  admin.unit = NULL, ft, EIR, model.param.list)
+  admin = NULL, ft, EIR, model.param.list)
 }
 \arguments{
 \item{age.vector}{Vector of age brackets.}
@@ -17,10 +17,10 @@ will attempt to be loaded using just the admin unit, however if there is ambigui
 in the admin unit an error will be thrown. If both NULL then no seasonality is 
 assumed. Default = NULL.}
 
-\item{admin.unit}{String for admin unit with country for loading seasonal
+\item{admin}{String for admin unit with country for loading seasonal
 parameters. If country is NULL, the admin unit will attempt to be located,however 
 if there is ambiguity in the admin unit an error will be thrown. If both country
-and admin.unit are NULL then no seasonality is assumed. Default = NULL.}
+and admin are NULL then no seasonality is assumed. Default = NULL.}
 
 \item{ft}{Numeric for the frequency of people seeking treatment.}
 
@@ -34,4 +34,3 @@ and admin.unit are NULL then no seasonality is assumed. Default = NULL.}
 \code{Equilibrium_Init_Create} creates an equilibrium initialisation state to be 
 used as a parameter within \code{Equilibrium_SS_Create}
 }
-
