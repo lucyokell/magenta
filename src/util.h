@@ -5,9 +5,9 @@
 #include <bitset>
 #include <R.h>
 #include <Rinternals.h>
-#include "strain.h"
+#include <boost/dynamic_bitset.hpp>
 
-SEXP bitset_to_sexp(std::bitset<barcode_length> x);
-std::bitset<barcode_length> sexp_to_bitset(SEXP x);
+SEXP bitset_to_sexp(boost::dynamic_bitset<> x);
+boost::dynamic_bitset<> sexp_to_bitset(SEXP x);
 
 #endif

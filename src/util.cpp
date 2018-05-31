@@ -1,29 +1,30 @@
 #include <Rcpp.h>
 #include "util.h"
 
-SEXP bitset_to_sexp(std::bitset<barcode_length> x) {
-  SEXP ret = PROTECT(Rf_allocVector(RAWSXP, barcode_length));
+SEXP bitset_to_sexp(boost::dynamic_bitset<> x) {
+  
+  SEXP ret = PROTECT(Rf_allocVector(RAWSXP, x.size()));
   unsigned char *data = RAW(ret);
-  for (size_t i = 0; i < barcode_length; ++i) {
+  for (size_t i = 0; i < x.size(); ++i) {
     data[i] = x[i];
   }
   UNPROTECT(1);
   return ret;
 }
 
-std::bitset<barcode_length> sexp_to_bitset(SEXP x) {
+boost::dynamic_bitset<> sexp_to_bitset(SEXP x, unsigned int n) {
   const unsigned char * data = RAW(x);
-  std::bitset<barcode_length> ret;
-  for (size_t i = 0; i < barcode_length; ++i) {
+  boost::dynamic_bitset<> ret(n);
+  for (size_t i = 0; i < n; ++i) {
     ret[i] = data[i];
   }
   return ret;
 }
 
 // [[Rcpp::export]]
-SEXP test_bitset_serialisation(SEXP x) {
-  std::bitset<barcode_length> y = sexp_to_bitset(x);
-  for (size_t i = 0; i < barcode_length; ++i) {
+SEXP test_bitset_serialisation(SEXP x, unsigned int n) {
+  boost::dynamic_bitset<> y = sexp_to_bitset(x, n);
+  for (size_t i = 0; i < n; ++i) {
     Rcpp::Rcout << y[i];
   }
   Rcpp::Rcout << std::endl;

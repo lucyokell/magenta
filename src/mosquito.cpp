@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "mosquito.h"
 
 // Non class constructor which will inialise a random strain
@@ -18,7 +17,7 @@ Mosquito::Mosquito(const Parameters &parameters) :
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Allocate male and female gameteocyte resulting froom biting infected human
-void Mosquito::allocate_gametocytes(const Parameters &parameters, std::vector<barcode_t> gametocytes)
+void Mosquito::allocate_gametocytes(const Parameters &parameters, std::vector<boost::dynamic_bitset<>> gametocytes)
 {
   // Push gametocyte barcodes and time of bursting
   
@@ -34,7 +33,7 @@ void Mosquito::allocate_gametocytes(const Parameters &parameters, std::vector<ba
   
   schedule_m_day_of_next_event();
   
-};
+}
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // SCHEDULERS 

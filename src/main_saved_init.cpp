@@ -11,7 +11,6 @@
 // ---------------------------------------------------------------------------
 
 //#include <RcppArmadillo.h>
-#include "stdafx.h"
 #include <iostream>
 #include "parameters.h"
 #include "probability.h"
@@ -47,6 +46,8 @@ struct Universe {
 //' @param paramList parameter list generated with \code{Param_List_Simulation_Get_Create}
 //' @return list with ptr to model state and loggers describing the current model state
 //' @export
+//' 
+// [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
 {
@@ -79,6 +80,19 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   parameters.g_mosquito_deficit = Rcpp::as<int>(parameters_List["g_mosquito_deficit"]);
   parameters.g_scourge_today = Rcpp::as<int>(parameters_List["g_scourge_today"]);
   parameters.g_mean_mv = Rcpp::as<int>(parameters_List["g_mean_mv"]);
+  
+  parameters.g_identity_id = Rcpp::as<int>(parameters_List["g_identity_id"]);
+  parameters.g_num_loci = Rcpp::as<int>(parameters_List["g_num_loci"]);
+  parameters.g_ibd_length = Rcpp::as<int>(parameters_List["g_ibd_length"]);
+  parameters.g_barcode_length = Rcpp::as<int>(parameters_List["g_barcode_length"]);
+  parameters.g_plaf = Rcpp::as<std::vector<double> >(parameters_List["g_plaf"]);
+  parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(parameters_List["g_prob_crossover"]);
+  parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(
+    Rcpp::as<unsigned int>(parameters_List["g_barcode_type"])
+  );
+  parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(
+    Rcpp::as<unsigned int>(parameters_List["g_spatial_type"])
+  );
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: R -> C++ CONVERSIONS: parameters
@@ -175,7 +189,6 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   
   // Necessary temporary veriables for unpacking strains within humans
   Strain temp_strain;
-  barcode_t temp_barcode = Strain::generate_random_barcode();
   std::vector<std::vector<bool> > temp_strain_barcode_vector;
   std::vector<int>  temp_strain_state_vector;
   std::vector<int>  temp_strain_state_change_time_vector;
@@ -245,11 +258,11 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     temp_strain.set_m_day_of_strain_infection_status_change(temp_strain_state_change_time_vector[s]);
     
     // fetch vector<bool> and turn into barcode and then add to strain
-    for(temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
+    for(temp_barcode_iterator = 0; temp_barcode_iterator < Parameters::g_barcode_length ; temp_barcode_iterator++ )
     {
-      temp_barcode[temp_barcode_iterator] = temp_strain_barcode_vector[s][temp_barcode_iterator];
+      Strain::temp_barcode[temp_barcode_iterator] = temp_strain_barcode_vector[s][temp_barcode_iterator];
     }
-    temp_strain.set_m_barcode(temp_barcode);
+    temp_strain.set_m_barcode(Strain::temp_barcode);
     
     // Push the created temp strain onto the person
     population[n].allocate_strain_with_push(temp_strain);
@@ -324,292 +337,6 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: INITIALISATION
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  Rcpp::Rcout << "Pointer unpacking working!\n";
-  double Scount = 0;
-  for(auto &element : population){
-    if(element.get_m_infection_state()==Person::SUSCEPTIBLE){
-      Scount++;
-    }
-  }
-  Rcpp::Rcout << "Starting susceptible population: " << Scount/parameters.g_N << "\n";
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // START: TIMERS AND PRE LOOP
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-  auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  Rcpp::Rcout << "Time elapsed in initialisation: " << duration << " seconds\n";
-  
-  // End of simulation time
-  int g_end_time = static_cast<int>(parameters.g_current_time + (parameters.g_years * 365));
-  
-  // Preallocations;
-  unsigned int num_bites = 0;
-  unsigned int increasing_bites = 0;
-  unsigned int individual_binomial_bite_draw = 0;
-  double psi_sum = 0;
-  
-  // status eq for logging and other logging variables
-  std::vector<double> status_eq = { 0,0,0,0,0,0 };
-  unsigned int log_counter = 0;
-  double total_incidence = 0;
-  double total_incidence_05 = 0;
-  int daily_incidence_return = 0;
-  
-  // For loop preallocations
-  unsigned int human_update_i = 0;
-  unsigned int mosquito_update_i = 0;
-  unsigned int bite_sampling_i = 0;
-  unsigned int bite_sampling_internal_i = 0;
-  unsigned int num_bites_i = 0;
-  
-  // Maternal 
-  double mean_psi = 0;
-  double pi_cum_sum = 0;
-  double pi_sum = 0;
-  
-  // Bites
-  std::vector<int> mosquito_biting_queue;
-  mosquito_biting_queue.reserve(scourge.size());
-  std::vector<int> bite_storage_queue;
-  bite_storage_queue.reserve(scourge.size());
-  
-  
-  // resetart timer
-  t0 = std::chrono::high_resolution_clock::now();
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // START SIMULATION LOOP
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  for ( ; parameters.g_current_time < g_end_time ; parameters.g_current_time++)
-  {
-    
-    // Counter print
-    if (parameters.g_current_time % 100 == 0) 
-    { 
-      Rcpp::Rcout << parameters.g_current_time << " days" << "\n"; 
-    }
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // DAILY UPDATING AND EVENT HANDLING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // First calculate the mean maternal immunity from yesterday
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // Calculate yesterday's mean maternal immunity
-    parameters.g_mean_maternal_immunity = parameters.g_sum_maternal_immunity / parameters.g_total_mums;
-    
-    // Reset maternal immunity sums
-    parameters.g_sum_maternal_immunity = 0;
-    parameters.g_total_mums = 0;
-    
-    // Reset age dependent biting rate sum
-    psi_sum = 0;
-    
-    // Loop through each person and mosquito and update
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    // PARALLEL_TODO: This loop could easily be parallelised as each person will not require any shared memory (except for parameters)
-    
-    // Human update loop
-    for (human_update_i = 0; human_update_i < parameters.g_N; human_update_i++)
-    {
-      psi_sum += psi_vector[human_update_i] = population[human_update_i].update(parameters);
-    }
-    
-    // Reset number of bites for each day and update each mosquito. Update returns whether the mosquito is biting today
-    num_bites = 0;
-    
-    // Mosquito update loop
-    for (mosquito_update_i = 0; mosquito_update_i < scourge_size; mosquito_update_i++)
-    {
-      if (scourge[mosquito_update_i].update(parameters))
-      {
-        mosquito_biting_queue.emplace_back(mosquito_update_i);
-        num_bites++;
-      }
-    }
-    
-    // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
-    shuffle_integer_vector(mosquito_biting_queue);
-    
-    // Adjust the number of bites to account for anthrophagy
-    num_bites *= parameters.g_Q0;
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // BITE HANDLING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // First calculate mean age dependent biting heterogeneity (psi)
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // Calculate mean age dependent biting rate
-    mean_psi = psi_sum / parameters.g_N;
-    
-    // Create normalised psi by dividing by the mean age dependent biting rate
-    std::transform(psi_vector.begin(), psi_vector.end(), psi_vector.begin(),
-                   std::bind1st(std::multiplies<double>(), 1 / mean_psi));
-    
-    // Create overall relative biting rate, pi, i.e. the product of individual biting heterogeneity and age dependent heterogeneity
-    std::transform(psi_vector.begin(), psi_vector.end(),
-                   zeta_vector.begin(), pi_vector.begin(),
-                   std::multiplies<double>());
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // START: BITE ALLOCATIONS
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // Multinomial step //
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // Caluclate total probability of being bitten within population
-    pi_sum = std::accumulate(pi_vector.begin(), pi_vector.end(), 0.0);
-    //num_bites = rpoisson1(pi_sum * Iv * 0.30677);
-    
-    // multinomial procedure for everyone and breaking when n_bites is reached
-    for (bite_sampling_i = 0; bite_sampling_i < parameters.g_N - 1; bite_sampling_i++)
-    {
-      
-      individual_binomial_bite_draw = rbinomial1(num_bites - increasing_bites, pi_vector[bite_sampling_i] / (pi_sum - pi_cum_sum));
-      
-      for (bite_sampling_internal_i = 0; bite_sampling_internal_i < individual_binomial_bite_draw; bite_sampling_internal_i++)
-      {
-        //	bite_storage_queue.push(n);
-        bite_storage_queue.emplace_back(bite_sampling_i);
-      }
-      
-      pi_cum_sum += pi_vector[bite_sampling_i];
-      increasing_bites += individual_binomial_bite_draw;
-      if (increasing_bites >= num_bites) break;
-      
-    }
-    
-    // catch rounding errors so just place this here outside loop
-    if (increasing_bites < num_bites)
-    {
-      individual_binomial_bite_draw = num_bites - increasing_bites;
-      for (bite_sampling_internal_i = 0; bite_sampling_internal_i < individual_binomial_bite_draw; bite_sampling_internal_i++)
-      {
-        //bite_storage_queue.push(parameters.g_N - 1);
-        bite_storage_queue.emplace_back(parameters.g_N - 1);
-      }
-    }
-    
-    // Reset bite and sum of biting rates
-    increasing_bites = 0;
-    pi_cum_sum = 0;
-    
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // END: BITE ALLOCATION SAMPLING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    // ALLOCATE BITES
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // PARALLEL_TODO: Don't know how this could be parallelised yet - come back to with mosquitos in.
-    for (num_bites_i = 0; num_bites_i < num_bites; num_bites_i++)
-    {
-      // allocate bite to human if mosquito is infected
-      if (scourge[mosquito_biting_queue[num_bites_i]].m_mosquito_infected) {
-        population[bite_storage_queue[num_bites_i]].allocate_bite(parameters, scourge[mosquito_biting_queue[num_bites_i]]);
-      }
-      
-      // if human would cause infection to mosquito then allocate gametocytes
-      if (population[bite_storage_queue[num_bites_i]].reciprocal_infection_boolean(parameters)) {
-        scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(parameters, population[bite_storage_queue[num_bites_i]].sample_two_barcodes(parameters));
-      }
-      
-    }
-    
-    // clear biting storage vectors
-    bite_storage_queue.clear();
-    mosquito_biting_queue.clear();
-    
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // START: SUMMARY LOGGING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // Log the last week //
-    
-    if (parameters.g_current_time > g_end_time - 7)
-    {
-      
-      log_counter++;
-      
-      for (auto &element : population)
-      {
-        // Match infection state and schedule associated next state change
-        switch (element.get_m_infection_state())
-        {
-        case Person::SUSCEPTIBLE:
-          status_eq[0]++;
-          break;
-        case Person::DISEASED:
-          status_eq[1]++;
-          break;
-        case Person::ASYMPTOMATIC:
-          status_eq[2]++;
-          break;
-        case Person::SUBPATENT:
-          status_eq[3]++;
-          break;
-        case Person::TREATED:
-          status_eq[4]++;
-          break;
-        case Person::PROPHYLAXIS:
-          status_eq[5]++;
-          break;
-        default:
-          assert(NULL && "Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
-        break;
-        }
-        
-        // log incidence
-        daily_incidence_return = element.log_daily_incidence(parameters);
-        if(daily_incidence_return == 2)
-        {
-          total_incidence++;
-          total_incidence_05++;
-        } 
-        if (daily_incidence_return == 1) 
-        {
-          total_incidence++;
-        }
-        
-      }
-    }
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // END: SUMMARY LOGGING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-  };
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // END TIMERS
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  t1 = std::chrono::high_resolution_clock::now();
-  duration = std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  Rcpp::Rcout << "Time elapsed total: " << duration << " seconds\n";
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // SUMMARY LOGGING AVERAGING AND VARIABLE RETURN
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  // divide by population size and log counter and print to give overview
-  Rcpp::Rcout << "S | D | A | U | T | P:\n" ;
-  
-  for (int element = 0; element < 6; element++) 
-  {
-    status_eq[element] /= (parameters.g_N * log_counter);
-    Rcpp::Rcout << status_eq[element] << " | ";
-  }
-  
   
   */
   

@@ -2,27 +2,29 @@
 #' Parameter List creation for MAGENTA simulation initialisation
 #'
 #' \code{Param_List_Simulation_Init_Create} creates suitable parameter list for
-#' \code{Simulation_R} for the beginning of a simulation
+#' \code{Simulation_R} for the beginning of a simulation. Also takes an argument
+#' for feeding in spatial parameters/data.
 #'
 #' @param N Population size. Default = 1e4
 #' @param eqSS Output of \code{Equilibrium_Steady_State_Create}
+#' @param barcode_parms List of barcode/genetic parameters
 #' 
 #' @export
 
-Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS)
+Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms)
 {
   
   ## CHECKS ##
   ##---------------------------------------------
   if(class(eqSS)!="list") stop("eqSS is not of class list")
   
-  if(is.element("spatial",names(eqSS))){
+  if(is.element("spatial_type",names(eqSS))){
     if(!identical(names(eqSS),
                   c("age_brackets","het_brackets","Smat",
                     "Dmat","Amat","Umat","Tmat","Pmat",
                     "IBmat","ICAmat","ICMmat","IDmat",
                     "Sv","Ev","Iv","MaternalImmunity",
-                    "theta","spatial"))) stop("Incorrect variable names within equilibrium.steady.state")
+                    "theta","spatial_type"))) stop("Incorrect variable names within equilibrium.steady.state")
   } else {
     if(!identical(names(eqSS),
                   c("age_brackets","het_brackets","Smat",
@@ -42,7 +44,7 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS)
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(N = N, eqSS = eqSS)
+  paramList <- list(N = N, eqSS = eqSS, barcode_parms = barcode_parms)
   
   return(paramList)
   
@@ -61,14 +63,12 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS)
 #' will result in rep(0.132,floor(years*365))
 #' @param fv_vec Vector of mosquito bitings for each day with years. Default = NULL, which
 #' will result in rep(1/3,floor(years*365))
-#' @param imported_barcodes Default = NULL. If doing spatial
 #' @param statePtr Pointer for current model state as return by \code{Simulation_R}$Ptr
 #' 
 #' @export
 
 Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
                                                 mu_vec = NULL, fv_vec = NULL,
-                                                imported_barcodes = NULL,
                                                 statePtr)
 {
   
@@ -97,7 +97,7 @@ Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
   
   # Create paramlist
   paramList <- list(years = years, ft = ft, mu_vec = mu_vec,
-                    fv_vec = fv_vec, imported_barcodes = imported_barcodes,
+                    fv_vec = fv_vec,
                     statePtr = statePtr)
   
   return(paramList)
@@ -193,9 +193,9 @@ Simulation_R <- function(paramList)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==2)
+    if(length(paramList)==3)
     {
-      stopifnot(identical(names(paramList), c("N","eqSS")))  
+      stopifnot(identical(names(paramList), c("N","eqSS","barcode_parms")))  
     }
     # if it is length one it may be an unpacked list in which case unpack and check
     # this might happen in the future when a list of paramLists is fed directly to this
@@ -203,7 +203,7 @@ Simulation_R <- function(paramList)
     else if(length(paramList)==1)
     {
       paramList <- paramList[[1]]
-      stopifnot(identical(names(paramList), c("N", "eqSS")))  
+      stopifnot(identical(names(paramList), c("N", "eqSS", "barcode_parms")))  
     } 
     else 
     {
@@ -227,9 +227,9 @@ Simulation_R <- function(paramList)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==6)
+    if(length(paramList)==5)
     {
-      stopifnot(identical(names(paramList), c("years","ft","mu_vec","fv_vec","imported_barcodes","statePtr")))  
+      stopifnot(identical(names(paramList), c("years","ft","mu_vec","fv_vec","statePtr")))  
     }
     else 
     {

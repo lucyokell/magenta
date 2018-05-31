@@ -5,9 +5,13 @@
 \title{Pipeline for cluster submission}
 \usage{
 Pipeline(EIR = 120, ft = 0.4, N = 1e+05, years = 20,
-  update_length = 365, country = NULL, admin = NULL, spatial = NULL,
-  redis_environment = NULL, use_historic_interventions = FALSE,
-  num_het_brackets = 20, num_age_brackets = 20,
+  update_length = 365, country = NULL, admin = NULL,
+  use_historic_interventions = FALSE, spatial_type = NULL,
+  redis_host = "fi--dideclusthn.dide.ic.ac.uk", spatial_uuid = NULL,
+  fixed_spatial_incidence_matrix = NULL,
+  fixed_spatial_mosquitoFOI_matrix = NULL, barcode_length = 24,
+  plaf = rep(0.5, barcode_length), prob_crossover = rep(0.5,
+  barcode_length), num_het_brackets = 20, num_age_brackets = 20,
   geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE,
   mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
   human_only_full_save = FALSE, yearly_save = FALSE,
@@ -30,16 +34,30 @@ Pipeline(EIR = 120, ft = 0.4, N = 1e+05, years = 20,
 \item{admin}{Character for admin region. Some fuzzy logic will be used to match. If 
 not provided then no seasonality is introduced. Default = NULL}
 
-\item{spatial}{Default = NULL If spatial is wanted then provide a vector of daily export
-rates for exportation.}
-
-\item{redis_environment}{Default = NULL. If spatial is required, then pass the redisenvironment
-here as a parameter}
-
 \item{use_historic_interventions}{Boolean as to whether the historic interventions are incorporated.
 This will occur by using the length of years and taking the most recent years back in time. Therefore
 if years > 15, then there will be burn in time, when no interventions are assumed. Default = FALSE, and
 only is used if country and admin are suitably provided.}
+
+\item{spatial_type}{Default = NULL. If spatial is wanted then provide a character describing 
+the type of spatial simulation, which must be one of "island" or "metapop".}
+
+\item{redis_host}{Default = "fi--dideclusthn.dide.ic.ac.uk". This should be the host address
+where your redis server is running.}
+
+\item{spatial_uuid}{Default = NULL. If spatial is provided, then this will error unless a character
+string is passed to this argument. This character should be the same for each parallel task within
+the same job.}
+
+\item{fixed_spatial_incidence_matrix}{Alternative parameterisation where hypothetical spatial matrix is supplied}
+
+\item{fixed_spatial_mosquitoFOI_matrix}{Alternative parameterisation where hypothetical spatial matrix is supplied}
+
+\item{barcode_length}{Length of barcode. Default = 24}
+
+\item{plaf}{Vector of population level allele frequencies for the barcode. Default = rep(0.5, barcode_length)}
+
+\item{prob_crossover}{Vector of probability of crossover event for the barcode. Default = rep(0.5, barcode_length)}
 
 \item{num_het_brackets}{Number of heterogeinity brackets to use in initialisation. Default = 200}
 

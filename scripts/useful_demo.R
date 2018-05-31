@@ -53,9 +53,9 @@ windows()
 plot(colSums(rbind(out$dat$Dout,out$dat$Aout,out$dat$Tout,out$dat$Uout)),
      ylim=c(min(lapply(tres,function(x) sum(x$D,x$A,x$U,x$T)) %>% unlist),
             max((colSums(rbind(out$dat$Dout,out$dat$Aout,out$dat$Tout,out$dat$Uout))))))
-lines(lapply(tres[1:(length(tres)-1)],function(x) sum(x$D,x$A,x$T,x$U)) %>% unlist,col="green")
+plot(lapply(tres[1:(length(tres)-1)],function(x) sum(x$D,x$A,x$T,x$U)) %>% unlist,col="green")
 
-lines(lapply(tres[1:length(tres)],function(x) x$Infection_States %in% c(1,2,4) %>% sum) %>% unlist,col="green")
+plot(lapply(tres[1:(length(tres)-1)],function(x) c(x$InfectionStates %in% c(1,2,4)) %>% sum) %>% unlist,col="green")
 
 abline(v = 365*(1:10))
 abline(h = eqInit$A %>% sum)
@@ -70,8 +70,10 @@ what <- Pipeline(EIR = EIR,ft = ft,N=N,years = 0.3,update_length = 1,admin = NUL
                  num_het_brackets = num_het_brackets,yearly_save=FALSE,full_save = TRUE,num_age_brackets = 20)
 
 
-ghana_fit <- Pipeline(EIR=40.6127,ft=0.53283,N=20000,years=10,update_length=365,admin="Upper East",
-                      country="Ghana",num_het_brackets = num_het_brackets,full_save = TRUE,num_age_brackets = 20)
+ghana_fit <- Pipeline(EIR=40.6127,ft=0.53283,N=5000,years=1,admin="Upper East",yearly_save = TRUE,
+                      update_length=30,barcode_length = 24*17,
+                      country="Ghana",num_het_brackets = 5,full_save = TRUE,num_age_brackets = 20)
+
 
 what$scourge_List$Mosquito_Off_Season %>% table
 

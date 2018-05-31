@@ -39,7 +39,7 @@
 ##'
 ##' @format A dataframe of 5 elements:
 ##'
-##'   \code{$irs_2010_2015}: A dataframe of admin units and their seasonal parameters
+##'   \code{$irs_2000_2015}: A dataframe of admin units and their seasonal parameters
 ##'     \itemize{
 ##'       \item intervention: String stating IRS
 ##'       \item country: Country string
@@ -52,7 +52,7 @@
 ##' @aliases irs_2010_2015
 ##'
 ##'
-"irs_2010_2015"
+"irs_2000_2015"
 
 ##'  ITN for 2000 to 2015
 ##'
@@ -62,7 +62,7 @@
 ##'
 ##' @format A dataframe of 5 elements:
 ##'
-##'   \code{itn_2010_2015}: A dataframe of admin units and their seasonal parameters
+##'   \code{itn_2000_2015}: A dataframe of admin units and their seasonal parameters
 ##'     \itemize{
 ##'       \item intervention: String stating ITN
 ##'       \item country: Country string
@@ -71,28 +71,35 @@
 ##'       \item value: Value for ITN coverage
 ##'     }
 ##'
-##' @rdname itn_2010_2015
-##' @aliases itn_2010_2015
+##' @rdname itn_2000_2015
+##' @aliases itn_2000_2015
 ##'
 ##'
-"itn_2010_2015"
+"itn_2000_2015"
 
-##'  Mixing Matrix 
+##'  Importation data 
 ##'
 ##'  Importation data for admin units in admin_units_seasonal
 ##'
 ##' @docType data
 ##'
-##' @format A matrix of 576x576:
+##' @format A list of length 18
 ##'
-##'   \code{mixing_matrix}: A matrix of numbers between 0 and 1 showing the proportion of casese
-##'   due to importations by each other admin region. Along a row for a region, the number is the 
-##'   proportion of infections due to importations from each region.
+##'   \code{importations}: A list of length 18, with each list representing a year. In each
+##'   year is then a further 2 lists which are:
+##'     \itemize{
+##'       \item incidence: Proportions of incidence that originated from other admin units, i.e.
+##'       individuals in admin i that moved to admin j and then returned with an infection acquired
+##'       while in admin j.  
+##'       \item mosquitoFOI: Proportion of the force of infection towards mosquitoes that originated
+##'       from outside admin units, i.e. the proportion of mosquitoes that are infected from infected
+##'       individuals who travelled from admin j into admin i. 
+##'     }
+##'     
+##' @rdname importations
+##' @aliases importations
 ##'
-##' @rdname mixing_matrix
-##' @aliases mixing_matrix
 ##'
-##'
-"mixing_matrix"
+"importations"
 
 

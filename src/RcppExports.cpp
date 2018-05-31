@@ -49,14 +49,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_barcode_from_PLAF
+SEXP test_barcode_from_PLAF(Rcpp::NumericVector plaf, unsigned int n);
+RcppExport SEXP _MAGENTA_test_barcode_from_PLAF(SEXP plafSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type plaf(plafSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_barcode_from_PLAF(plaf, n));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_bitset_serialisation
-SEXP test_bitset_serialisation(SEXP x);
-RcppExport SEXP _MAGENTA_test_bitset_serialisation(SEXP xSEXP) {
+SEXP test_bitset_serialisation(SEXP x, unsigned int n);
+RcppExport SEXP _MAGENTA_test_bitset_serialisation(SEXP xSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_bitset_serialisation(x));
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_bitset_serialisation(x, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -66,7 +79,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_MAGENTA_Simulation_Init_cpp", (DL_FUNC) &_MAGENTA_Simulation_Init_cpp, 1},
     {"_MAGENTA_Simulation_Saved_Init_cpp", (DL_FUNC) &_MAGENTA_Simulation_Saved_Init_cpp, 1},
     {"_MAGENTA_Simulation_Update_cpp", (DL_FUNC) &_MAGENTA_Simulation_Update_cpp, 1},
-    {"_MAGENTA_test_bitset_serialisation", (DL_FUNC) &_MAGENTA_test_bitset_serialisation, 1},
+    {"_MAGENTA_test_barcode_from_PLAF", (DL_FUNC) &_MAGENTA_test_barcode_from_PLAF, 2},
+    {"_MAGENTA_test_bitset_serialisation", (DL_FUNC) &_MAGENTA_test_bitset_serialisation, 2},
     {NULL, NULL, 0}
 };
 

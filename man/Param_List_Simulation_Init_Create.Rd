@@ -4,14 +4,23 @@
 \alias{Param_List_Simulation_Init_Create}
 \title{Parameter List creation for MAGENTA simulation initialisation}
 \usage{
-Param_List_Simulation_Init_Create(N = 10000, eqSS)
+Param_List_Simulation_Init_Create(N = 10000, eqSS, barcode_length = 24,
+  plaf = rep(0.5, barcode_length), prob_crossover = rep(0.5,
+  barcode_length))
 }
 \arguments{
 \item{N}{Population size. Default = 1e4}
 
 \item{eqSS}{Output of \code{Equilibrium_Steady_State_Create}}
+
+\item{barcode_length}{Length of barcode. Default = 24}
+
+\item{plaf}{Vector of population level allele frequencies for the barcode. Default = rep(0.5, barcode_length)}
+
+\item{prob_crossover}{Vector of probability of crossover event for the barcode. Default = rep(0.5, barcode_length)}
 }
 \description{
 \code{Param_List_Simulation_Init_Create} creates suitable parameter list for
-\code{Simulation_R} for the beginning of a simulation
+\code{Simulation_R} for the beginning of a simulation. Also takes an argument
+for feeding in spatial parameters/data.
 }

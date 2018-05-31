@@ -11,7 +11,6 @@
 // ---------------------------------------------------------------------------
 
 //#include <RcppArmadillo.h>
-#include "stdafx.h"
 #include <iostream>
 #include "parameters.h"
 #include "probability.h"
@@ -19,6 +18,7 @@
 #include "person.h"
 #include <chrono>
 #include <functional>
+#include "util.h"
 #include <numeric>  
 #include <algorithm>
 
@@ -70,28 +70,27 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   u_ptr->parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
   
   // Spatial initialisation
-  if(u_ptr->parameters.g_spatial_exports)
+  if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
     
     // convert R vector
     std::vector<std::vector<bool> > x = (Rcpp::as<std::vector<std::vector<bool> > >(paramList["imported_barcodes"]));
     
     // prep import barcode parameters and fill accordingly 
-    u_ptr->parameters.g_imported_barcodes.reserve(x.size());
+    u_ptr->parameters.g_spatial_imported_barcodes.reserve(x.size());
     
-    // generate temp barcode
-    barcode_t temp_barcode = Strain::generate_random_barcode();
+    // generate temp barcode iterator
     unsigned int temp_barcode_iterator = 0;
     
     // loop through imported barcodes and set
     for (unsigned int i = 0; i < x.size(); i++) 
     {
       // fetch vector<bool> and turn into barcode
-      for (temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length; temp_barcode_iterator++)
+      for (temp_barcode_iterator = 0; temp_barcode_iterator < Parameters::g_barcode_length; temp_barcode_iterator++)
       {
-        temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
+        Strain::temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
       }
-      u_ptr->parameters.g_imported_barcodes[i] = temp_barcode;
+      u_ptr->parameters.g_spatial_imported_barcodes[i] = Strain::temp_barcode;
     }
     
     // 
@@ -194,12 +193,12 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // Reset maternal immunity sums
     u_ptr->parameters.g_sum_maternal_immunity = 0;
     u_ptr->parameters.g_total_mums = 0;
-    u_ptr->parameters.g_spatial_import_counter = 0;
-    u_ptr->parameters.g_spatial_export_counter = 0;
+    u_ptr->parameters.g_spatial_imported_barcode_counter = 0;
+    u_ptr->parameters.g_spatial_exported_barcode_counter = 0;
     
     // Reset age dependent biting rate sum
     psi_sum = 0;
-
+    
     // Second calculate the average biting rate and mosquito mortality for today given interventions
     // --------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -211,7 +210,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     std::generate(temp_biting_frequency_vector.begin(),
                   temp_biting_frequency_vector.end(),
                   [&temp_biting_frequency_vector_iterator] { return temp_biting_frequency_vector_iterator++;}
-                  );
+    );
     
     // transform the vector of 
     std::transform(temp_biting_frequency_vector.begin(), temp_biting_frequency_vector.end(), temp_biting_frequency_vector.begin(),
@@ -227,11 +226,12 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // PARALLEL_TODO: This loop could easily be parallelised as each person will not require any shared memory (except for u_ptr->parameters)
     
     // Human update loop
+    // Rcpp::Rcout << "Human loop" << "\n"; 
     for (human_update_i = 0; human_update_i < u_ptr->parameters.g_N; human_update_i++)
     {
       psi_sum += u_ptr->psi_vector[human_update_i] = u_ptr->population[human_update_i].update(u_ptr->parameters);
     }
-
+    
     // Reset number of bites for each day and update each mosquito. Update returns whether the mosquito is biting today
     num_bites = 0;
     
@@ -250,6 +250,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     temp_deficit = (u_ptr->parameters.g_mosquito_deficit > 0) ? (u_ptr->parameters.g_scourge_today + u_ptr->parameters.g_mosquito_deficit) : u_ptr->parameters.g_scourge_today;
     
     // loop through the mosquitos up to the number that should be active today
+    // Rcpp::Rcout << "Mosquito loop" << "\n"; 
     for (mosquito_update_i = 0; mosquito_update_i < temp_deficit; mosquito_update_i++)
     {
       // if the mosquito considered is more than needed then set to off season
@@ -287,7 +288,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
     // Adjust the number of bites to account for anthrophagy
     num_bites *= u_ptr->parameters.g_Q0;
-
+    
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // BITE HANDLING AND ALLOCATIONS
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -325,31 +326,31 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // --------------------------------------------------------------------------------------------------------------------------------------------------
     
     /*
-    // create cdf of pi
-    std::partial_sum(u_ptr->pi_vector.begin(), u_ptr->pi_vector.end(), u_ptr->pi_vector.begin());
+     // create cdf of pi
+     std::partial_sum(u_ptr->pi_vector.begin(), u_ptr->pi_vector.end(), u_ptr->pi_vector.begin());
+     
+     // Create normalised pi by dividing by the mean age dependent biting rate
+     std::transform(u_ptr->pi_vector.begin(), u_ptr->pi_vector.end(), u_ptr->pi_vector.begin(),
+     std::bind1st(std::multiplies<double>(), 1 / pi_sum));
+     
+     // sort necessary randoms
+     std::partial_sort(bite_randoms.begin(), bite_randoms.begin() + num_bites, bite_randoms.begin() + num_bites);
+     //boost::sort::spreadsort::float_sort(bite_randoms.begin(), bite_randoms.begin() + num_bites);
+     
+     // set this bite random to >1 so that we definitely stop at the right point
+     bite_randoms[num_bites]++;
+     
+     // do sampling
+     samplerandoms(bite_randoms, u_ptr->pi_vector, num_bites, bite_storage_queue);
+     
+     // reset the bite random to what it was before (quicker than generating another new random)
+     bite_randoms[num_bites]--;
+     
+     // regenerate enough randomness
+     std::generate_n(bite_randoms.begin(), num_bites, runif0_1);
+     
+     */
     
-    // Create normalised pi by dividing by the mean age dependent biting rate
-    std::transform(u_ptr->pi_vector.begin(), u_ptr->pi_vector.end(), u_ptr->pi_vector.begin(),
-                   std::bind1st(std::multiplies<double>(), 1 / pi_sum));
-    
-    // sort necessary randoms
-    std::partial_sort(bite_randoms.begin(), bite_randoms.begin() + num_bites, bite_randoms.begin() + num_bites);
-    //boost::sort::spreadsort::float_sort(bite_randoms.begin(), bite_randoms.begin() + num_bites);
-    
-    // set this bite random to >1 so that we definitely stop at the right point
-    bite_randoms[num_bites]++;
-    
-    // do sampling
-    samplerandoms(bite_randoms, u_ptr->pi_vector, num_bites, bite_storage_queue);
-    
-    // reset the bite random to what it was before (quicker than generating another new random)
-    bite_randoms[num_bites]--;
-    
-    // regenerate enough randomness
-    std::generate_n(bite_randoms.begin(), num_bites, runif0_1);
-    
-    */
-      
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // END: BITE ALLOCATION SAMPLING
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -372,11 +373,17 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
       
       // if human would cause infection to mosquito then allocate gametocytes
       if (u_ptr->population[bite_storage_queue[num_bites_i]].reciprocal_infection_boolean(u_ptr->parameters)) {
+        
         u_ptr->scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(u_ptr->parameters, u_ptr->population[bite_storage_queue[num_bites_i]].sample_two_barcodes(u_ptr->parameters));
+        
+        // if spatial then we nned to allocate mosquito importation events, i.e. where visiting infected humans pass on an infection to mosquito
+        if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION){
+         
+        }
       }
       
     }
-
+    
     // clear biting storage vectors
     bite_storage_queue.clear();
     mosquito_biting_queue.clear();
@@ -456,24 +463,15 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
   
   // convert exproted barcodes to vector of vector of bool
-  std::vector<std::vector<bool> >  Exported_Barcodes_Booleans(u_ptr->parameters.g_spatial_exports);
-  if(u_ptr->parameters.g_spatial_exports)
+  std::vector<SEXP>  Exported_Barcodes(u_ptr->parameters.g_spatial_total_exported_barcodes);
+  if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
-    std::vector<bool> temp_barcode_vector(24);
     
-    for(unsigned int temp_status_iterator = 0; temp_status_iterator < u_ptr->parameters.g_spatial_exports ; temp_status_iterator++)
+    for(unsigned int temp_status_iterator = 0; temp_status_iterator < u_ptr->parameters.g_spatial_total_exported_barcodes ; temp_status_iterator++)
     {
-      
-      // fetch barcode and turn into vector<bool>
-      for(unsigned int temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
-      {
-        temp_barcode_vector[temp_barcode_iterator] = u_ptr->parameters.g_exported_barcodes[temp_status_iterator][temp_barcode_iterator];
-      }
-      
-      Exported_Barcodes_Booleans[temp_status_iterator] = temp_barcode_vector;
-      temp_barcode_vector.clear();
-      
+      Exported_Barcodes[temp_status_iterator] = bitset_to_sexp(u_ptr->parameters.g_spatial_exported_barcodes[temp_status_iterator]);
     }
+    
   }
   
   // divide by population size and log counter and print to give overview
@@ -522,9 +520,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
   // Return Named List with pointer and loggers
   // If spatial also required then export the barcodes
-  if(u_ptr->parameters.g_spatial_exports)
+  if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
-    return Rcpp::List::create(Rcpp::Named("Ptr") = u_ptr, Rcpp::Named("Loggers")=Loggers, Rcpp::Named("Exported_Barcodes")=Exported_Barcodes_Booleans);
+    return Rcpp::List::create(Rcpp::Named("Ptr") = u_ptr, Rcpp::Named("Loggers")=Loggers, Rcpp::Named("Exported_Barcodes")=Exported_Barcodes);
   } 
   else
   {

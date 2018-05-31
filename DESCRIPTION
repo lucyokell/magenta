@@ -22,7 +22,7 @@ Imports:
     redux
 Remotes: 
     mrc-ide/odin
-LinkingTo: Rcpp
+LinkingTo: Rcpp, BH
 LazyData: TRUE
 RoxygenNote: 6.0.1
 SystemRequirements: C++11

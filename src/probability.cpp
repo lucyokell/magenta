@@ -95,6 +95,13 @@ double rgamma1(double shape, double rate) {
 }
 
 //------------------------------------------------
+// sample from nbinom(size,prob) distribution
+double rnbinom_mu(double size, double mu)
+{
+  return (mu == 0) ? 0 : rpoisson1(rgamma1(size, mu / size));
+}
+
+//------------------------------------------------
 // draw from beta(alpha,beta) distribution
 double rbeta1(double alpha, double beta) {
     return(R::rbeta(alpha, beta));

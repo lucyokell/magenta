@@ -50,8 +50,8 @@ private:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   std::vector<unsigned short int> m_oocyst_rupture_time_vector;	// First oocyst in mosquito at position 0 etc vector to store pending sporozoite times, i.e. day of biting + 10
-  std::vector<barcode_t> m_oocyst_barcode_male_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from male
-  std::vector<barcode_t> m_oocyst_barcode_female_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from female
+  std::vector<boost::dynamic_bitset<>> m_oocyst_barcode_male_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from male
+  std::vector<boost::dynamic_bitset<>> m_oocyst_barcode_female_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from female
   
   unsigned short int m_day_of_death = 0;						// Mosquito's time of death
   unsigned short int m_day_of_next_blood_meal = 0;			// Mosquito's day of next blood meal, i.e. day of current blood meal + 3
@@ -98,19 +98,19 @@ public:
   int get_m_ruptured_oocyst_count() { return(m_ruptured_oocyst_count); }
   
   // Get Mosquito's oocyst male barcode given a chosen oocyst count
-  barcode_t get_m_oocyst_barcode_male_vector(int x) { return(m_oocyst_barcode_male_vector[x]); }
+  boost::dynamic_bitset<> get_m_oocyst_barcode_male_vector(int x) { return(m_oocyst_barcode_male_vector[x]); }
   
   // Get Mosquito's oocyst female barcode given a chosen oocyst count
-  barcode_t get_m_oocyst_barcode_female_vector(int x) { return(m_oocyst_barcode_female_vector[x]); }
+  boost::dynamic_bitset<> get_m_oocyst_barcode_female_vector(int x) { return(m_oocyst_barcode_female_vector[x]); }
   
   // Get Mosquito's oocyst rupture time vector
   std::vector<unsigned short int> get_m_oocyst_rupture_time_vector() { return(m_oocyst_rupture_time_vector); }
   
   // Get Mosquito's oocyst male barcode vector
-  std::vector<barcode_t> get_m_oocyst_barcode_male_vector() { return(m_oocyst_barcode_male_vector); }
+  std::vector<boost::dynamic_bitset<>> get_m_oocyst_barcode_male_vector() { return(m_oocyst_barcode_male_vector); }
   
   // Get Mosquito's oocyst female barcode vector
-  std::vector<barcode_t> get_m_oocyst_barcode_female_vector() { return(m_oocyst_barcode_female_vector); }
+  std::vector<boost::dynamic_bitset<>> get_m_oocyst_barcode_female_vector() { return(m_oocyst_barcode_female_vector); }
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SETTERS
@@ -138,10 +138,10 @@ public:
   void set_m_ruptured_oocyst_count(int x) { m_ruptured_oocyst_count = x; }
   
   // Set Mosquito's ruptured oocyst male barcode by emplacing to back
-  void set_m_oocyst_barcode_male_vector(barcode_t x) { m_oocyst_barcode_male_vector.emplace_back(x); }
+  void set_m_oocyst_barcode_male_vector(boost::dynamic_bitset<> x) { m_oocyst_barcode_male_vector.emplace_back(x); }
   
   // Set Mosquito's ruptured oocyst female barcode by emplacing to back
-  void set_m_oocyst_barcode_female_vector(barcode_t x) { m_oocyst_barcode_female_vector.emplace_back(x); }
+  void set_m_oocyst_barcode_female_vector(boost::dynamic_bitset<> x) { m_oocyst_barcode_female_vector.emplace_back(x); }
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // CHECKERS
@@ -155,10 +155,10 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Set mosquito's oocyst barcode male vector
-  void set_m_oocyst_barcode_male_vector(std::vector<barcode_t> x) { m_oocyst_barcode_male_vector = x;}
+  void set_m_oocyst_barcode_male_vector(std::vector<boost::dynamic_bitset<>> x) { m_oocyst_barcode_male_vector = x;}
   
   // Set mosquito's oocyst barcode female vector
-  void set_m_oocyst_barcode_female_vector(std::vector<barcode_t> x) { m_oocyst_barcode_female_vector = x;}
+  void set_m_oocyst_barcode_female_vector(std::vector<boost::dynamic_bitset<>> x) { m_oocyst_barcode_female_vector = x;}
   
   // Set mosquito's oocyst rupture time vector
   void set_m_oocyst_rupture_time_vector(std::vector<unsigned short int> x)  
@@ -174,17 +174,16 @@ public:
   void set_m_oocyst_barcode_male_vector_from_vector_of_vector_bool(std::vector<std::vector<bool> > x)
   {
     m_oocyst_barcode_male_vector.reserve(x.size());
-    barcode_t temp_barcode = Strain::generate_random_barcode();
     unsigned int temp_barcode_iterator = 0;
     
     for(unsigned int i = 0; i < x.size() ; i++){
       
       // fetch vector<bool> and turn into barcode
-      for(temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
+      for(temp_barcode_iterator = 0; temp_barcode_iterator < Parameters::g_barcode_length ; temp_barcode_iterator++ )
       {
-        temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
+        Strain::temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
       }
-      m_oocyst_barcode_male_vector.emplace_back(temp_barcode);
+      m_oocyst_barcode_male_vector.emplace_back(Strain::temp_barcode);
     }
   }
   
@@ -192,17 +191,16 @@ public:
   void set_m_oocyst_barcode_female_vector_from_vector_of_vector_bool(std::vector<std::vector<bool> > x)
   {
     m_oocyst_barcode_female_vector.reserve(x.size());
-    barcode_t temp_barcode = Strain::generate_random_barcode();
     unsigned int temp_barcode_iterator = 0;
     
     for(unsigned int i = 0; i < x.size() ; i++){
       
       // fetch vector<bool> and turn into barcode
-      for(temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
+      for(temp_barcode_iterator = 0; temp_barcode_iterator < Parameters::g_barcode_length ; temp_barcode_iterator++ )
       {
-        temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
+        Strain::temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
       }
-      m_oocyst_barcode_female_vector.emplace_back(temp_barcode);
+      m_oocyst_barcode_female_vector.emplace_back(Strain::temp_barcode);
     }
   }
   
@@ -211,7 +209,7 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Allocate male and female gameteocyte resulting froom biting infected human
-  void allocate_gametocytes(const Parameters &parameters, std::vector<barcode_t> gametocytes);
+  void allocate_gametocytes(const Parameters &parameters, std::vector<boost::dynamic_bitset<>> gametocytes);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SCHEDULERS 

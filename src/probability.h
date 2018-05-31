@@ -62,6 +62,10 @@ void samplerandoms(std::vector<double> &r, std::vector<double> &p, int n, std::v
 double rgamma1(double shape, double rate);
 
 //------------------------------------------------
+// sample from nbinom(size,prob) distribution
+double rnbinom_mu(double size, double mu);
+
+//------------------------------------------------
 // draw from beta(alpha,beta) distribution
 double rbeta1(double alpha, double beta);
 

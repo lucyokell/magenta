@@ -19,7 +19,7 @@ PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,ft){
   age.vector <- 0.1 * ratio ** (1:num_age_brackets)
   age.vector[1] <- 0
   
-  bm <- read.csv("inst/extdata/bm.txt",sep=",",header = T)
+  bm <- read.csv(system.file("extdata/bm.txt",package = "MAGENTA"),sep=",",header = T)
   
   if(!is.null(PfPR)){
     PR <- PfPR

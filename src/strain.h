@@ -14,16 +14,14 @@
 
 #ifndef STRAIN_H
 #define STRAIN_H
-
 #include <vector>
 #include <queue>
 #include <bitset>
 #include <random>
 #include "probability.h"
+#include "parameters.h"
+#include "util.h"
 
-const int barcode_length = 24; // TODO: Check whether this is the best way to declare this - perhaps should be a parameter, thus not const
-const int barcode_length_max_bits = static_cast<int>(pow(2, barcode_length));
-using barcode_t = std::bitset<barcode_length>;
 
 
 class Strain {
@@ -39,14 +37,18 @@ public:
     PROPHYLAXIS,	// 5
     NUMBER_OF_STATES = 6
   };
-  
-  
+
   // Infection transition options. 
   const static std::vector<InfectionStatus> m_transition_vector;
+
+  // temporary barcodes for all purposes
+  static boost::dynamic_bitset<> temp_barcode;
+  static boost::dynamic_bitset<> temp_identity_barcode;
+  static boost::dynamic_bitset<> temp_crossovers;
   
 private:
   
-  barcode_t m_barcode;										// barcode sequence
+  boost::dynamic_bitset<> m_barcode;									// barcode sequence
   InfectionStatus m_strain_infection_status;					// infection status associated with a strain
   int m_day_of_strain_infection_status_change;				// day that strain would move infection status
   
@@ -63,20 +65,20 @@ public:
   Strain();
   
   // Known barcode constructor
-  Strain(const barcode_t &barcode);
+  Strain(boost::dynamic_bitset<> barcode);
   
   // Known barcode and infection status constructor
-  Strain(const barcode_t &barcode, const Strain::InfectionStatus &infectionStatus);
+  Strain(boost::dynamic_bitset<> barcode, const Strain::InfectionStatus &infectionStatus);
   
   // Known barcode, infection status and day of infection status change outcome constructor
-  Strain(const barcode_t &barcode, const Strain::InfectionStatus &infectionStatus, const int &dayOfInfectionStatusChange);
+  Strain(boost::dynamic_bitset<> barcode, const Strain::InfectionStatus &infectionStatus, const int &dayOfInfectionStatusChange);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // GETTERS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Get barcode
-  barcode_t get_m_barcode() { return(m_barcode); }
+  boost::dynamic_bitset<> get_m_barcode() { return(m_barcode); }
   
   // Get strain infection status
   InfectionStatus get_m_strain_infection_status() { return(m_strain_infection_status); }
@@ -88,11 +90,8 @@ public:
   // SETTERS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  // Set random barcode based on barcode length only
-  void set_random_barcode();
-  
   // Set barcode pointer
-  void set_m_barcode(barcode_t x) { m_barcode = x; }
+  void set_m_barcode(boost::dynamic_bitset<> x) { m_barcode = x; }
   
   // Set strain infection status
   void set_m_strain_infection_status(InfectionStatus x) { m_strain_infection_status = x; }
@@ -104,11 +103,33 @@ public:
   // CLASS STATIC FUNCTIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
+  // Generate next barcode. For non IBD this is just a random. IBD its the next identity
+  static boost::dynamic_bitset<> generate_next_barcode();
+  
   // Generate a random barcode
-  static barcode_t generate_random_barcode();
+  static boost::dynamic_bitset<> generate_random_barcode();
+  
+  // Generate a random ordinary barcode, i.e. 1 bit per loci 
+  static boost::dynamic_bitset<> generate_random_ordinary_barcode();
+  
+  // Generate a random ordinary barcode, i.e. 1 bit per loci 
+  static boost::dynamic_bitset<> generate_random_ibd_barcode();
+  
+  // Generate a random identity barcode, i.e. where the barcode represents num_loci * ibd_length
+  static boost::dynamic_bitset<> generate_random_identity_barcode();
+
+  // Generate the next identity barcode, i.e. if it was 0101 it will now be 111, if num_loci = 2
+  static boost::dynamic_bitset<> generate_next_ibd_barcode();
   
   // Generate a random recombinant barcode given two barcodes
-  static barcode_t generate_recombinant_barcode(barcode_t x, barcode_t y);
+  static boost::dynamic_bitset<> generate_recombinant_barcode(boost::dynamic_bitset<> x, boost::dynamic_bitset<> y);
+  
+  // Generate a random barcode given probability of each SNP, i.e. PLAF
+  static boost::dynamic_bitset<> generate_random_barcode_given_SNP_frequencies(std::vector<double> x);
+  
+  // Create a bitset by replicating each bit n times
+  static boost::dynamic_bitset<> replicate_by_bit(boost::dynamic_bitset<> x, unsigned int n);
+  
   
 };
 

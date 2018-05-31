@@ -2,7 +2,7 @@
 % Please edit documentation in R/equilibrium-state-create.R
 \name{generate_default_model}
 \alias{generate_default_model}
-\title{Odin generator functio}
+\title{Odin generator function}
 \usage{
 generate_default_model(ft, age, dat, generator, dde = TRUE)
 }

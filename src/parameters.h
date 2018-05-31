@@ -13,12 +13,11 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#include "stdafx.h"
 #include <cmath>
 #include <vector>
 #include <queue>
 #include <bitset>
-#include "strain.h"
+#include <boost/dynamic_bitset.hpp>
 
 class Parameters {
   
@@ -28,13 +27,33 @@ public:
   int g_calendar_day;
   std::vector<double> g_theta;
   double g_years;
+  
   // spatial
-  unsigned int g_spatial_imports;
-  unsigned int g_spatial_exports;
-  unsigned int g_spatial_import_counter;
-  unsigned int g_spatial_export_counter;
-  std::vector<barcode_t> g_exported_barcodes;
-  std::vector<barcode_t> g_imported_barcodes;
+  enum g_spatial_type_enum{
+    NON, //0
+    ISLAND, //1
+    METAPOPULATION, //2
+    NUMBER_OF_SPATIAL_TYPE_OPTIONS = 3
+  };
+  
+  Parameters::g_spatial_type_enum g_spatial_type;
+  std::vector<int> g_spatial_imported_cotransmission_frequencies;
+  std::vector<int> g_spatial_imported_oocyst_frequencies;
+  std::vector<int> g_spatial_exported_cotransmission_frequencies;
+  std::vector<int> g_spatial_exported_oocyst_frequencies;
+  unsigned int g_spatial_total_exported_barcodes;
+  unsigned int g_spatial_total_exported_oocysts;
+  unsigned int g_spatial_total_imported_barcodes;
+  unsigned int g_spatial_total_imported_oocysts;
+  unsigned int g_spatial_imported_barcode_counter;
+  unsigned int g_spatial_imported_oocyst_counter;
+  unsigned int g_spatial_exported_barcode_counter;
+  unsigned int g_spatial_exported_oocyst_counter;
+  std::vector<boost::dynamic_bitset<> > g_spatial_exported_barcodes;
+  std::vector<boost::dynamic_bitset<> > g_spatial_imported_barcodes;
+  std::vector<boost::dynamic_bitset<> > g_spatial_exported_oocysts;
+  std::vector<boost::dynamic_bitset<> > g_spatial_imported_oocysts;
+  
   // demographic parameters;
   unsigned int g_N;
   int g_max_age;
@@ -106,6 +125,20 @@ public:
   double g_cD;
   double g_cT;
   double g_cU;
+  
+  // barcode parameters
+  static unsigned long long g_identity_id;
+  static unsigned int g_num_loci;
+  static unsigned int g_ibd_length;
+  static unsigned int g_barcode_length;
+  static std::vector<double> g_plaf;
+  static std::vector<double> g_prob_crossover;
+  enum g_barcode_type_enum{
+    ORDINARY, //0
+    IBD, //1
+    NUMBER_OF_BARCODE_TYPE_OPTIONS = 2
+  };
+  static g_barcode_type_enum g_barcode_type;
   
   // Default Constructor
   Parameters();

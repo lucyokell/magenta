@@ -1,9 +1,3 @@
-#------------------------------------------------
-#' odin_model
-#'
-#' \code{odin_model} creates a deterministic model for the transmission model
-#' that takes a series of parameters. 
-
 ## MODEL VARIABLES
 ##------------------------------------------------------------------------------
 
@@ -147,7 +141,7 @@ initial(ICM[,,]) <- init_ICM[i,j,k]
 dim(ICM) <- c(na,nh,num_int)
 
 deriv(ICM[1, 1:nh, 1:num_int]) <- -1/dCM*ICM[i,j,k] + (init_ICM[i,j,k]-ICM[i,j,k])/x_I[i]
-deriv(ICM[2:na, 1:nh, 1:num_int]) <- -1/dCM*ICM[i,j,k] - (ICM[i,j,k]-ICM[i,j,k])/x_I[i]
+deriv(ICM[2:na, 1:nh, 1:num_int]) <- -1/dCM*ICM[i,j,k] - (ICM[i,j,k]-ICM[i-1,j,k])/x_I[i]
 
 # ICA - exposure driven immunity
 init_ICA[,,] <- user()
@@ -251,7 +245,7 @@ ssb2 <- user()
 ssb3 <- user()
 theta_c <- user()
 # Recreation of the rainfall function
-theta2 <- if(ssa0 == 0 && ssa1  == 0 && ssa2  == 0 && ssb1  == 0 && ssb2  == 0 && ssb3  == 0 && theta_c  == 0) 
+theta2 <- if(ssa0 == 0 && ssa1  == 0 && ssa2  == 0 && ssb1  == 0 && ssb2  == 0 && ssb3  == 0 && theta_c  == 0)
   1 else max((ssa0+ssa1*cos(2*pi*t/365)+ssa2*cos(2*2*pi*t/365)+ssa3*cos(3*2*pi*t/365)+ssb1*sin(2*pi*t/365)+ssb2*sin(2*2*pi*t/365)+ ssb3*sin(3*2*pi*t/365) ) /theta_c,0.001)
 
 ##------------------------------------------------------------------------------
@@ -292,7 +286,7 @@ FOIvijk[1:na, 1:nh, 1:num_int] <- (cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k
 lag_FOIv=sum(FOIvijk)
 
 # Current hum->mos FOI depends on the number of individuals now producing gametocytes (12 day lag)
-delayGam <- user() # latent period in humans
+delayGam <- user() # latent period in gametocytogenesis
 delayMos <- user() # latent period in humans
 FOIv <- delay(lag_FOIv, delayGam)
 
@@ -304,10 +298,10 @@ incv <- delay(lag_incv, delayMos)
 
 # Number of mosquitoes born (depends on PL, number of larvae), or is constant outside of seasonality
 #betaa <- 0.5*PL/dPL
-betaa <- mv0 * mu * theta2
+betaa <- mv0 * mu0 * theta2
 
 deriv(Sv) <- -ince - mu*Sv + betaa
-# deriv(Ev) <- ince - incv - mu*Ev
+#deriv(Ev) <- ince - incv - mu*Ev
 deriv(Ev[1]) <- ince - Ev[1] - mu*Ev[1]
 deriv(Ev[2:10]) <- Ev[i-1] - Ev[i] - mu*Ev[i]
 deriv(Iv) <- incv - mu*Iv
@@ -315,6 +309,8 @@ deriv(Iv) <- incv - mu*Iv
 # Total mosquito population
 #mv = Sv+Ev+Iv
 mv = Sv+sum(Ev)+Iv
+
+
 ##------------------------------------------------------------------------------
 ###################
 ## LARVAL STATES ##
@@ -339,6 +335,7 @@ gammaL <- user() # eff. of den. dep. on late stage relative to early stage
 
 # fitted entomological parameters:
 mv0 <- user() # initial mosquito density
+mu0 <- user() # baseline mosquito death rate
 tau1 <- user() # duration of host-seeking behaviour
 tau2 <- user() # duration of resting behaviour
 p10 <- user() # prob of surviving 1 feeding cycle
@@ -349,11 +346,11 @@ betaL <- user() # maximum number of eggs per oviposition per mosq
 eov <- betaL/mu*(exp(mu/fv)-1)
 beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
-lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu*dLL*(1+dPL*muPL))) 
-K0 <- 2*mv0*dLL*mu*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0*dLL*(1+dPL*muPL)))
+K0 <- 2*mv0*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
-KL <- K0*theta2  
+KL <- K0*theta2
 fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
 mu <- -fv*log(p1*p2) # mosquito death rate
 
@@ -383,37 +380,35 @@ deriv(PL) <- LL/dLL - muPL*PL - PL/dPL
 # general parameters
 ITN_IRS_on <- user() # days after which interventions begin
 num_int <- user() # number of intervention categorys, ITN only, IRS only, neither, both
+itn_cov <- user() # proportion of population covered by ITN
+irs_cov <- user() # proportion of population covered by IRS
 
-# itn_cov <- user() # proportion of population covered by ITN
-# irs_cov <- user() # proportion of population covered by IRS
+# interpolate interventions
+itn_cov_interp <- interpolate(int_times, itn_cov_vec, "constant")
+irs_cov_interp <- interpolate(int_times, irs_cov_vec, "constant")
+
+itn_cov_vec[] <- user() # proportion of population covered by ITN over time
+irs_cov_vec[] <- user() # proportion of population covered by IRS over time
+int_times[] <- user() # timing of interventions
+
+int_len <- user() # length of intervention times
+dim(itn_cov_vec) <- user()
+dim(irs_cov_vec) <- user()
+dim(int_times) <- user()
+
+# # interventions as interpolated parameters between years
+# deriv(itn_cov_now) = if(t < ITN_IRS_on) 0 else itn_cov_interp
+# deriv(irs_cov_now) = if(t < ITN_IRS_on) 0 else irs_cov_interp
+
 # itn_cov_now = itn_cov
 # irs_cov_now = irs_cov
 
-itn_cov[] <- user() # proportion of population covered by ITN
-irs_cov[] <- user() # proportion of population covered by IRS
-int_len <- user() # length of interventions
-dim(itn_cov) <- int_len
-dim(irs_cov) <- int_len
-
-# intervetnions as parameters for each year
-# itn_cov_now = if(t < ITN_IRS_on) 0 else if (t - ITN_IRS_on <= 365) itn_cov[1] else if (t - ITN_IRS_on <= 730 && t - ITN_IRS_on > 365) itn_cov[2] else if (t - ITN_IRS_on <= 1095 && t - ITN_IRS_on > 730 ) itn_cov[3]	else if (t - ITN_IRS_on <= 1460 && t - ITN_IRS_on > 1095 ) itn_cov[4]	else if (t - ITN_IRS_on <= 1825 && t - ITN_IRS_on > 1460 ) itn_cov[5]	else if (t - ITN_IRS_on <= 2190 && t - ITN_IRS_on > 1825 ) itn_cov[6]	else if (t - ITN_IRS_on <= 2555 && t - ITN_IRS_on > 2190 ) itn_cov[7]	else if (t - ITN_IRS_on <= 2920 && t - ITN_IRS_on > 2555 ) itn_cov[8]	else if (t - ITN_IRS_on <= 3285 && t - ITN_IRS_on > 2920 ) itn_cov[9]	else if (t - ITN_IRS_on <= 3650 && t - ITN_IRS_on > 3285 ) itn_cov[10]	else if (t - ITN_IRS_on <= 4015 && t - ITN_IRS_on > 3650 ) itn_cov[11]	else if (t - ITN_IRS_on <= 4380 && t - ITN_IRS_on > 4015 ) itn_cov[12]	else if (t - ITN_IRS_on <= 4745 && t - ITN_IRS_on > 4380 ) itn_cov[13]	else if (t - ITN_IRS_on <= 5110 && t - ITN_IRS_on > 4745 ) itn_cov[14]	else if
-# (t - ITN_IRS_on <= 5475 && t - ITN_IRS_on > 5110 ) itn_cov[15]	else if (t - ITN_IRS_on <= 5840 && t - ITN_IRS_on > 5475 ) itn_cov[16]	else if (t - ITN_IRS_on <= 6205 && t - ITN_IRS_on > 5840 ) itn_cov[17]	else if (t - ITN_IRS_on <= 6570 && t - ITN_IRS_on > 6205 ) itn_cov[18]	else if (t - ITN_IRS_on <= 6935 && t - ITN_IRS_on > 6570 ) itn_cov[19]	else if (t - ITN_IRS_on <= 7300 && t - ITN_IRS_on > 6935 ) itn_cov[20]	else if (t - ITN_IRS_on <= 7665 && t - ITN_IRS_on > 7300 ) itn_cov[21]	else if (t - ITN_IRS_on <= 8030 && t - ITN_IRS_on > 7665 ) itn_cov[22]	else if (t - ITN_IRS_on <= 8395 && t - ITN_IRS_on > 8030 ) itn_cov[23]	else if (t - ITN_IRS_on <= 8760 && t - ITN_IRS_on > 8395 ) itn_cov[24]	else if (t - ITN_IRS_on <= 9125 && t - ITN_IRS_on > 8760 ) itn_cov[25]	else if (t - ITN_IRS_on <= 9490 && t - ITN_IRS_on > 9125 ) itn_cov[26]	else if (t - ITN_IRS_on <= 9855 && t - ITN_IRS_on > 9490 ) itn_cov[27]	else if (t - ITN_IRS_on <= 10220 && t - ITN_IRS_on > 9855 ) itn_cov[28]	else if (t - ITN_IRS_on <= 10585 && t - ITN_IRS_on > 10220 ) itn_cov[29]	else if (t - ITN_IRS_on <= 10950 && t - ITN_IRS_on > 10585 ) itn_cov[30]	else if (t - ITN_IRS_on <= 11315 && t - ITN_IRS_on > 10950 ) itn_cov[31]	else if (t - ITN_IRS_on <= 11680 && t - ITN_IRS_on > 11315 ) itn_cov[32]	else if (t - ITN_IRS_on <= 12045 && t - ITN_IRS_on > 11680 ) itn_cov[33]	else if (t - ITN_IRS_on <= 12410 && t - ITN_IRS_on > 12045 ) itn_cov[34]	else if (t - ITN_IRS_on <= 12775 && t - ITN_IRS_on > 12410 ) itn_cov[35]	else if (t - ITN_IRS_on <= 13140 && t - ITN_IRS_on > 12775 ) itn_cov[36]	else if (t - ITN_IRS_on <= 13505 && t - ITN_IRS_on > 13140 ) itn_cov[37]	else if (t - ITN_IRS_on <= 13870 && t - ITN_IRS_on > 13505 ) itn_cov[38]	else if (t - ITN_IRS_on <= 14235 && t - ITN_IRS_on > 13870 ) itn_cov[39]	else if (t - ITN_IRS_on <= 14600 && t - ITN_IRS_on > 14235 ) itn_cov[40]	else if (t - ITN_IRS_on <= 14965 && t - ITN_IRS_on > 14600 ) itn_cov[41]	else if (t - ITN_IRS_on <= 15330 && t - ITN_IRS_on > 14965 ) itn_cov[42]	else if (t - ITN_IRS_on <= 15695 && t - ITN_IRS_on > 15330 ) itn_cov[43]	else if (t - ITN_IRS_on <= 16060 && t - ITN_IRS_on > 15695 ) itn_cov[44]	else if (t - ITN_IRS_on <= 16425 && t - ITN_IRS_on > 16060 ) itn_cov[45]	else if (t - ITN_IRS_on <= 16790 && t - ITN_IRS_on > 16425 ) itn_cov[46]	else if (t - ITN_IRS_on <= 17155 && t - ITN_IRS_on > 16790 ) itn_cov[47]	else if (t - ITN_IRS_on <= 17520 && t - ITN_IRS_on > 17155 ) itn_cov[48]	else if (t - ITN_IRS_on <= 17885 && t - ITN_IRS_on > 17520 ) itn_cov[49]	else if (t - ITN_IRS_on <= 18250 && t - ITN_IRS_on > 17885 ) itn_cov[50]	else if (t - ITN_IRS_on <= 18615 && t - ITN_IRS_on > 18250 ) itn_cov[51]	else if (t - ITN_IRS_on <= 18980 && t - ITN_IRS_on > 18615 ) itn_cov[52]	else if (t - ITN_IRS_on <= 19345 && t - ITN_IRS_on > 18980 ) itn_cov[53]	else if (t - ITN_IRS_on <= 19710 && t - ITN_IRS_on > 19345 ) itn_cov[54]	else if (t - ITN_IRS_on <= 20075 && t - ITN_IRS_on > 19710 ) itn_cov[55]	else if (t - ITN_IRS_on <= 20440 && t - ITN_IRS_on > 20075 ) itn_cov[56]	else if (t - ITN_IRS_on <= 20805 && t - ITN_IRS_on > 20440 ) itn_cov[57]	else if (t - ITN_IRS_on <= 21170 && t - ITN_IRS_on > 20805 ) itn_cov[58]	else if (t - ITN_IRS_on <= 21535 && t - ITN_IRS_on > 21170 ) itn_cov[59]	else if (t - ITN_IRS_on <= 21900 && t - ITN_IRS_on > 21535 ) itn_cov[60]	else if (t - ITN_IRS_on <= 22265 && t - ITN_IRS_on > 21900 ) itn_cov[61]	else if (t - ITN_IRS_on <= 22630 && t - ITN_IRS_on > 22265 ) itn_cov[62]	else if (t - ITN_IRS_on <= 22995 && t - ITN_IRS_on > 22630 ) itn_cov[63]	else if (t - ITN_IRS_on <= 23360 && t - ITN_IRS_on > 22995 ) itn_cov[64]	else if (t - ITN_IRS_on <= 23725 && t - ITN_IRS_on > 23360 ) itn_cov[65] else 0
-# 
-# irs_cov_now = if(t < ITN_IRS_on) 0 else if (t - ITN_IRS_on <= 365) irs_cov[1] else if (t - ITN_IRS_on <= 730 && t - ITN_IRS_on > 365) irs_cov[2] else if (t - ITN_IRS_on <= 1095 && t - ITN_IRS_on > 730 ) irs_cov[3]	else if (t - ITN_IRS_on <= 1460 && t - ITN_IRS_on > 1095 ) irs_cov[4]	else if (t - ITN_IRS_on <= 1825 && t - ITN_IRS_on > 1460 ) irs_cov[5]	else if (t - ITN_IRS_on <= 2190 && t - ITN_IRS_on > 1825 ) irs_cov[6]	else if (t - ITN_IRS_on <= 2555 && t - ITN_IRS_on > 2190 ) irs_cov[7]	else if (t - ITN_IRS_on <= 2920 && t - ITN_IRS_on > 2555 ) irs_cov[8]	else if (t - ITN_IRS_on <= 3285 && t - ITN_IRS_on > 2920 ) irs_cov[9]	else if (t - ITN_IRS_on <= 3650 && t - ITN_IRS_on > 3285 ) irs_cov[10]	else if (t - ITN_IRS_on <= 4015 && t - ITN_IRS_on > 3650 ) irs_cov[11]	else if (t - ITN_IRS_on <= 4380 && t - ITN_IRS_on > 4015 ) irs_cov[12]	else if (t - ITN_IRS_on <= 4745 && t - ITN_IRS_on > 4380 ) irs_cov[13]	else if (t - ITN_IRS_on <= 5110 && t - ITN_IRS_on > 4745 ) irs_cov[14]	else if
-# (t - ITN_IRS_on <= 5475 && t - ITN_IRS_on > 5110 ) irs_cov[15]	else if (t - ITN_IRS_on <= 5840 && t - ITN_IRS_on > 5475 ) irs_cov[16]	else if (t - ITN_IRS_on <= 6205 && t - ITN_IRS_on > 5840 ) irs_cov[17]	else if (t - ITN_IRS_on <= 6570 && t - ITN_IRS_on > 6205 ) irs_cov[18]	else if (t - ITN_IRS_on <= 6935 && t - ITN_IRS_on > 6570 ) irs_cov[19]	else if (t - ITN_IRS_on <= 7300 && t - ITN_IRS_on > 6935 ) irs_cov[20]	else if (t - ITN_IRS_on <= 7665 && t - ITN_IRS_on > 7300 ) irs_cov[21]	else if (t - ITN_IRS_on <= 8030 && t - ITN_IRS_on > 7665 ) irs_cov[22]	else if (t - ITN_IRS_on <= 8395 && t - ITN_IRS_on > 8030 ) irs_cov[23]	else if (t - ITN_IRS_on <= 8760 && t - ITN_IRS_on > 8395 ) irs_cov[24]	else if (t - ITN_IRS_on <= 9125 && t - ITN_IRS_on > 8760 ) irs_cov[25]	else if (t - ITN_IRS_on <= 9490 && t - ITN_IRS_on > 9125 ) irs_cov[26]	else if (t - ITN_IRS_on <= 9855 && t - ITN_IRS_on > 9490 ) irs_cov[27]	else if (t - ITN_IRS_on <= 10220 && t - ITN_IRS_on > 9855 ) irs_cov[28]	else if (t - ITN_IRS_on <= 10585 && t - ITN_IRS_on > 10220 ) irs_cov[29]	else if (t - ITN_IRS_on <= 10950 && t - ITN_IRS_on > 10585 ) irs_cov[30]	else if (t - ITN_IRS_on <= 11315 && t - ITN_IRS_on > 10950 ) irs_cov[31]	else if (t - ITN_IRS_on <= 11680 && t - ITN_IRS_on > 11315 ) irs_cov[32]	else if (t - ITN_IRS_on <= 12045 && t - ITN_IRS_on > 11680 ) irs_cov[33]	else if (t - ITN_IRS_on <= 12410 && t - ITN_IRS_on > 12045 ) irs_cov[34]	else if (t - ITN_IRS_on <= 12775 && t - ITN_IRS_on > 12410 ) irs_cov[35]	else if (t - ITN_IRS_on <= 13140 && t - ITN_IRS_on > 12775 ) irs_cov[36]	else if (t - ITN_IRS_on <= 13505 && t - ITN_IRS_on > 13140 ) irs_cov[37]	else if (t - ITN_IRS_on <= 13870 && t - ITN_IRS_on > 13505 ) irs_cov[38]	else if (t - ITN_IRS_on <= 14235 && t - ITN_IRS_on > 13870 ) irs_cov[39]	else if (t - ITN_IRS_on <= 14600 && t - ITN_IRS_on > 14235 ) irs_cov[40]	else if (t - ITN_IRS_on <= 14965 && t - ITN_IRS_on > 14600 ) irs_cov[41]	else if (t - ITN_IRS_on <= 15330 && t - ITN_IRS_on > 14965 ) irs_cov[42]	else if (t - ITN_IRS_on <= 15695 && t - ITN_IRS_on > 15330 ) irs_cov[43]	else if (t - ITN_IRS_on <= 16060 && t - ITN_IRS_on > 15695 ) irs_cov[44]	else if (t - ITN_IRS_on <= 16425 && t - ITN_IRS_on > 16060 ) irs_cov[45]	else if (t - ITN_IRS_on <= 16790 && t - ITN_IRS_on > 16425 ) irs_cov[46]	else if (t - ITN_IRS_on <= 17155 && t - ITN_IRS_on > 16790 ) irs_cov[47]	else if (t - ITN_IRS_on <= 17520 && t - ITN_IRS_on > 17155 ) irs_cov[48]	else if (t - ITN_IRS_on <= 17885 && t - ITN_IRS_on > 17520 ) irs_cov[49]	else if (t - ITN_IRS_on <= 18250 && t - ITN_IRS_on > 17885 ) irs_cov[50]	else if (t - ITN_IRS_on <= 18615 && t - ITN_IRS_on > 18250 ) irs_cov[51]	else if (t - ITN_IRS_on <= 18980 && t - ITN_IRS_on > 18615 ) irs_cov[52]	else if (t - ITN_IRS_on <= 19345 && t - ITN_IRS_on > 18980 ) irs_cov[53]	else if (t - ITN_IRS_on <= 19710 && t - ITN_IRS_on > 19345 ) irs_cov[54]	else if (t - ITN_IRS_on <= 20075 && t - ITN_IRS_on > 19710 ) irs_cov[55]	else if (t - ITN_IRS_on <= 20440 && t - ITN_IRS_on > 20075 ) irs_cov[56]	else if (t - ITN_IRS_on <= 20805 && t - ITN_IRS_on > 20440 ) irs_cov[57]	else if (t - ITN_IRS_on <= 21170 && t - ITN_IRS_on > 20805 ) irs_cov[58]	else if (t - ITN_IRS_on <= 21535 && t - ITN_IRS_on > 21170 ) irs_cov[59]	else if (t - ITN_IRS_on <= 21900 && t - ITN_IRS_on > 21535 ) irs_cov[60]	else if (t - ITN_IRS_on <= 22265 && t - ITN_IRS_on > 21900 ) irs_cov[61]	else if (t - ITN_IRS_on <= 22630 && t - ITN_IRS_on > 22265 ) irs_cov[62]	else if (t - ITN_IRS_on <= 22995 && t - ITN_IRS_on > 22630 ) irs_cov[63]	else if (t - ITN_IRS_on <= 23360 && t - ITN_IRS_on > 22995 ) irs_cov[64]	else if (t - ITN_IRS_on <= 23725 && t - ITN_IRS_on > 23360 ) irs_cov[65] else 0
-
-itn_cov_now = if(t < ITN_IRS_on) 0 else if (t - ITN_IRS_on <= 365) itn_cov[1]	else if (t - ITN_IRS_on <= 730) itn_cov[2]	else if (t - ITN_IRS_on <= 1095) itn_cov[3]	else if (t - ITN_IRS_on <= 1460) itn_cov[4]	else if (t - ITN_IRS_on <= 1825) itn_cov[5]	else if (t - ITN_IRS_on <= 2190) itn_cov[6]	else if (t - ITN_IRS_on <= 2555) itn_cov[7]	else if (t - ITN_IRS_on <= 2920) itn_cov[8]	else if (t - ITN_IRS_on <= 3285) itn_cov[9]	else if (t - ITN_IRS_on <= 3650) itn_cov[10]	else if (t - ITN_IRS_on <= 4015) itn_cov[11]	else if (t - ITN_IRS_on <= 4380) itn_cov[12]	else if (t - ITN_IRS_on <= 4745) itn_cov[13]	else if (t - ITN_IRS_on <= 5110) itn_cov[14]	else if (t - ITN_IRS_on <= 5475) itn_cov[15]	else if (t - ITN_IRS_on <= 5840) itn_cov[16]	else if (t - ITN_IRS_on <= 6205) itn_cov[17]	else if (t - ITN_IRS_on <= 6570) itn_cov[18]	else if (t - ITN_IRS_on <= 6935) itn_cov[19]	else if (t - ITN_IRS_on <= 7300) itn_cov[20]	else if (t - ITN_IRS_on <= 7665) itn_cov[21]	else if (t - ITN_IRS_on <= 8030) itn_cov[22]	else if (t - ITN_IRS_on <= 8395) itn_cov[23]	else if (t - ITN_IRS_on <= 8760) itn_cov[24]	else if (t - ITN_IRS_on <= 9125) itn_cov[25]	else if (t - ITN_IRS_on <= 9490) itn_cov[26]	else if (t - ITN_IRS_on <= 9855) itn_cov[27]	else if (t - ITN_IRS_on <= 10220) itn_cov[28]	else if (t - ITN_IRS_on <= 10585) itn_cov[29]	else if (t - ITN_IRS_on <= 10950) itn_cov[30]	else if (t - ITN_IRS_on <= 11315) itn_cov[31]	else if (t - ITN_IRS_on <= 11680) itn_cov[32]	else if (t - ITN_IRS_on <= 12045) itn_cov[33]	else if (t - ITN_IRS_on <= 12410) itn_cov[34]	else if (t - ITN_IRS_on <= 12775) itn_cov[35]	else if (t - ITN_IRS_on <= 13140) itn_cov[36]	else if (t - ITN_IRS_on <= 13505) itn_cov[37]	else if (t - ITN_IRS_on <= 13870) itn_cov[38]	else if (t - ITN_IRS_on <= 14235) itn_cov[39]	else if (t - ITN_IRS_on <= 14600) itn_cov[40]	else if (t - ITN_IRS_on <= 14965) itn_cov[41]	else if (t - ITN_IRS_on <= 15330) itn_cov[42]	else if (t - ITN_IRS_on <= 15695) itn_cov[43]	else if (t - ITN_IRS_on <= 16060) itn_cov[44]	else if (t - ITN_IRS_on <= 16425) itn_cov[45]	else if (t - ITN_IRS_on <= 16790) itn_cov[46]	else if (t - ITN_IRS_on <= 17155) itn_cov[47]	else if (t - ITN_IRS_on <= 17520) itn_cov[48]	else if (t - ITN_IRS_on <= 17885) itn_cov[49]	else if (t - ITN_IRS_on <= 18250) itn_cov[50]	else if (t - ITN_IRS_on <= 18615) itn_cov[51]	else if (t - ITN_IRS_on <= 18980) itn_cov[52]	else if (t - ITN_IRS_on <= 19345) itn_cov[53]	else if (t - ITN_IRS_on <= 19710) itn_cov[54]	else if (t - ITN_IRS_on <= 20075) itn_cov[55]	else if (t - ITN_IRS_on <= 20440) itn_cov[56]	else if (t - ITN_IRS_on <= 20805) itn_cov[57]	else if (t - ITN_IRS_on <= 21170) itn_cov[58]	else if (t - ITN_IRS_on <= 21535) itn_cov[59]	else if (t - ITN_IRS_on <= 21900) itn_cov[60]	else if (t - ITN_IRS_on <= 22265) itn_cov[61]	else if (t - ITN_IRS_on <= 22630) itn_cov[62]	else if (t - ITN_IRS_on <= 22995) itn_cov[63]	else if (t - ITN_IRS_on <= 23360) itn_cov[64]	else if (t - ITN_IRS_on <= 23725) itn_cov[65] else 0
-
-irs_cov_now = if(t < ITN_IRS_on) 0 else if (t - ITN_IRS_on <= 365) irs_cov[1]	else if (t - ITN_IRS_on <= 730) irs_cov[2]	else if (t - ITN_IRS_on <= 1095) irs_cov[3]	else if (t - ITN_IRS_on <= 1460) irs_cov[4]	else if (t - ITN_IRS_on <= 1825) irs_cov[5]	else if (t - ITN_IRS_on <= 2190) irs_cov[6]	else if (t - ITN_IRS_on <= 2555) irs_cov[7]	else if (t - ITN_IRS_on <= 2920) irs_cov[8]	else if (t - ITN_IRS_on <= 3285) irs_cov[9]	else if (t - ITN_IRS_on <= 3650) irs_cov[10]	else if (t - ITN_IRS_on <= 4015) irs_cov[11]	else if (t - ITN_IRS_on <= 4380) irs_cov[12]	else if (t - ITN_IRS_on <= 4745) irs_cov[13]	else if (t - ITN_IRS_on <= 5110) irs_cov[14]	else if (t - ITN_IRS_on <= 5475) irs_cov[15]	else if (t - ITN_IRS_on <= 5840) irs_cov[16]	else if (t - ITN_IRS_on <= 6205) irs_cov[17]	else if (t - ITN_IRS_on <= 6570) irs_cov[18]	else if (t - ITN_IRS_on <= 6935) irs_cov[19]	else if (t - ITN_IRS_on <= 7300) irs_cov[20]	else if (t - ITN_IRS_on <= 7665) irs_cov[21]	else if (t - ITN_IRS_on <= 8030) irs_cov[22]	else if (t - ITN_IRS_on <= 8395) irs_cov[23]	else if (t - ITN_IRS_on <= 8760) irs_cov[24]	else if (t - ITN_IRS_on <= 9125) irs_cov[25]	else if (t - ITN_IRS_on <= 9490) irs_cov[26]	else if (t - ITN_IRS_on <= 9855) irs_cov[27]	else if (t - ITN_IRS_on <= 10220) irs_cov[28]	else if (t - ITN_IRS_on <= 10585) irs_cov[29]	else if (t - ITN_IRS_on <= 10950) irs_cov[30]	else if (t - ITN_IRS_on <= 11315) irs_cov[31]	else if (t - ITN_IRS_on <= 11680) irs_cov[32]	else if (t - ITN_IRS_on <= 12045) irs_cov[33]	else if (t - ITN_IRS_on <= 12410) irs_cov[34]	else if (t - ITN_IRS_on <= 12775) irs_cov[35]	else if (t - ITN_IRS_on <= 13140) irs_cov[36]	else if (t - ITN_IRS_on <= 13505) irs_cov[37]	else if (t - ITN_IRS_on <= 13870) irs_cov[38]	else if (t - ITN_IRS_on <= 14235) irs_cov[39]	else if (t - ITN_IRS_on <= 14600) irs_cov[40]	else if (t - ITN_IRS_on <= 14965) irs_cov[41]	else if (t - ITN_IRS_on <= 15330) irs_cov[42]	else if (t - ITN_IRS_on <= 15695) irs_cov[43]	else if (t - ITN_IRS_on <= 16060) irs_cov[44]	else if (t - ITN_IRS_on <= 16425) irs_cov[45]	else if (t - ITN_IRS_on <= 16790) irs_cov[46]	else if (t - ITN_IRS_on <= 17155) irs_cov[47]	else if (t - ITN_IRS_on <= 17520) irs_cov[48]	else if (t - ITN_IRS_on <= 17885) irs_cov[49]	else if (t - ITN_IRS_on <= 18250) irs_cov[50]	else if (t - ITN_IRS_on <= 18615) irs_cov[51]	else if (t - ITN_IRS_on <= 18980) irs_cov[52]	else if (t - ITN_IRS_on <= 19345) irs_cov[53]	else if (t - ITN_IRS_on <= 19710) irs_cov[54]	else if (t - ITN_IRS_on <= 20075) irs_cov[55]	else if (t - ITN_IRS_on <= 20440) irs_cov[56]	else if (t - ITN_IRS_on <= 20805) irs_cov[57]	else if (t - ITN_IRS_on <= 21170) irs_cov[58]	else if (t - ITN_IRS_on <= 21535) irs_cov[59]	else if (t - ITN_IRS_on <= 21900) irs_cov[60]	else if (t - ITN_IRS_on <= 22265) irs_cov[61]	else if (t - ITN_IRS_on <= 22630) irs_cov[62]	else if (t - ITN_IRS_on <= 22995) irs_cov[63]	else if (t - ITN_IRS_on <= 23360) irs_cov[64]	else if (t - ITN_IRS_on <= 23725) irs_cov[65] else 0
-
-
-
 # cov is a vector of coverages for each intervention category:
 dim(cov) <- num_int
-cov[1] <- (1-itn_cov_now)*(1-irs_cov_now)  # {No intervention}
-cov[2] <- itn_cov_now*(1-irs_cov_now) # 	   {ITN only}
-cov[3] <- (1-itn_cov_now)*irs_cov_now	#      {IRS only}
-cov[4] <- itn_cov_now*irs_cov_now #	   {Both ITN and IRS}
+cov[1] <- (1-itn_cov_interp)*(1-irs_cov_interp)  # {No intervention}
+cov[2] <- itn_cov_interp*(1-irs_cov_interp) # 	   {ITN only}
+cov[3] <- (1-itn_cov_interp)*irs_cov_interp	#      {IRS only}
+cov[4] <- itn_cov_interp*irs_cov_interp #	   {Both ITN and IRS}
 
 IRS_interval <- user() # how long IRS lasts
 ITN_interval <- user() # how long ITN lasts
@@ -437,8 +432,8 @@ irs_loss <- user()
 itn_loss <- user()
 
 # Calculates decay for ITN/IRS
-ITN_decay <- if(t < ITN_IRS_on) 0 else exp(-((t-ITN_IRS_on)%%ITN_interval) * itn_loss)
-IRS_decay <- if(t < ITN_IRS_on) 0 else exp(-((t-ITN_IRS_on)%%IRS_interval) * irs_loss)
+ITN_decay = if(t < ITN_IRS_on) 0 else exp(-((t-ITN_IRS_on)%%ITN_interval) * itn_loss)
+IRS_decay = if(t < ITN_IRS_on) 0 else exp(-((t-ITN_IRS_on)%%IRS_interval) * irs_loss)
 
 # The r,d and s values turn on after ITN_IRS_on and decay accordingly
 d_ITN <- if(t < ITN_IRS_on) 0 else d_ITN0*ITN_decay
@@ -513,23 +508,12 @@ dim(den) <- na
 age59 <- user()
 # index of the age vector above 5 years
 age05 <- user()
-# # index of age above 2 years
-# age2years <- user()
-# # index of age above 10 years
-# age10years <- user()
-# two_to_10_length <- user()
 
-# slide positivity in 0 -5 year age bracket
 dim(prev0to59) <- c(age59,nh,num_int)
 prev0to59[1:age59,,] <- T[i,j,k] + D[i,j,k] + A[i,j,k] * p_det[i,j,k]
 output(prev) <- sum(prev0to59[,,])/sum(den[1:age59])
 
-# slide pos in 2 - 10 years
-# dim(slide_pos) <- c(na,nh,num_int)
-# slide_pos[,,] <- T[i,j,k] + D[i,j,k] + A[i,j,k] * p_det[i,j,k]
-# output(micro_2_10) <- sum(slide_pos[age2years:age10years,,])/sum(den[age2years:age10years])
-
-
+# slide positivity in 0 -5 year age bracket
 dim(clin_inc0to5) <- c(age05,nh,num_int)
 clin_inc0to5[1:age05,,] <- clin_inc[i,j,k]
 output(inc05) <- sum(clin_inc0to5)/sum(den[1:age05])
@@ -537,7 +521,6 @@ output(inc) <- sum(clin_inc[,,])
 
 # Param checking outputs
 output(mu) <- mu
-output(fv) <- fv
 output(beta_larval) <- beta_larval
 output(KL) <- KL
 output(mv) <- mv
@@ -551,4 +534,3 @@ output(r_IRS) <- r_IRS
 output(s_IRS) <- s_IRS
 output(cov[]) <- cov[i]
 output(K0) <- K0
-

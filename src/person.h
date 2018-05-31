@@ -14,8 +14,7 @@
 
 #ifndef PERSON_H
 #define PERSON_H
-
-#include "stdafx.h"
+  
 #include "mosquito.h"
 #include "parameters.h"
 #include <vector>
@@ -135,7 +134,7 @@ private:
   
   std::vector<int> m_infection_time_realisation_vector{};         // First pending infection time in position 0 to handle multiple infections times that have not been realised yet
   std::vector<InfectionStatus> m_infection_state_realisation_vector{};  // First pending infection state in position 0 to handle multiple infections states that have not been realised yet
-  std::vector<barcode_t> m_infection_barcode_realisation_vector{};    // First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
+  std::vector<boost::dynamic_bitset<>> m_infection_barcode_realisation_vector{};    // First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
   
   int m_infection_realisation_empty_catch = 1;  // Variable that allows a check for empty vectors when dealing with more than one infection realisation on a day
   unsigned int m_number_of_realised_infections = 0;  // Count of realised infections
@@ -236,7 +235,7 @@ public:
   std::vector<InfectionStatus> get_m_infection_state_realisation_vector() { return (m_infection_state_realisation_vector); }
   
   // Get person's infection barcode realisation vector
-  std::vector<barcode_t> get_m_infection_barcode_realisation_vector() { return (m_infection_barcode_realisation_vector); }
+  std::vector<boost::dynamic_bitset<>> get_m_infection_barcode_realisation_vector() { return (m_infection_barcode_realisation_vector); }
   
   // Get person's active strains vector
   std::vector<Strain> get_m_active_strains() { return (m_active_strains); }
@@ -249,7 +248,7 @@ public:
   bool reciprocal_infection_boolean(const Parameters &parameters);
   
   // Work out if reciprocal infection happened
-  std::vector<barcode_t> sample_two_barcodes(const Parameters &parameters);
+  std::vector<boost::dynamic_bitset<>> sample_two_barcodes(const Parameters &parameters);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SETTERS
@@ -368,7 +367,7 @@ public:
   void set_m_infection_state_realisation_vector(std::vector<InfectionStatus> x) { m_infection_state_realisation_vector = x; }
   
   // Set person's infection barcode realisation vector
-  void set_m_infection_barcode_realisation_vector_from_vector(std::vector<barcode_t> x)
+  void set_m_infection_barcode_realisation_vector_from_vector(std::vector<boost::dynamic_bitset<>> x)
   {
     for (unsigned int i = 0; i < x.size(); i++) {
       m_infection_barcode_realisation_vector.emplace_back(x[i]);
@@ -380,17 +379,16 @@ public:
   {
     
     m_infection_barcode_realisation_vector.reserve(x.size());
-    barcode_t temp_barcode = Strain::generate_random_barcode();
     unsigned int temp_barcode_iterator = 0;
     
     for (unsigned int i = 0; i < x.size(); i++) {
       
       // fetch vector<bool> and turn into barcode
-      for (temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length; temp_barcode_iterator++)
+      for (temp_barcode_iterator = 0; temp_barcode_iterator < Parameters::g_barcode_length; temp_barcode_iterator++)
       {
-        temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
+        Strain::temp_barcode[temp_barcode_iterator] = x[i][temp_barcode_iterator];
       }
-      m_infection_barcode_realisation_vector.emplace_back(temp_barcode);
+      m_infection_barcode_realisation_vector.emplace_back(Strain::temp_barcode);
     }
   }
   

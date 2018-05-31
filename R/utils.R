@@ -1,6 +1,6 @@
 #' Pipe operator
 #'
-#' See \code{\link[magrittr]{\%>\%}} for more details.
+#' See \code{\link[magrittr:pipe]{\%>\%}} for more details.
 #'
 #' @name %>%
 #' @rdname pipe
@@ -77,6 +77,38 @@ seasonal_profile <- function(country,admin){
   return(y)
 }
 
+#------------------------------------------------
+#' Plot country seasonal profiles
+#'
+#' @param country Character for country within which admin2 is in. Default = NULL
+#' 
+
+country_seasonal_profiles <- function(country){
+  
+  ads <- MAGENTA::admin_units_seasonal
+  if(!is.element(country,unique(ads$country))) stop(paste0("Country is not one of ",paste(unique(ads$country),collapse=", ")))
+  admins <- ads$admin1[ads$country==country]
+  
+  if(length(admins)>16){
+    par(mfrow=c(5,5))
+  } else if(length(admins)>9){
+    par(mfrow=c(4,4))
+  } else if(length(admins)>4){
+    par(mfrow=c(3,3))
+  } else {
+    par(mfrow=c(2,2))
+  }
+  
+  max_ses <- max(sapply(admins,function(x){max(MAGENTA:::seasonal_profile(country,x))}))
+ 
+  ret <- sapply(admins,function(x){invisible(plot(MAGENTA:::seasonal_profile(country,x),
+                                 main=x,
+                                 ylim=c(0,max_ses+0.2),
+                                 ylab = "Seasonal",
+                                 xlab = "Day"
+                                 ))})
+   
+}
 
 #------------------------------------------------
 #' Create summary statistics df

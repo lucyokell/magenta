@@ -1,4 +1,3 @@
-#------------------------------------------------
 #' Equilibrium steady state list creation
 #'
 #' \code{Equilibrium_SS_Create} creates a close to steady-state system by 
@@ -9,12 +8,10 @@
 #' @param end.year Number of years to run ODE model for. Default = 5.
 #' @param use_odin Boolean detailing whether the intiial solution is run within the odin model 
 #' for end.year length. Default = False while the model is still buggy. 
-#' @param spatial Default = NULL If spatial is wanted then provide a vector of daily export
-#' rates for exportation.
 #' 
 #' @export
 
-Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE, spatial=NULL){
+Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
   
   if(use_odin){
   
@@ -215,18 +212,88 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE, spatia
      
   }
   
-  # If spatial boolean
-  if(!is.null(spatial)){
-    Equilibrium_State$spatial <- spatial
-  }
-  
   return(Equilibrium_State)
   
 }
 
 
-#------------------------------------------------
-#' Odin generator functio
+
+#' Create spatial list object to be passed to main functions if required
+#'
+#' \code{spl_create} creates the user required spatial 
+#' list to be passed to the initialisation function if require
+#' 
+
+spl_create <- function(island_PLAF=NULL, 
+                       human_importation_rate_vector=NULL, 
+                       mosquito_imporation_rate_vector=NULL,
+                       cotransmission_freq_vector=rep(10000,1),
+                       oocyst_freq_vector=rep(10000,1),
+                       num_human_infs,
+                       num_mos_infs){
+  
+  
+  
+  # num_human_infs = (eqInit$FOI * eqInit$den ) %>% sum * N
+  # num_mos_infs = eqInit$FOIv_eq * eqInit$mv0 * N
+  
+  # if island PLAF is not null then we are doing the island simiulation
+  if(!is.null(island_PLAF)){
+    
+  # first work out how frequent importation is:
+  hum_imp_rate <- sum(human_importation_rate_vector,na.rm=TRUE)
+  mos_imp_rate <- sum(mosquito_imporation_rate_vector,na.rm=TRUE)
+  
+  # therefore we frst want to work out the number of transmission events that are due to importation and how large
+  imported_cotransmission_events <- rep_len(cotransmission_freq_vector,num_human_infs*hum_imp_rate)
+  imported_oocyst_events <- rep_len(oocyst_freq_vector,num_mos_infs*mos_imp_rate)
+  
+  spatial_list <- list("PLAF" = island_PLAF,
+                       "imported_cotransmissions_events"=imported_cotransmission_events,
+                       "imported_oocyst_events"=imported_oocyst_events)
+  
+  } else {
+    
+    # first work out how frequent importation is:
+    hum_imp_rate <- human_importation_rate_vector[-which(is.na(human_importation_rate_vector))]
+    mos_imp_rate <- mosquito_imporation_rate_vector[-which(is.na(mosquito_imporation_rate_vector))]
+    
+    # therefore we frst want to work out the number of transmission events that are due to importation and how large
+    
+    cotransmission_import_locations <- table(sample(other_metapopulations,
+                                                    size = num_human_infs*sum(human_importation_rate_vector,na.rm=TRUE),
+                                                    replace=TRUE,prob=hum_imp_rate))
+    imported_cotransmission_frequences <- sapply(cotransmission_import_locations,function(x) sample(cotransmission_vector,size = x))
+    
+    ## push these freqs to redis as "Exported_Cotransmission_Frequencies_x->metapopulation_number"
+    
+    ## repeat for oocysts (with some doubling...)
+    
+    ## grab all the required exports that are coming out of this sim
+    
+    ## pass that in as an exported_co.... etc
+    
+    ## and grab all the imported barcodes/oocysts and their frequencies if this is not the initialisation step
+    
+    ## create spatial_list with 6 vectors
+    
+    
+    imported_cotransmission_events <- sapply(num_human_infs*hum_imp_rate,function(x) rep_len(cotransmission_freq_vector,x))
+    imported_oocyst_events <- rep_len(oocyst_freq_vector,num_mos_infs*mos_imp_rate)
+    
+    spatial_list <- list("PLAF" = island_PLAF,
+                         "imported_cotransmissions_events"=imported_cotransmission_events,
+                         "imported_oocyst_events"=imported_oocyst_events)
+    
+  }
+  
+}
+
+
+
+
+
+#' Odin generator function
 #'
 #' \code{generate_default_model} creates the user required generator for 
 #' the odin model. 
@@ -238,8 +305,6 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE, spatia
 #' @param dde Use dde in soliving eventual odin. Default = FALSE
 #' 
 
-
-## Odin generator function
 generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
   mod <- generator(init_S=dat$S,
                    init_T=dat$T,
@@ -351,3 +416,52 @@ generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
                    itn_loss = dat$itn_loss
   )
 }
+
+#' Barcode parameter list creation
+#'
+#' \code{barcode_parms_create} creates list detialing the barcode/genetic
+#'   parameters for the model
+#' 
+#' @param num_loci Number of loci. Default = 24
+#' @param ibd_length If we are simulating IBD dynamics, each loci is now 
+#'   represented by a bitset of ibd_length. Thus ibd_length needs to be long
+#'   enough to ensure that as new identity relationships occur, i.e. 
+#'   an importation barcode will be a new identity. e.g. If your population is
+#'   1000, we may expect at 80% prevalence, with a mean COI of 3 we will need 
+#'   2400 different identities, i.e. 2^ibd_length > 2400. However, keep in mind
+#'   importations as these need to be continually new, i.e. if we are simulating
+#'   for 30 years, with 3 importations a day, then we will need at least length
+#'   to ensure that 2^ibd_length > 2400 + (30*365*3). This will probably be
+#'   automatically calculated in the future. If we are not ding IBD, then this
+#'   should be 1, which is the defalt. 
+#' @param plaf Vector of population level allele frequencies for the barcode. 
+#'   Default = rep(0.5, barcode_length)
+#' @param prob_crossover Vector of probabilities for crossover events for the 
+#'   barcode. Default = rep(0.5, barcode_length)
+#' 
+barcode_parms_create <- function(num_loci = 24,
+                                 ibd_length = 1,
+                                 plaf = rep(0.5, 24),
+                                 prob_crossover = rep(0.5,24)) {
+  
+  
+  # are we doing ibd or not
+  if(ibd_length > 1){
+    barcode_type <- 1
+  } else {
+    barcode_type <- 0
+  }
+  
+  res <- list("num_loci" = num_loci,
+              "ibd_length" = ibd_length,
+              "plaf" = plaf,
+              "prob_crossover" = prob_crossover,
+              "barcode_type" = barcode_type)
+  
+  return(res)
+  
+}
+  
+  
+  
+  

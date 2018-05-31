@@ -19,11 +19,6 @@ Simulation_Init_cpp <- function(paramList) {
     .Call('_MAGENTA_Simulation_Init_cpp', PACKAGE = 'MAGENTA', paramList)
 }
 
-#' Creates initial model simulation using a saved model state
-#'
-#' @param paramList parameter list generated with \code{Param_List_Simulation_Get_Create}
-#' @return list with ptr to model state and loggers describing the current model state
-#' @export
 Simulation_Saved_Init_cpp <- function(paramList) {
     .Call('_MAGENTA_Simulation_Saved_Init_cpp', PACKAGE = 'MAGENTA', paramList)
 }
@@ -37,7 +32,11 @@ Simulation_Update_cpp <- function(paramList) {
     .Call('_MAGENTA_Simulation_Update_cpp', PACKAGE = 'MAGENTA', paramList)
 }
 
-test_bitset_serialisation <- function(x) {
-    .Call('_MAGENTA_test_bitset_serialisation', PACKAGE = 'MAGENTA', x)
+test_barcode_from_PLAF <- function(plaf, n) {
+    .Call('_MAGENTA_test_barcode_from_PLAF', PACKAGE = 'MAGENTA', plaf, n)
+}
+
+test_bitset_serialisation <- function(x, n) {
+    .Call('_MAGENTA_test_bitset_serialisation', PACKAGE = 'MAGENTA', x, n)
 }
 

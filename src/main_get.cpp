@@ -11,7 +11,6 @@
 // ---------------------------------------------------------------------------
 
 //#include <RcppArmadillo.h>
-#include "stdafx.h"
 #include <iostream>
 #include "parameters.h"
 #include "probability.h"
@@ -116,14 +115,14 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   unsigned int temp_status_iterator = 0;
   
   // Temporary necessities for pending barcodes
-  std::vector<barcode_t> temp_infection_barcode_realisation_vector = {};
+  std::vector<boost::dynamic_bitset<> > temp_infection_barcode_realisation_vector = {};
   std::vector<bool> temp_barcode_bool_vector{};
-  temp_barcode_bool_vector.reserve(barcode_length);
-  int temp_barcode_iterator = 0;
+  temp_barcode_bool_vector.reserve(universe_ptr->parameters.g_barcode_length);
+  unsigned int temp_barcode_iterator = 0;
   
   // Temporary necessities for strains
   Strain temp_strain;
-  barcode_t temp_barcode;
+  boost::dynamic_bitset<> temp_barcode;
   int temp_strain_iterator = 0;
 
   Rcpp::Rcout << "Preloop working!\n";
@@ -175,7 +174,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     // Pending Infection time vector
     Infection_time_realisation_vectors[element] = universe_ptr->population[element].get_m_infection_time_realisation_vector();
     
-    //Rcpp::Rcout << "Prepending working!\n";
+    // Rcpp::Rcout << "Prepending working!\n";
     
     // Pending Infection barcode and state vector
     // ---------------------------------------
@@ -189,7 +188,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     {
       Infection_state_realisation_vectors[element].push_back(temp_infection_state_realisation_vector[temp_status_iterator]);
       // fetch barcode and turn into vector<bool>
-      for(temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
+      for(temp_barcode_iterator = 0; temp_barcode_iterator < universe_ptr->parameters.g_barcode_length ; temp_barcode_iterator++ )
       {
         temp_barcode_bool_vector.push_back(temp_infection_barcode_realisation_vector[temp_status_iterator][temp_barcode_iterator]);
       }
@@ -211,6 +210,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     std::vector<Strain> temp_strain_vector;
     temp_strain_vector = universe_ptr->population[element].get_m_active_strains();
     
+    // Rcpp::Rcout << "Prestrains loop working!\n";
+    
     // Loop through each strain converting into barcodes, states and days of infection state changes
     for(temp_strain_iterator = 0 ; temp_strain_iterator < Number_of_Strains[element] ; temp_strain_iterator++)
     {
@@ -221,7 +222,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
       Strain_day_of_infection_state_change_vectors[element].push_back(temp_strain.get_m_day_of_strain_infection_status_change());
       // fetch barcode and turn into vector<bool>
       temp_barcode = temp_strain.get_m_barcode();
-      for(temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
+      for(temp_barcode_iterator = 0; temp_barcode_iterator < universe_ptr->parameters.g_barcode_length ; temp_barcode_iterator++ )
       {
         temp_barcode_bool_vector.push_back(temp_barcode[temp_barcode_iterator]);
       }
@@ -229,6 +230,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
       temp_barcode_bool_vector.clear();
   
     }
+    
+    // Rcpp::Rcout << "Poststrains loop working!\n";
     
   }
     
@@ -253,13 +256,13 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     std::vector<std::vector<std::vector<bool> > > Mosquito_Oocyst_barcode_female_vectors(scourge_size);
     
     // Temporary necessities for pending barcodes
-    std::vector<barcode_t> temp_male_barcode_realisation_vector = {};
-    std::vector<barcode_t> temp_female_barcode_realisation_vector = {};
+    std::vector<boost::dynamic_bitset<>> temp_male_barcode_realisation_vector = {};
+    std::vector<boost::dynamic_bitset<>> temp_female_barcode_realisation_vector = {};
 
     std::vector<bool> temp_barcode_male_bool_vector{};
     std::vector<bool> temp_barcode_female_bool_vector{};
-    temp_barcode_female_bool_vector.reserve(barcode_length);
-    temp_barcode_male_bool_vector.reserve(barcode_length);
+    temp_barcode_female_bool_vector.reserve(universe_ptr->parameters.g_barcode_length);
+    temp_barcode_male_bool_vector.reserve(universe_ptr->parameters.g_barcode_length);
     
     Rcpp::Rcout << "Premosquito loop working!\n";
 
@@ -298,7 +301,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
       {
 
         // fetch barcode and turn into vector<bool>
-        for(temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
+        for(temp_barcode_iterator = 0; temp_barcode_iterator < universe_ptr->parameters.g_barcode_length ; temp_barcode_iterator++ )
         {
           temp_barcode_male_bool_vector.push_back(temp_male_barcode_realisation_vector[temp_status_iterator][temp_barcode_iterator]);
           temp_barcode_female_bool_vector.push_back(temp_female_barcode_realisation_vector[temp_status_iterator][temp_barcode_iterator]);
@@ -383,7 +386,16 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Rcpp::Named("g_calendar_day")=universe_ptr->parameters.g_calendar_day,
     Rcpp::Named("g_mosquito_deficit")=universe_ptr->parameters.g_mosquito_deficit,
     Rcpp::Named("g_scourge_today")=universe_ptr->parameters.g_scourge_today,
-    Rcpp::Named("g_mean_mv")=universe_ptr->parameters.g_mean_mv
+    Rcpp::Named("g_mean_mv")=universe_ptr->parameters.g_mean_mv,
+    // genetics
+    Rcpp::Named("g_identity_id")=universe_ptr->parameters.g_identity_id,
+    Rcpp::Named("g_num_loci")=universe_ptr->parameters.g_num_loci,
+    Rcpp::Named("g_ibd_length")=universe_ptr->parameters.g_ibd_length,
+    Rcpp::Named("g_barcode_length")=universe_ptr->parameters.g_barcode_length,
+    Rcpp::Named("g_plaf")=universe_ptr->parameters.g_plaf,
+    Rcpp::Named("g_prob_crossover")=universe_ptr->parameters.g_prob_crossover,
+    Rcpp::Named("g_barcode_type")=static_cast<unsigned int>(universe_ptr->parameters.g_barcode_type),
+    Rcpp::Named("g_spatial_type")=static_cast<unsigned int>(universe_ptr->parameters.g_spatial_type)
   );
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

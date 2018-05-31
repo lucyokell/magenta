@@ -15,16 +15,17 @@
 
 
 //#include <RcppArmadillo.h>
-#include "stdafx.h"
 #include <iostream>
 #include "parameters.h"
 #include "probability.h"
-#include <cassert> // for error checking
 #include "person.h"
+#include <cassert> // for error checking
+
 #include <chrono>
 #include <functional>
 #include <numeric>  
 #include <algorithm>
+#include "util.h"
 
 using namespace std;
 using namespace Rcpp;
@@ -60,27 +61,43 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // Initialise parameters object
   Parameters parameters;
   
+  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // START: UNPACKING PARAMETERS
+  //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
   // Grab these R parameters first so that they are used in the initialisation
   parameters.g_N = Rcpp::as<unsigned int>(paramList["N"]);
   
-  // Unpack the R equilibirum state parameter list object
+  // Unpack the R equilibirum state parameter list object and barcode object
   Rcpp::List eqSS = paramList["eqSS"];
+  Rcpp::List barcode_parms  = paramList["barcode_parms"];
   
-  // Grab seasonality
+  // Un pack barcode parms
+  parameters.g_num_loci = Rcpp::as<unsigned int>(barcode_parms["num_loci"]);
+  parameters.g_ibd_length = Rcpp::as<unsigned int>(barcode_parms["ibd_length"]);
+  parameters.g_barcode_length = static_cast<int>(parameters.g_num_loci * parameters.g_ibd_length);
+  parameters.g_plaf = Rcpp::as<std::vector<double> >(barcode_parms["plaf"]);
+  parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(barcode_parms["prob_crossover"]);
+  parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_parms["barcode_type"]));
+  
+  Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
+  Strain::temp_identity_barcode = boost::dynamic_bitset<>(Parameters::g_ibd_length);
+  Strain::temp_crossovers = boost::dynamic_bitset<>(Parameters::g_num_loci);
+  
+  // Grab seasonality and spatial
+  parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(Rcpp::as<unsigned int>(eqSS["spatial_type"]));
   parameters.g_theta = Rcpp::as<vector<double> >(eqSS["theta"]);
   
-  // Grab spatial
-  parameters.g_spatial_exports = Rcpp::as<unsigned int>(eqSS["spatial"]);
-  
-  
+  Rcpp::Rcout << "Running model of " << parameters.g_spatial_type << " spatial type.\n";
+
   // Mosquito steady state values at a population level
   double Sv = Rcpp::as<double>(eqSS["Sv"]);
   double Ev = Rcpp::as<double>(eqSS["Ev"]);
   double Iv = Rcpp::as<double>(eqSS["Iv"]);
-  
+   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: INITIALISATION
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Add the human population
   std::vector<Person> population;
@@ -148,7 +165,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   std::vector<Strain> temp_strains(100);
   std::vector<int> temp_infection_time_realisation_vector(100);         
   std::vector<Person::InfectionStatus> temp_infection_state_realisation_vector(100); 
-  std::vector<barcode_t> temp_infection_barcode_realisation_vector(100);   
+  std::vector<boost::dynamic_bitset<> > temp_infection_barcode_realisation_vector(100);   
   
   for (unsigned int n=0; n < parameters.g_N; n++) 
   {
@@ -243,7 +260,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
         {
           temp_strains.push_back( 
             Strain(
-              Strain::generate_random_barcode(),
+              Strain::generate_next_barcode(),
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
                                          0
             )
@@ -258,7 +275,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
         {
           temp_strains.push_back(
             Strain(
-              Strain::generate_random_barcode(),
+              Strain::generate_next_barcode(),
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
                                          population[n].get_m_day_of_InfectionStatus_change()
             )
@@ -310,16 +327,16 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   double mosquito_status_eq_sum = mosquito_status_eq[0] + mosquito_status_eq[1] + mosquito_status_eq[2];
   int parent_source = 0;
   std::vector<unsigned short int> pending_oocyst_time{ 0 };
-  std::vector<barcode_t> pending_oocyst_barcode_male{ Strain::generate_random_barcode() };
-  std::vector<barcode_t> pending_oocyst_barcode_female{ Strain::generate_random_barcode() };
+  std::vector<boost::dynamic_bitset<> > pending_oocyst_barcode_male{ Strain::temp_barcode };
+  std::vector<boost::dynamic_bitset<> > pending_oocyst_barcode_female{ Strain::temp_barcode };
   
   // exported barcodes vector set up
-  if(parameters.g_spatial_exports)
+  if(parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
-    parameters.g_spatial_export_counter = 0;
-    parameters.g_exported_barcodes.reserve(parameters.g_spatial_exports);
-    parameters.g_spatial_import_counter = 0;
-    parameters.g_imported_barcodes.reserve(parameters.g_spatial_imports);
+    // parameters.g_spatial_export_counter = 0;
+    // parameters.g_exported_barcodes.reserve(parameters.g_spatial_exports);
+    // parameters.g_spatial_import_counter = 0;
+    // parameters.g_imported_barcodes.reserve(parameters.g_spatial_imports);
   }
   
   
@@ -361,13 +378,13 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       }
 
       // exported barcodes vector add barcode
-      if(parameters.g_spatial_exports)
+      if(parameters.g_spatial_type == Parameters::METAPOPULATION)
       {
-        if(parameters.g_spatial_export_counter < parameters.g_spatial_exports)
-          {
-          parameters.g_exported_barcodes.emplace_back(population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode());
-          parameters.g_spatial_export_counter++;
-        }
+        // if(parameters.g_spatial_export_counter < parameters.g_spatial_exports)
+        //   {
+        //   parameters.g_exported_barcodes.emplace_back(population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode());
+        //   parameters.g_spatial_export_counter++;
+        // }
       }
       
       // Set the oocyst rupture count to 1
@@ -426,23 +443,23 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   
   // convert exproted barcodes to vector of vector of bool
-  std::vector<std::vector<bool> >  Exported_Barcodes_Booleans(parameters.g_spatial_exports);
-  if(parameters.g_spatial_exports)
+  std::vector<SEXP>  Exported_Barcodes_Booleans(parameters.g_spatial_total_exported_barcodes);
+  std::vector<SEXP>  Exported_Oocysts_Booleans(parameters.g_spatial_total_exported_oocysts);
+  if(parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
-    std::vector<bool> temp_barcode_vector(barcode_length);
     
-    for(unsigned int temp_status_iterator = 0; temp_status_iterator < parameters.g_spatial_exports ; temp_status_iterator++)
+    // export barocdes
+    for(unsigned int temp_status_iterator = 0; temp_status_iterator < parameters.g_spatial_total_exported_barcodes ; temp_status_iterator++)
     {
-      
-      // fetch barcode and turn into vector<bool>
-      for(unsigned int temp_barcode_iterator = 0; temp_barcode_iterator < barcode_length ; temp_barcode_iterator++ )
-      {
-        temp_barcode_vector[temp_barcode_iterator] = parameters.g_exported_barcodes[temp_status_iterator][temp_barcode_iterator];
-      }
-      
-      Exported_Barcodes_Booleans[temp_status_iterator] = temp_barcode_vector;
-      
+      Exported_Barcodes_Booleans[temp_status_iterator] = bitset_to_sexp(parameters.g_spatial_exported_barcodes[temp_status_iterator]);
     }
+    
+    // export oocysts
+    for(unsigned int temp_status_iterator = 0; temp_status_iterator < parameters.g_spatial_total_exported_oocysts ; temp_status_iterator++)
+    {
+      Exported_Oocysts_Booleans[temp_status_iterator] = bitset_to_sexp(parameters.g_spatial_exported_oocysts[temp_status_iterator]);
+    }
+    
   }
 
   
@@ -524,9 +541,11 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   // Return Named List with pointer and loggers
   // If spatial also required then export the barcodes
-  if(parameters.g_spatial_exports)
+  if(parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
-  return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers, Rcpp::Named("Exported_Barcodes")=Exported_Barcodes_Booleans);
+  return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers, 
+                            Rcpp::Named("Exported_Barcodes")=Exported_Barcodes_Booleans,
+                            Rcpp::Named("Exported_Oocysts")=Exported_Oocysts_Booleans);
   } 
   else
   {

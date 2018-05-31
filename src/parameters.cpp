@@ -7,12 +7,23 @@ Parameters::Parameters() {
   g_theta = std::vector<double>(365,1.0);
   g_years = 1;
   // spatial 
-  g_spatial_exports = 0;
-  g_spatial_imports = 0;
-  g_spatial_import_counter = 0;
-  g_spatial_export_counter = 0;
-  g_exported_barcodes = std::vector<barcode_t>();
-  g_imported_barcodes = std::vector<barcode_t>();
+  g_spatial_type = Parameters::NON;
+  g_spatial_imported_cotransmission_frequencies = std::vector<int>();
+  g_spatial_imported_oocyst_frequencies = std::vector<int>();
+  g_spatial_exported_cotransmission_frequencies = std::vector<int>();
+  g_spatial_exported_oocyst_frequencies = std::vector<int>();
+  g_spatial_total_exported_barcodes = 0;
+  g_spatial_total_exported_oocysts = 0;
+  g_spatial_total_imported_barcodes = 0;
+  g_spatial_total_imported_oocysts = 0;
+  g_spatial_imported_barcode_counter = 0;
+  g_spatial_imported_oocyst_counter = 0;
+  g_spatial_exported_barcode_counter = 0;
+  g_spatial_exported_oocyst_counter = 0;
+  g_spatial_exported_barcodes = std::vector<boost::dynamic_bitset<>>();
+  g_spatial_exported_oocysts = std::vector<boost::dynamic_bitset<>>();
+  g_spatial_imported_barcodes = std::vector<boost::dynamic_bitset<>>();
+  g_spatial_imported_oocysts = std::vector<boost::dynamic_bitset<>>();
   // demographic parameters
   g_N = 10000;
   g_max_age = 100 * 365;
@@ -85,4 +96,13 @@ Parameters::Parameters() {
   g_cT = 0.322 * g_cD;
   g_cU = 0.0062;
   
-}
+}  
+
+// barcode global static params
+unsigned long long Parameters::g_identity_id = 0;
+unsigned int Parameters::g_num_loci = 24;
+unsigned int Parameters::g_ibd_length = 1;
+unsigned int Parameters::g_barcode_length = static_cast<unsigned int>(g_ibd_length * g_num_loci);
+std::vector<double> Parameters::g_plaf = std::vector<double> (24,0.5);
+std::vector<double> Parameters::g_prob_crossover = std::vector<double> (24,0.5);
+Parameters::g_barcode_type_enum Parameters::g_barcode_type = ORDINARY;
