@@ -41,7 +41,7 @@ bool Person::reciprocal_infection_boolean(const Parameters &parameters)
     m_cA_counter = false;
     // work out the number of strains that are gametocytogenic, i.e. they were realised more than delay_gam time earlier
     for(int n = 0 ; n < m_number_of_strains ; n++){
-      if(m_infection_time_realisation_vector[n] < parameters.g_current_time - parameters.g_delay_gam){
+      if(m_active_strains[n].get_m_day_of_strain_acquisition() < parameters.g_current_time - parameters.g_delay_gam){
         m_gametocytogenic_strains.emplace_back(n);
         m_gametocytogenic_infections++;
       }
@@ -550,6 +550,7 @@ void Person::die(const Parameters &parameters)
   // Reset immunities, age
   m_IB = m_ID = m_ICA = 0;
   m_person_age = 0;
+  m_day_last_treated = 0;
   
   // set their boost times back enough so that they are guaranteed to boost if bitten tomorrow
   m_IB_last_boost_time -= parameters.g_uB;
@@ -574,7 +575,7 @@ void Person::recover(const Parameters &parameters)
   m_infection_state = SUSCEPTIBLE;
   
   // Clear strains
-    all_strain_clearance();
+  all_strain_clearance();
   
   // Reset other events to 0
   m_day_of_InfectionStatus_change = 0;
@@ -787,7 +788,8 @@ void Person::event_handle(const Parameters &parameters) {
             m_active_strains.emplace_back(
               m_infection_barcode_realisation_vector[m_number_of_realised_infections],
               Strain::m_transition_vector[static_cast<int>(m_infection_state)],
-              m_day_of_InfectionStatus_change
+              m_day_of_InfectionStatus_change,
+              parameters.g_current_time
             );
             
             // We don't care if the new strain will state change earlier than the next state change as this would cause recovery
@@ -815,7 +817,8 @@ void Person::event_handle(const Parameters &parameters) {
             m_active_strains.emplace_back(
               m_infection_barcode_realisation_vector[m_number_of_realised_infections],
               Strain::m_transition_vector[static_cast<int>(m_infection_state)],
-              m_day_of_InfectionStatus_change
+              m_day_of_InfectionStatus_change,
+              parameters.g_current_time
             );
             
             // If the new strain will change state earlier than anyother strain then update the state change event day

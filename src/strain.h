@@ -51,6 +51,7 @@ private:
   boost::dynamic_bitset<> m_barcode;									// barcode sequence
   InfectionStatus m_strain_infection_status;					// infection status associated with a strain
   int m_day_of_strain_infection_status_change;				// day that strain would move infection status
+  int m_day_of_acquisition;                           // day that the strain was acquired by an individual/mosquito
   
   // TODO: Phenotype parameters to do here for resistance work
   
@@ -73,6 +74,11 @@ public:
   // Known barcode, infection status and day of infection status change outcome constructor
   Strain(boost::dynamic_bitset<> barcode, const Strain::InfectionStatus &infectionStatus, const int &dayOfInfectionStatusChange);
   
+  // Known barcode, infection status and day of infection status change outcome constructor and day of acquisition
+  Strain(boost::dynamic_bitset<> barcode, const Strain::InfectionStatus &infectionStatus, 
+         const int &dayOfInfectionStatusChange, const int & day_of_acquisition);
+  
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // GETTERS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -86,6 +92,9 @@ public:
   // Get day of strain infection status
   int get_m_day_of_strain_infection_status_change() { return(m_day_of_strain_infection_status_change); }
   
+  // Get day of strain acquisition
+  int get_m_day_of_strain_acquisition() { return(m_day_of_acquisition); }
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SETTERS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -98,6 +107,9 @@ public:
   
   // Set strain infection status day change
   void set_m_day_of_strain_infection_status_change(int x) { m_day_of_strain_infection_status_change = x; }
+  
+  // Set strain acquisition day
+  void set_m_day_of_strain_acquisition(int x) { m_day_of_acquisition = x; }
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // CLASS STATIC FUNCTIONS

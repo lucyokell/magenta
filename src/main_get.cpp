@@ -107,6 +107,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   std::vector<std::vector<std::vector<bool> > > Strain_barcode_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Strain_infection_state_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Strain_day_of_infection_state_change_vectors(universe_ptr->parameters.g_N);
+  std::vector<std::vector<int> > Strain_day_of_acquisition_vectors(universe_ptr->parameters.g_N);
   
   Rcpp::Rcout << "Vector initialisation working!\n";
   
@@ -220,6 +221,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
       
       Strain_infection_state_vectors[element].push_back(temp_strain.get_m_strain_infection_status());
       Strain_day_of_infection_state_change_vectors[element].push_back(temp_strain.get_m_day_of_strain_infection_status_change());
+      Strain_day_of_acquisition_vectors[element].push_back(temp_strain.get_m_day_of_strain_acquisition());
       // fetch barcode and turn into vector<bool>
       temp_barcode = temp_strain.get_m_barcode();
       for(temp_barcode_iterator = 0; temp_barcode_iterator < universe_ptr->parameters.g_barcode_length ; temp_barcode_iterator++ )
@@ -359,6 +361,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Rcpp::Named("Infection_barcode_realisation_vectors")=Infection_barcode_realisation_vectors,
     Rcpp::Named("Strain_infection_state_vectors")=Strain_infection_state_vectors,
     Rcpp::Named("Strain_day_of_infection_state_change_vectors")=Strain_day_of_infection_state_change_vectors,
+    Rcpp::Named("Strain_day_of_acquisition_vectors")=Strain_day_of_acquisition_vectors,
     Rcpp::Named("Strain_barcode_vectors")=Strain_barcode_vectors
   );
   

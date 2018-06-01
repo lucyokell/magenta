@@ -5,7 +5,8 @@
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Default class constructor which will inialise a random strain
-Strain::Strain() 
+Strain::Strain() :
+  m_barcode(Strain::generate_next_barcode())
 {
 }
 
@@ -27,6 +28,16 @@ Strain::Strain(boost::dynamic_bitset<> barcode, const Strain::InfectionStatus &i
   m_barcode(barcode),
   m_strain_infection_status(infectionStatus),
   m_day_of_strain_infection_status_change(dayOfInfectionStatusChange)
+{
+}
+
+// Known barcode, infection status and day of infection status change outcome constructor and acquisition dat
+Strain::Strain(boost::dynamic_bitset<> barcode, const Strain::InfectionStatus &infectionStatus, 
+               const int &dayOfInfectionStatusChange, const int & day_of_acquisition) :
+  m_barcode(barcode),
+  m_strain_infection_status(infectionStatus),
+  m_day_of_strain_infection_status_change(dayOfInfectionStatusChange),
+  m_day_of_acquisition(day_of_acquisition)
 {
 }
 

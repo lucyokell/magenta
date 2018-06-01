@@ -149,6 +149,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   
   Rcpp::List Strain_infection_state_vectors = populations_event_and_strains_List["Strain_infection_state_vectors"];
   Rcpp::List Strain_day_of_infection_state_change_vectors = populations_event_and_strains_List["Strain_day_of_infection_state_change_vectors"];
+  Rcpp::List Strain_day_of_acquisition_vectors = populations_event_and_strains_List["Strain_day_of_acquisition_vectors"];
   Rcpp::List Strain_barcode_vectors = populations_event_and_strains_List["Strain_barcode_vectors"];
   
   
@@ -192,6 +193,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   std::vector<std::vector<bool> > temp_strain_barcode_vector;
   std::vector<int>  temp_strain_state_vector;
   std::vector<int>  temp_strain_state_change_time_vector;
+  std::vector<int>  temp_strain_day_of_acquisition;
   unsigned int temp_barcode_iterator = 0;
   
   for (unsigned int n=0; n < parameters.g_N; n++) 
@@ -248,6 +250,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     // First grab the vector of times, states and barcode vectors for the indivdual
     temp_strain_state_vector = Rcpp::as<std::vector<int> >(Strain_infection_state_vectors[n]);
     temp_strain_state_change_time_vector = Rcpp::as<std::vector<int> >(Strain_day_of_infection_state_change_vectors[n]);
+    temp_strain_day_of_acquisition = Rcpp::as<std::vector<int> >(Strain_day_of_acquisition_vectors[n]);
     temp_strain_barcode_vector = Rcpp::as<std::vector<std::vector<bool> > >(Strain_barcode_vectors[n]);
     
     // Loop over each vector and making a temporary strain which is to be pushed onto the human
@@ -256,6 +259,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     // Set the temp strains infection state and day of strain state change
     temp_strain.set_m_strain_infection_status(static_cast<Strain::InfectionStatus>(temp_strain_state_vector[s]));
     temp_strain.set_m_day_of_strain_infection_status_change(temp_strain_state_change_time_vector[s]);
+    temp_strain.set_m_day_of_strain_acquisition(temp_strain_day_of_acquisition[s]);
     
     // fetch vector<bool> and turn into barcode and then add to strain
     for(temp_barcode_iterator = 0; temp_barcode_iterator < Parameters::g_barcode_length ; temp_barcode_iterator++ )

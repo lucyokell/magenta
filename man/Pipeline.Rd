@@ -9,9 +9,9 @@ Pipeline(EIR = 120, ft = 0.4, N = 1e+05, years = 20,
   use_historic_interventions = FALSE, spatial_type = NULL,
   redis_host = "fi--dideclusthn.dide.ic.ac.uk", spatial_uuid = NULL,
   fixed_spatial_incidence_matrix = NULL,
-  fixed_spatial_mosquitoFOI_matrix = NULL, barcode_length = 24,
-  plaf = rep(0.5, barcode_length), prob_crossover = rep(0.5,
-  barcode_length), num_het_brackets = 20, num_age_brackets = 20,
+  fixed_spatial_mosquitoFOI_matrix = NULL, num_loci = 24, ibd_length = 1,
+  plaf = rep(0.5, num_loci), prob_crossover = rep(0.5, num_loci),
+  num_het_brackets = 20, num_age_brackets = 20,
   geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE,
   mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
   human_only_full_save = FALSE, yearly_save = FALSE,
@@ -35,9 +35,10 @@ Pipeline(EIR = 120, ft = 0.4, N = 1e+05, years = 20,
 not provided then no seasonality is introduced. Default = NULL}
 
 \item{use_historic_interventions}{Boolean as to whether the historic interventions are incorporated.
-This will occur by using the length of years and taking the most recent years back in time. Therefore
-if years > 15, then there will be burn in time, when no interventions are assumed. Default = FALSE, and
-only is used if country and admin are suitably provided.}
+  This will occur by using the length of years and taking the most recent years back in time. Therefore
+  if years > 15, then there will be burn in time, when no interventions are assumed. Default = FALSE, and
+  only is used if country and admin are suitably provided.  
+## Genetic Params}
 
 \item{spatial_type}{Default = NULL. If spatial is wanted then provide a character describing 
 the type of spatial simulation, which must be one of "island" or "metapop".}
@@ -53,11 +54,26 @@ the same job.}
 
 \item{fixed_spatial_mosquitoFOI_matrix}{Alternative parameterisation where hypothetical spatial matrix is supplied}
 
-\item{barcode_length}{Length of barcode. Default = 24}
+\item{num_loci}{Number of loci. Default = 24}
 
-\item{plaf}{Vector of population level allele frequencies for the barcode. Default = rep(0.5, barcode_length)}
+\item{ibd_length}{If we are simulating IBD dynamics, each loci is now 
+represented by a bitset of ibd_length. Thus ibd_length needs to be long
+enough to ensure that as new identity relationships occur, i.e. 
+an importation barcode will be a new identity. e.g. If are population is
+1000, we may expect at 80% prevalence, with a mean COI of 3 we will need 
+2400 different identities, i.e. 2^ibd_length > 2400. However, keep in mind
+importations as these need to be continually new, i.e. if we are simulating
+for 30 years, with 3 importations a day, then we will need at least length
+to ensure that 2^ibd_length > 2400 + (30*365*3). This will probably be
+automatically calculated in the future. If we are not ding IBD, then this
+should be 1, which is the defalt.}
 
-\item{prob_crossover}{Vector of probability of crossover event for the barcode. Default = rep(0.5, barcode_length)}
+\item{plaf}{Vector of population level allele frequencies for the barcode. 
+Default = rep(0.5, num_loci)}
+
+\item{prob_crossover}{Vector of probabilities for crossover events for the 
+  barcode. Default = rep(0.5, num_loci)
+## odin Params}
 
 \item{num_het_brackets}{Number of heterogeinity brackets to use in initialisation. Default = 200}
 
