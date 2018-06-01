@@ -15,3 +15,5 @@ MAGENTA.Rproj
 Results
 plots
 *.rds
+^.*\.rds$
+^scripts/

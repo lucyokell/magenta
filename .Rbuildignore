@@ -10,5 +10,6 @@ plots
 ^tutorials$
 tutorials
 ^data-raw$
-.*.rds$
+^.*\.rds$
 inst/include
+^scripts/
