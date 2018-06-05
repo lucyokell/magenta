@@ -169,6 +169,7 @@ Param_List_Simulation_Saved_Init_Create <- function(savedState)
 #'
 #' @param paramList Paramlist passed from \code{Param_List_Simulation_Init_Create}
 #' or from \code{Param_List_Simulation_Update_Create}
+#' @param seed Seed for the simulation
 #' @export
 
 # The following commands are needed to ensure that the roxygen2
@@ -177,7 +178,7 @@ Param_List_Simulation_Saved_Init_Create <- function(savedState)
 #' @useDynLib MAGENTA
 #' @importFrom Rcpp evalCpp
 
-Simulation_R <- function(paramList)
+Simulation_R <- function(paramList, seed)
 {
   
   # check that this function is working
@@ -213,6 +214,8 @@ Simulation_R <- function(paramList)
     # ---------------------- RUN C CODE ------------------------------------- #
     
     # call Rcpp command with input list
+    set.seed(seed)
+    message(runif(1,0,1))
     rawOutput <- Simulation_Init_cpp(paramList)
     
     # ----------------------------------------------------------------------- #
@@ -239,6 +242,7 @@ Simulation_R <- function(paramList)
     # ---------------------- RUN C CODE ------------------------------------- #
     
     # call Rcpp command with input list
+    set.seed(seed)
     rawOutput <- Simulation_Update_cpp(paramList)
     
     # ----------------------------------------------------------------------- #
@@ -264,6 +268,7 @@ Simulation_R <- function(paramList)
     # ---------------------- RUN C CODE ------------------------------------- #
     
     # call Rcpp command with input list
+    set.seed(seed)
     rawOutput <- Simulation_Get_cpp(paramList)
     
     # ----------------------------------------------------------------------- #
@@ -289,6 +294,7 @@ Simulation_R <- function(paramList)
     # ---------------------- RUN C CODE ------------------------------------- #
     
     # call Rcpp command with input list
+    set.seed(seed)
     rawOutput <- Simulation_Saved_Init_cpp(paramList)
     
     # ----------------------------------------------------------------------- #

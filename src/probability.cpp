@@ -263,7 +263,10 @@ std::vector<int> sample_with_replacement_from_max(int max, int c) {
 inline int randWrapper(const int n) { return std::floor(R::unif_rand()*n); }
 
 void shuffle_integer_vector(std::vector<int> &vec) {
-
-    std::random_shuffle(vec.begin(), vec.end(), randWrapper);
+  
+  int vec_size = vec.size();
+  for (int i = vec_size-1; i > 0; i--) {
+    std::swap(vec[i], vec[std::floor(R::unif_rand()*i)]);
+  }
 
 }

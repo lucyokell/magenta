@@ -4,11 +4,13 @@
 \alias{Simulation_R}
 \title{Simulation_R function}
 \usage{
-Simulation_R(paramList)
+Simulation_R(paramList, seed)
 }
 \arguments{
 \item{paramList}{Paramlist passed from \code{Param_List_Simulation_Init_Create}
 or from \code{Param_List_Simulation_Update_Create}}
+
+\item{seed}{Seed for the simulation}
 }
 \description{
 This function triggers the main MAGENTA simulation from the R side

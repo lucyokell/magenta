@@ -237,14 +237,22 @@ gg_color_hue <- function(n) {
 }
 
 # function to put all of one infividuals' parms into one place
-person_make <- function(n){
+person_make <- function(o,n){
   
+  if(length(names(o))==6) { 
+  
+    df <- lapply(o[1:3],function(x) x[n]) %>% as.data.frame
+    l <- lapply(o[4:6],function(x) x[n])
+    
+    } else {
+      
+    
   df <- lapply(o$population_List,function(x) x[n]) %>% as.data.frame
   oths <- which(lapply(o$populations_event_and_strains_List, class) %>% unlist != "list")
   df <- cbind(df, lapply(o$populations_event_and_strains_List[oths],function(x) x[n])) %>% as.data.frame
   #bs <- grep("barcode",names(o$populations_event_and_strains_List))
   l <- lapply(o$populations_event_and_strains_List[-unique(c(oths))],function(x) x[n])
-  
+    }
   return(list("vars"=df,"l"=l))
 }
 

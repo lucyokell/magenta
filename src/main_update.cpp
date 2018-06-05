@@ -510,6 +510,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
   }
   
+  Rcpp::Rcout << "\n Ages and Immunity Done \n";
+  
   // Create Rcpp loggers list
   Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
                                           Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],Rcpp::Named("Incidence")=total_incidence/log_counter,
@@ -517,6 +519,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
                                                       Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID,
                                                         Rcpp::Named("Daily_Bites")=daily_bite_counters/log_counter);
   
+  
+  Rcpp::Rcout << "\n Loggers Done \n";
   
   // Return Named List with pointer and loggers
   // If spatial also required then export the barcodes

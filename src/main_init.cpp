@@ -163,9 +163,9 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   // Temporary strain and pending strain vector needed for initialisation
   std::vector<Strain> temp_strains(100);
-  std::vector<int> temp_infection_time_realisation_vector(100);         
-  std::vector<Person::InfectionStatus> temp_infection_state_realisation_vector(100); 
-  std::vector<boost::dynamic_bitset<> > temp_infection_barcode_realisation_vector(100);   
+  std::vector<int> temp_infection_time_realisation_vector; temp_infection_time_realisation_vector.reserve(100);         
+  std::vector<Person::InfectionStatus> temp_infection_state_realisation_vector; temp_infection_state_realisation_vector.reserve(100); 
+  std::vector<boost::dynamic_bitset<> > temp_infection_barcode_realisation_vector; temp_infection_barcode_realisation_vector.reserve(100);   
   
   for (unsigned int n=0; n < parameters.g_N; n++) 
   {
@@ -253,8 +253,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       population[n].set_m_number_of_realised_infections(population[n].get_m_number_of_strains());
       population[n].schedule_m_day_of_strain_clearance(parameters);
       
-      // If they are subpatent or treated the strains we allocate should have no state change
-      if (population[n].get_m_infection_state() == Person::SUBPATENT  || population[n].get_m_infection_state() == Person::TREATED)
+      // If they are treated the strains we allocate should have no state change
+      if (population[n].get_m_infection_state() == Person::TREATED)
       {
         for (int s = 0; s < population[n].get_m_number_of_strains(); s++)
         {

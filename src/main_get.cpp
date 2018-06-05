@@ -117,8 +117,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   
   // Temporary necessities for pending barcodes
   std::vector<boost::dynamic_bitset<> > temp_infection_barcode_realisation_vector = {};
-  std::vector<bool> temp_barcode_bool_vector{};
-  temp_barcode_bool_vector.reserve(universe_ptr->parameters.g_barcode_length);
+  std::vector<bool> temp_barcode_bool_vector(universe_ptr->parameters.g_barcode_length,false);
   unsigned int temp_barcode_iterator = 0;
   
   // Temporary necessities for strains
@@ -175,27 +174,50 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     // Pending Infection time vector
     Infection_time_realisation_vectors[element] = universe_ptr->population[element].get_m_infection_time_realisation_vector();
     
-    // Rcpp::Rcout << "Prepending working!\n";
+    // Rcpp::Rcout << "Prepending working!"<< element <<"\n";
     
     // Pending Infection barcode and state vector
     // ---------------------------------------
     temp_infection_barcode_realisation_vector = universe_ptr->population[element].get_m_infection_barcode_realisation_vector();
     Infection_barcode_realisation_vectors[element].reserve(temp_infection_barcode_realisation_vector.size());
+    
+    //Rcpp::Rcout << temp_infection_barcode_realisation_vector.size() << "_" << element <<"\n";
    
     temp_infection_state_realisation_vector = universe_ptr->population[element].get_m_infection_state_realisation_vector();
-    Infection_state_realisation_vectors[element].reserve(temp_infection_state_realisation_vector.size());
+    //std::vector<std::string> infs{"S","D","A","U","T","P"};
+    //for(auto a : temp_infection_state_realisation_vector) Rcpp::Rcout << infs[a] << "|";
     
-    for(temp_status_iterator = 0 ; temp_status_iterator < temp_infection_state_realisation_vector.size() ; temp_status_iterator++)
+    //temp_strain = universe_ptr->population[element].get_m_person_strain_x(0);
+    //Rcpp::Rcout << "Strain 1 day " << temp_strain.get_m_day_of_strain_acquisition() << "\n";
+    //Rcpp::Rcout << "Indiv biting " << universe_ptr->population[element].get_m_individual_biting_rate() << "\n";
+    
+    Infection_state_realisation_vectors[element].reserve(temp_infection_state_realisation_vector.size());
+    //Rcpp::Rcout << "\n" << temp_infection_state_realisation_vector.size() << "_"  << element <<"\n";
+    
+    for(temp_status_iterator = 0 ; temp_status_iterator < static_cast<unsigned int>(temp_infection_state_realisation_vector.size()) ; )
     {
-      Infection_state_realisation_vectors[element].push_back(temp_infection_state_realisation_vector[temp_status_iterator]);
+      // Rcpp::Rcout << "Pending looping _ yay"<< temp_status_iterator <<"\n";
+      // Rcpp::Rcout << "b_length " << universe_ptr->parameters.g_barcode_length  <<"\n";
+      Infection_state_realisation_vectors[element].emplace_back(temp_infection_state_realisation_vector[temp_status_iterator]);
+      // Rcpp::Rcout << "temp_inf_state_size" << temp_infection_state_realisation_vector.size() << element <<"\nBarcode_filling";
       // fetch barcode and turn into vector<bool>
       for(temp_barcode_iterator = 0; temp_barcode_iterator < universe_ptr->parameters.g_barcode_length ; temp_barcode_iterator++ )
       {
-        temp_barcode_bool_vector.push_back(temp_infection_barcode_realisation_vector[temp_status_iterator][temp_barcode_iterator]);
+        // Rcpp::Rcout << "|";
+        temp_barcode_bool_vector[temp_barcode_iterator] = static_cast<bool>(temp_infection_barcode_realisation_vector[temp_status_iterator][temp_barcode_iterator]);
+        // Rcpp::Rcout << temp_barcode_bool_vector[temp_barcode_iterator];
       }
+      // Rcpp::Rcout << "\n temp_inf_state_size" << temp_infection_state_realisation_vector.size() << element <<"\n";
+      // Rcpp::Rcout << "Post Pending looping"<< temp_status_iterator <<"\n";
       Infection_barcode_realisation_vectors[element].push_back(temp_barcode_bool_vector);
-      temp_barcode_bool_vector.clear();
-
+      // Rcpp::Rcout << "bit size" << temp_barcode_bool_vector.size() << "\n";
+      //temp_barcode_bool_vector.clear();
+      // Rcpp::Rcout << "\n temp_inf_state_size" << temp_infection_state_realisation_vector.size() << element <<"\n";
+      // Rcpp::Rcout << "Post Pending looping"<< (temp_status_iterator < temp_infection_state_realisation_vector.size()) << "\n";
+      temp_status_iterator++;
+      // Rcpp::Rcout << "\n temp_inf_state_size" << temp_infection_state_realisation_vector.size() << element <<"\n";
+      // Rcpp::Rcout << "Post Pending looping"<< temp_status_iterator <<"\n";
+      // Rcpp::Rcout << "WTF Post Pending looping"<< (temp_status_iterator < static_cast<unsigned int>(temp_infection_state_realisation_vector.size())) << "\n";
     }
     
     temp_infection_barcode_realisation_vector.clear();

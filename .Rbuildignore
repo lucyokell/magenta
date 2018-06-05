@@ -13,3 +13,4 @@ tutorials
 ^.*\.rds$
 inst/include
 ^scripts/
+^data-raw/

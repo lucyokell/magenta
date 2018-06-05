@@ -113,6 +113,8 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
                                       country = country,
                                       admin = admin,
                                       model.param.list = mpl)
+    # reset seed here as there is some randomness in equlibirum
+    set.seed(seed)
     
     ## Next create the near equilibrium steady state
     eqSS <- Equilibrium_SS_Create(eqInit = eqInit, end.year=5, use_odin = use_odin)
@@ -153,12 +155,13 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
     # If we have provided the saved state then load this
     saved_state <- readRDS(saved_state_path)
     pl <- Param_List_Simulation_Saved_Init_Create(savedState = saved_state)
-    
+    rm(saved_state)
+    gc()
   }
   
   
   ## Create model simulation state
-  sim.out <- Simulation_R(paramList = pl)
+  sim.out <- Simulation_R(paramList = pl, seed = seed)
   
   ## if it's spatial set up the necessary redis lists
   # set this up here anyway and then less if loops later
@@ -312,12 +315,12 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
       }
       
       # carry out simulation
-      sim.out <- Simulation_R(pl2)
+      sim.out <- Simulation_R(pl2, seed = seed)
       
       # what are saving, does it include the humans
       if(human_yearly_save) {
         pl3 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-        sim.save <- Simulation_R(pl3)
+        sim.save <- Simulation_R(pl3, seed = seed)
         
         # do we just want the summary data frame 
         if(summary_saves_only){
@@ -386,7 +389,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
                                                  statePtr = sim.out$Ptr)  
     }
 
-    sim.out <- Simulation_R(pl2)
+    sim.out <- Simulation_R(pl2, seed = seed)
     
     ## If we have specified a full save then we grab that and save it or just the human bits of interest
     if(full_save || human_only_full_save)
@@ -394,7 +397,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
       
       ## Now let's save the simulation in full
       pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-      sim.save <- Simulation_R(pl2)
+      sim.save <- Simulation_R(pl2, seed = seed)
       
       ## If we want just the humans then get the keybits and save that instead
       if(human_only_full_save)
@@ -433,7 +436,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
 
     
     ## Now run the simulation
-    sim.out <- Simulation_R(paramList = pl2)
+    sim.out <- Simulation_R(paramList = pl2, seed = seed)
     
     ## If we have specified a full save or human save then we grab that and save it or just the human bits of interest
     if(full_save || human_only_full_save)
@@ -441,7 +444,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
     #  browser()
       ## Now let's save the simulation in full
       pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-      sim.save <- Simulation_R(pl2)
+      sim.save <- Simulation_R(pl2, seed = seed)
       
       ## If we want just the humans then get the keybits and save that instead
       if(human_only_full_save)
@@ -466,7 +469,9 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
   }
   
   # Save the seed as an attribute adn return the result
-  attr(res,"seed") <- seed
+  seed_end <- .Random.seed
+  attr(res,"seed") <- seed_end
+  message("Finished")
   return(res)
   
 }
