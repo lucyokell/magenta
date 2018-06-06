@@ -283,6 +283,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
       }
     }
     
+    // Rcpp::Rcout << "Shuffle bite queue" << "\n"; 
     // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
     shuffle_integer_vector(mosquito_biting_queue);
     
@@ -295,6 +296,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
     // First calculate mean age dependent biting heterogeneity (psi)
     // --------------------------------------------------------------------------------------------------------------------------------------------------
+    
+
     
     // Calculate mean age dependent biting rate
     mean_psi = psi_sum / u_ptr->parameters.g_N;
@@ -359,20 +362,30 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // ALLOCATE BITES
     // --------------------------------------------------------------------------------------------------------------------------------------------------
     
+    // Rcpp::Rcout << "Bite allocation" << "\n"; 
     // PARALLEL_TODO: Don't know how this could be parallelised yet - come back to with mosquitos in.
     for (num_bites_i = 0; num_bites_i < num_bites; num_bites_i++)
     {
+    
       // allocate bite to human if mosquito is infected
       if (u_ptr->scourge[mosquito_biting_queue[num_bites_i]].m_mosquito_infected) {
+    
+       // Rcpp::Rcout << "Bite allocation" << num_bites_i << "\n"; 
+       
         u_ptr->population[bite_storage_queue[num_bites_i]].allocate_bite(u_ptr->parameters, u_ptr->scourge[mosquito_biting_queue[num_bites_i]]);
         if ( u_ptr->parameters.g_current_time > g_end_time - 7)
         {
           daily_bite_counters++;
         }
+        
+        // Rcpp::Rcout << "Post Bite Allocation " << num_bites_i  << "\n"; 
       }
+      
       
       // if human would cause infection to mosquito then allocate gametocytes
       if (u_ptr->population[bite_storage_queue[num_bites_i]].reciprocal_infection_boolean(u_ptr->parameters)) {
+        
+        // Rcpp::Rcout << "Gam allocation" << num_bites_i << "\n"; 
         
         u_ptr->scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(u_ptr->parameters, u_ptr->population[bite_storage_queue[num_bites_i]].sample_two_barcodes(u_ptr->parameters));
         

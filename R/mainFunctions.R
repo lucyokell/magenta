@@ -8,31 +8,23 @@
 #' @param N Population size. Default = 1e4
 #' @param eqSS Output of \code{Equilibrium_Steady_State_Create}
 #' @param barcode_parms List of barcode/genetic parameters
-#' 
+#' @param spatial_list Spatial parmeters to come in
 #' @export
 
-Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms)
+Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms, spatial_list)
 {
   
   ## CHECKS ##
   ##---------------------------------------------
   if(class(eqSS)!="list") stop("eqSS is not of class list")
-  
-  if(is.element("spatial_type",names(eqSS))){
-    if(!identical(names(eqSS),
-                  c("age_brackets","het_brackets","Smat",
-                    "Dmat","Amat","Umat","Tmat","Pmat",
-                    "IBmat","ICAmat","ICMmat","IDmat",
-                    "Sv","Ev","Iv","MaternalImmunity",
-                    "theta","spatial_type"))) stop("Incorrect variable names within equilibrium.steady.state")
-  } else {
+
     if(!identical(names(eqSS),
                   c("age_brackets","het_brackets","Smat",
                     "Dmat","Amat","Umat","Tmat","Pmat",
                     "IBmat","ICAmat","ICMmat","IDmat",
                     "Sv","Ev","Iv","MaternalImmunity",
                     "theta"))) stop("Incorrect variable names within equilibrium.steady.state")
-  }
+  
   dims.1 <- lapply(eqSS,function(x){return(dim(x)[1])})
   dims.2 <- lapply(eqSS,function(x){return(dim(x)[2])})
   if(unique(unlist(dims.1[grep("mat",names(eqSS))]))!=length(eqSS$age_brackets)) stop("Dimensions 1 error in equilibrium.stead.state matrices")
@@ -44,7 +36,7 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms)
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(N = N, eqSS = eqSS, barcode_parms = barcode_parms)
+  paramList <- list(N = N, eqSS = eqSS, barcode_parms = barcode_parms, spatial_list = spatial_list)
   
   return(paramList)
   
@@ -194,9 +186,9 @@ Simulation_R <- function(paramList, seed)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==3)
+    if(length(paramList)==4)
     {
-      stopifnot(identical(names(paramList), c("N","eqSS","barcode_parms")))  
+      stopifnot(identical(names(paramList), c("N","eqSS","barcode_parms","spatial_list")))  
     }
     # if it is length one it may be an unpacked list in which case unpack and check
     # this might happen in the future when a list of paramLists is fed directly to this
@@ -204,7 +196,7 @@ Simulation_R <- function(paramList, seed)
     else if(length(paramList)==1)
     {
       paramList <- paramList[[1]]
-      stopifnot(identical(names(paramList), c("N", "eqSS", "barcode_parms")))  
+      stopifnot(identical(names(paramList), c("N", "eqSS", "barcode_parms","spatial_list")))  
     } 
     else 
     {

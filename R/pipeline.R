@@ -20,8 +20,8 @@
 #' @param spatial_uuid Default = NULL. If spatial is provided, then this will error unless a character
 #' string is passed to this argument. This character should be the same for each parallel task within
 #' the same job. 
-#' @param fixed_spatial_incidence_matrix Alternative parameterisation where hypothetical spatial matrix is supplied
-#' @param fixed_spatial_mosquitoFOI_matrix Alternative parameterisation where hypothetical spatial matrix is supplied
+#' @param spatial_incidence_vector Spatial incidence for humans, i.e. importation vector
+#' @param spatial_mosquitoFOI_vector Spatial mosquio FOI, i.e. importation to mosquitoes vector
 #' @param fv_vec Numeric for how fv_vec changes as calculated from odin model
 #' @param mu_vec Numeric for hor mu_vec changes as calculated from odin model
 #' @param use_historic_interventions Boolean as to whether the historic interventions are incorporated.
@@ -70,7 +70,7 @@
 Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365, 
                      country = NULL, admin = NULL, use_historic_interventions = FALSE,
                      spatial_type = NULL, redis_host = "fi--dideclusthn.dide.ic.ac.uk",spatial_uuid = NULL,
-                     fixed_spatial_incidence_matrix = NULL,fixed_spatial_mosquitoFOI_matrix = NULL,
+                     spatial_incidence_vector = NULL,spatial_mosquitoFOI_vector = NULL,
                      num_loci = 24,ibd_length = 1, plaf = rep(0.5,num_loci),prob_crossover = rep(0.5, num_loci),
                      num_het_brackets = 20, num_age_brackets = 20, 
                      geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, mu_vec=NULL, fv_vec=NULL,
@@ -130,19 +130,25 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
     # spatial checks
     if(!is.null(spatial_type)) {
       if(spatial_type == "metapop"){
+        spatial_type <- 2
         if(is.null(spatial_uuid)) stop("Spatial_uuid is required if running spatial simulations")
         redis_id <- paste0("oj_",spatial_uuid)
-        eqSS$spatial_type <- 2
       } else if(spatial_type == "island") {
-        eqSS$spatial_type <- 1
+        spatial_type <- 2
       }
     } else {
-      eqSS$spatial_type <- 0
+      spatial_type <- 0
     }
+    sp_list <- spl_create(spatial_type = spatial_type,
+                          human_importation_rate_vector = spatial_incidence_vector,
+                          mosquito_imporation_rate_vector = spatial_mosquitoFOI_vector,
+                          cotransmission_freq_vector = sample(2,10000,replace = TRUE, prob = c(0.82,0.18)),
+                          oocyst_freq_vector = sample(5,10000,replace = TRUE, prob = c(0.5,0.3,0.1,0.075,0.025)))
     
     ## Now check and create the parameter list for use in the Rcpp simulation
     pl <- Param_List_Simulation_Init_Create(N=N,eqSS=eqSS,
-                                            barcode_parms = barcode_parms)
+                                            barcode_parms = barcode_parms,
+                                            spatial_list = sp_list)
     
   }
   
@@ -166,7 +172,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
   ## if it's spatial set up the necessary redis lists
   # set this up here anyway and then less if loops later
   imported_barcodes <- NULL
-  if(!is.null(spatial_type)){
+  if(spatial_type>0){
     
     # create barcode as binary string
     barcodes <- lapply(sim.out$Exported_Barcodes,as.numeric) %>% lapply(paste0,collapse="") %>% unlist

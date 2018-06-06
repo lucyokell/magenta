@@ -8,6 +8,6 @@
 #include <boost/dynamic_bitset.hpp>
 
 SEXP bitset_to_sexp(boost::dynamic_bitset<> x);
-boost::dynamic_bitset<> sexp_to_bitset(SEXP x);
+boost::dynamic_bitset<> sexp_to_bitset(SEXP x, unsigned int n);
 
 #endif

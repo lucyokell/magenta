@@ -199,7 +199,7 @@ boost::dynamic_bitset<> Strain::replicate_by_bit(boost::dynamic_bitset<> x, unsi
   unsigned int count = 0;
   
   // create and fill the temp barcode
-  for(unsigned int i = 0; i < Parameters::g_barcode_length ; i++) {
+  for(unsigned int i = 0; i < Parameters::g_num_loci ; i++) {
     
     for(unsigned int j = 0; j < n ; j++) {
       
@@ -221,5 +221,28 @@ SEXP test_barcode_from_PLAF(Rcpp::NumericVector plaf, unsigned int n)
   std::vector<double> plaf_c = Rcpp::as<std::vector<double> >(plaf);
   boost::dynamic_bitset<> b = Strain::generate_random_barcode_given_SNP_frequencies(plaf_c);
   return(bitset_to_sexp(b));
+}
+
+// IBD recombinant test
+// [[Rcpp::export]]
+SEXP test_recombinant_with_ibd(SEXP barcode_1,
+                               SEXP barcode_2,
+                               unsigned int bl, unsigned int nl,
+                               unsigned int ib, Rcpp::NumericVector pc
+                               )
+{
+  Parameters::g_barcode_length = bl;
+  Parameters::g_num_loci = nl;
+  Parameters::g_ibd_length = ib;
+  Parameters::g_prob_crossover = Rcpp::as<std::vector<double> >(pc);
+  Parameters::g_barcode_type = Parameters::IBD;
+  
+  Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
+  Strain::temp_crossovers = boost::dynamic_bitset<>(Parameters::g_num_loci);
+  
+  boost::dynamic_bitset<> barcode_a = sexp_to_bitset(barcode_1, bl);
+  boost::dynamic_bitset<> barcode_b = sexp_to_bitset(barcode_2, bl);
+  Strain::temp_barcode = Strain::generate_recombinant_barcode(barcode_a, barcode_b);
+  return(bitset_to_sexp(Strain::temp_barcode));
 }
 

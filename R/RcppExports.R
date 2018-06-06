@@ -36,6 +36,10 @@ test_barcode_from_PLAF <- function(plaf, n) {
     .Call('_MAGENTA_test_barcode_from_PLAF', PACKAGE = 'MAGENTA', plaf, n)
 }
 
+test_recombinant_with_ibd <- function(barcode_1, barcode_2, bl, nl, ib, pc) {
+    .Call('_MAGENTA_test_recombinant_with_ibd', PACKAGE = 'MAGENTA', barcode_1, barcode_2, bl, nl, ib, pc)
+}
+
 test_bitset_serialisation <- function(x, n) {
     .Call('_MAGENTA_test_bitset_serialisation', PACKAGE = 'MAGENTA', x, n)
 }

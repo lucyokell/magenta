@@ -14,176 +14,176 @@
 Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
   
   if(use_odin){
-  
-  ## Odin generator function
-  generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
-    mod <- generator(init_S=dat$S,
-                     init_T=dat$T,
-                     init_D=dat$D,
-                     init_A=dat$A,
-                     init_U=dat$U,
-                     init_P=dat$P,
-                     init_ICA = dat$ICA,
-                     init_ICM = dat$ICM,
-                     init_ID = dat$ID,
-                     init_IB = dat$IB,
-                     init_Sv = dat$Sv,
-                     init_Ev = dat$Ev,
-                     init_Iv = dat$Iv,
-                     init_PL = dat$PL,
-                     init_LL = dat$LL,
-                     init_EL = dat$EL,
-                     na = dat$na,
-                     nh = dat$nh,
-                     age_rate = dat$age_rate,
-                     foi_age = dat$foi_age,
-                     het_wt = dat$het_wt,
-                     rel_foi = dat$rel_foi,
-                     omega = dat$omega,
-                     pi = pi,
-                     x_I = dat$x_I,
-                     #eov = dat$eov,
-                     mv0 = dat$mv0,
-                     ssa0 = dat$ssa0,
-                     ssa1 = dat$ssa1,
-                     ssa2 = dat$ssa2,
-                     ssa3 = dat$ssa3,
-                     ssb1 = dat$ssb1,
-                     ssb2 = dat$ssb2,
-                     ssb3 = dat$ssb3,
-                     theta_c = dat$theta_c,
-                     den = dat$den,
-                     age59 = dat$age59,
-                     age05 = dat$age05,
-                     age = age*365,
-                     ft = ft,
-                     use_dde = dde,
-                     eta = dat$eta,
-                     rA = dat$rA,
-                     rT = dat$rT,
-                     rD = dat$rD,
-                     rU = dat$rU,
-                     rP = dat$rP,
-                     dE = dat$dE,
-                     delayGam = dat$delayGam,
-                     delayMos = dat$delayM,
-                     cD = dat$cD,
-                     cT = dat$cT,
-                     cU = dat$cU,
-                     gamma1 = dat$gamma1,
-                     d1 = dat$d1,
-                     dID = dat$dID,
-                     ID0 = dat$ID0,
-                     kD = dat$kD,
-                     uD = dat$uD,
-                     aD = dat$aD,
-                     fD0 = dat$fD0,
-                     gammaD = dat$gammaD,
-                     b0 = dat$b0,
-                     b1 = dat$b1,
-                     dB = dat$dB,
-                     IB0 = dat$IB0,
-                     kB = dat$kB,
-                     uB = dat$uB,
-                     phi0 = dat$phi0,
-                     phi1 = dat$phi1,
-                     dCA = dat$dCA,
-                     IC0 = dat$IC0,
-                     kC = dat$kC,
-                     uCA = dat$uCA,
-                     dCM = dat$dCM,
-                     tau1 = dat$tau1,
-                     tau2 = dat$tau2,
-                     Q0 = dat$Q0,
-                     chi = dat$chi,
-                     bites_Bed = dat$bites_Bed,
-                     bites_Indoors = dat$bites_Indoors,
-                     p10 = dat$p10,
-                     p2 = dat$p2,
-                     muEL = dat$muEL,
-                     muLL = dat$muLL,
-                     muPL = dat$muPL,
-                     dEL = dat$dEL,
-                     dLL = dat$dLL,
-                     dPL = dat$dPL,
-                     gammaL = dat$gammaL,
-                     beta_larval0 = dat$betaL,
-                     num_int = dat$num_int,
-                     itn_cov = dat$itn_cov,
-                     irs_cov = dat$irs_cov,
-                     int_len = length(dat$itn_cov),
-                     ITN_IRS_on = dat$ITN_IRS_on,
-                     d_ITN0 = dat$d_ITN0,
-                     r_ITN0 = dat$r_ITN0,
-                     r_ITN1 = dat$r_ITN1,
-                     r_IRS0 = dat$r_IRS0,
-                     d_IRS0 = dat$d_IRS0,
-                     IRS_interval = dat$IRS_interval,
-                     ITN_interval = dat$ITN_interval,
-                     irs_loss = dat$irs_loss,
-                     itn_loss = dat$itn_loss
-    )
-  }
-  
-  # Create odin generator
-  odin_model_path <- system.file("extdata/odin_model.R",package="MAGENTA")
-  gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
-  
-  #create model with initial values
-  mod <- generate_default_model(ft=eqInit$ft,age=eqInit$age_brackets,dat=eqInit,generator=gen,dde=TRUE)
-  tt <- seq(0,end.year*365,1)
-  
-  # run odin model for end.year years, and if sufficiently steady state found finish
-  # if insufficeint steady state found then increase end.year
-  steady.state.check <- FALSE
-  while(steady.state.check==0){
-    # run model
-    message(paste("Running model for",end.year,"years"))
-    mod_run <- mod$run(tt)
-    # shape output
-    out <- mod$transform_variables(mod_run)
     
-    if(eqInit$ssa0==0){
+    ## Odin generator function
+    generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
+      mod <- generator(init_S=dat$S,
+                       init_T=dat$T,
+                       init_D=dat$D,
+                       init_A=dat$A,
+                       init_U=dat$U,
+                       init_P=dat$P,
+                       init_ICA = dat$ICA,
+                       init_ICM = dat$ICM,
+                       init_ID = dat$ID,
+                       init_IB = dat$IB,
+                       init_Sv = dat$Sv,
+                       init_Ev = dat$Ev,
+                       init_Iv = dat$Iv,
+                       init_PL = dat$PL,
+                       init_LL = dat$LL,
+                       init_EL = dat$EL,
+                       na = dat$na,
+                       nh = dat$nh,
+                       age_rate = dat$age_rate,
+                       foi_age = dat$foi_age,
+                       het_wt = dat$het_wt,
+                       rel_foi = dat$rel_foi,
+                       omega = dat$omega,
+                       pi = pi,
+                       x_I = dat$x_I,
+                       #eov = dat$eov,
+                       mv0 = dat$mv0,
+                       ssa0 = dat$ssa0,
+                       ssa1 = dat$ssa1,
+                       ssa2 = dat$ssa2,
+                       ssa3 = dat$ssa3,
+                       ssb1 = dat$ssb1,
+                       ssb2 = dat$ssb2,
+                       ssb3 = dat$ssb3,
+                       theta_c = dat$theta_c,
+                       den = dat$den,
+                       age59 = dat$age59,
+                       age05 = dat$age05,
+                       age = age*365,
+                       ft = ft,
+                       use_dde = dde,
+                       eta = dat$eta,
+                       rA = dat$rA,
+                       rT = dat$rT,
+                       rD = dat$rD,
+                       rU = dat$rU,
+                       rP = dat$rP,
+                       dE = dat$dE,
+                       delayGam = dat$delayGam,
+                       delayMos = dat$delayM,
+                       cD = dat$cD,
+                       cT = dat$cT,
+                       cU = dat$cU,
+                       gamma1 = dat$gamma1,
+                       d1 = dat$d1,
+                       dID = dat$dID,
+                       ID0 = dat$ID0,
+                       kD = dat$kD,
+                       uD = dat$uD,
+                       aD = dat$aD,
+                       fD0 = dat$fD0,
+                       gammaD = dat$gammaD,
+                       b0 = dat$b0,
+                       b1 = dat$b1,
+                       dB = dat$dB,
+                       IB0 = dat$IB0,
+                       kB = dat$kB,
+                       uB = dat$uB,
+                       phi0 = dat$phi0,
+                       phi1 = dat$phi1,
+                       dCA = dat$dCA,
+                       IC0 = dat$IC0,
+                       kC = dat$kC,
+                       uCA = dat$uCA,
+                       dCM = dat$dCM,
+                       tau1 = dat$tau1,
+                       tau2 = dat$tau2,
+                       Q0 = dat$Q0,
+                       chi = dat$chi,
+                       bites_Bed = dat$bites_Bed,
+                       bites_Indoors = dat$bites_Indoors,
+                       p10 = dat$p10,
+                       p2 = dat$p2,
+                       muEL = dat$muEL,
+                       muLL = dat$muLL,
+                       muPL = dat$muPL,
+                       dEL = dat$dEL,
+                       dLL = dat$dLL,
+                       dPL = dat$dPL,
+                       gammaL = dat$gammaL,
+                       beta_larval0 = dat$betaL,
+                       num_int = dat$num_int,
+                       itn_cov = dat$itn_cov,
+                       irs_cov = dat$irs_cov,
+                       int_len = length(dat$itn_cov),
+                       ITN_IRS_on = dat$ITN_IRS_on,
+                       d_ITN0 = dat$d_ITN0,
+                       r_ITN0 = dat$r_ITN0,
+                       r_ITN1 = dat$r_ITN1,
+                       r_IRS0 = dat$r_IRS0,
+                       d_IRS0 = dat$d_IRS0,
+                       IRS_interval = dat$IRS_interval,
+                       ITN_interval = dat$ITN_interval,
+                       irs_loss = dat$irs_loss,
+                       itn_loss = dat$itn_loss
+      )
+    }
+    
+    # Create odin generator
+    odin_model_path <- system.file("extdata/odin_model.R",package="MAGENTA")
+    gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
+    
+    #create model with initial values
+    mod <- generate_default_model(ft=eqInit$ft,age=eqInit$age_brackets,dat=eqInit,generator=gen,dde=TRUE)
+    tt <- seq(0,end.year*365,1)
+    
+    # run odin model for end.year years, and if sufficiently steady state found finish
+    # if insufficeint steady state found then increase end.year
+    steady.state.check <- FALSE
+    while(steady.state.check==0){
+      # run model
+      message(paste("Running model for",end.year,"years"))
+      mod_run <- mod$run(tt)
+      # shape output
+      out <- mod$transform_variables(mod_run)
       
-      ICA.corr.mat <- out$ICA[(dim(out$ICA)[1]-100):(dim(out$ICA)[1]),10,1:5,1]
-      ICA.corr.mat <- sweep(ICA.corr.mat,2,out$ICA[(dim(out$ICA)[1]),10,1:5,1],`/`)
-      if( sum(abs(colMeans(ICA.corr.mat) - 1) < 1e-3)==5){
-        steady.state.check <- TRUE
-      } else {
-        end.year <- end.year + 4
-        tt <- seq(0,end.year*365,1)
+      if(eqInit$ssa0==0){
+        
+        ICA.corr.mat <- out$ICA[(dim(out$ICA)[1]-100):(dim(out$ICA)[1]),10,1:5,1]
+        ICA.corr.mat <- sweep(ICA.corr.mat,2,out$ICA[(dim(out$ICA)[1]),10,1:5,1],`/`)
+        if( sum(abs(colMeans(ICA.corr.mat) - 1) < 1e-3)==5){
+          steady.state.check <- TRUE
+        } else {
+          end.year <- end.year + 4
+          tt <- seq(0,end.year*365,1)
+        }
+        
       }
       
     }
     
-  }
-  
-  ## dimension of model out to kow the end
-  final <-   dim(out$ICA)[1]
-  ## maternal age position
-  maternal <- which.max(eqInit$age_brackets>=20)
-  
-  ## create equilibrium state for return
-  Equilibrium_State <- list(
-    "age_brackets" = eqInit$age2,
-    "het_brackets" = eqInit$het_bounds,
-    "Smat" = out$S[final,,,1],
-    "Dmat" = out$D[final,,,1],
-    "Amat" = out$A[final,,,1],
-    "Umat" = out$U[final,,,1],
-    "Tmat" = out$T[final,,,1],
-    "Pmat" = out$P[final,,,1],
-    "IBmat" = out$IB[final,,,1],
-    "ICAmat" = out$ICA[final,,,1],
-    "ICMmat" = out$ICM[final,,,1],
-    "IDmat" = out$ID[final,,,1],
-    "Sv" = out$Sv[final],
-    "Ev" = sum(out$Ev[final,]),
-    "Iv" = out$Iv[final],
-    "MaternalImmunity" = sum(out$ICA[final,maternal,,1] * (eqInit$het_wt))* eqInit$PM,
-    "theta" = seasonal_profile(eqInit$country,eqInit$admin)
-  )
-  
+    ## dimension of model out to kow the end
+    final <-   dim(out$ICA)[1]
+    ## maternal age position
+    maternal <- which.max(eqInit$age_brackets>=20)
+    
+    ## create equilibrium state for return
+    Equilibrium_State <- list(
+      "age_brackets" = eqInit$age2,
+      "het_brackets" = eqInit$het_bounds,
+      "Smat" = out$S[final,,,1],
+      "Dmat" = out$D[final,,,1],
+      "Amat" = out$A[final,,,1],
+      "Umat" = out$U[final,,,1],
+      "Tmat" = out$T[final,,,1],
+      "Pmat" = out$P[final,,,1],
+      "IBmat" = out$IB[final,,,1],
+      "ICAmat" = out$ICA[final,,,1],
+      "ICMmat" = out$ICM[final,,,1],
+      "IDmat" = out$ID[final,,,1],
+      "Sv" = out$Sv[final],
+      "Ev" = sum(out$Ev[final,]),
+      "Iv" = out$Iv[final],
+      "MaternalImmunity" = sum(out$ICA[final,maternal,,1] * (eqInit$het_wt))* eqInit$PM,
+      "theta" = seasonal_profile(eqInit$country,eqInit$admin)
+    )
+    
   } else {
     
     maternal <- which.max(eqInit$age_brackets>=20)
@@ -209,7 +209,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
       "MaternalImmunity" = sum(eqInit$ICA[maternal,,1] * (eqInit$het_wt))* eqInit$PM,
       "theta" = seasonal_profile(eqInit$country,eqInit$admin)
     )
-     
+    
   }
   
   return(Equilibrium_State)
@@ -224,34 +224,46 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
 #' list to be passed to the initialisation function if require
 #' 
 
-spl_create <- function(island_PLAF=NULL, 
+spl_create <- function(spatial_type = 0,
                        human_importation_rate_vector=NULL, 
                        mosquito_imporation_rate_vector=NULL,
-                       cotransmission_freq_vector=rep(10000,1),
-                       oocyst_freq_vector=rep(10000,1),
-                       num_human_infs,
-                       num_mos_infs){
+                       cotransmission_freq_vector=rep(1,10000),
+                       oocyst_freq_vector=rep(1,10000),
+                       num_human_infs=0,
+                       num_mos_infs=0){
   
   
   
   # num_human_infs = (eqInit$FOI * eqInit$den ) %>% sum * N
   # num_mos_infs = eqInit$FOIv_eq * eqInit$mv0 * N
   
-  # if island PLAF is not null then we are doing the island simiulation
-  if(!is.null(island_PLAF)){
+  # if non spatial 
+  if(spatial_type == 0){
     
-  # first work out how frequent importation is:
-  hum_imp_rate <- sum(human_importation_rate_vector,na.rm=TRUE)
-  mos_imp_rate <- sum(mosquito_imporation_rate_vector,na.rm=TRUE)
-  
-  # therefore we frst want to work out the number of transmission events that are due to importation and how large
-  imported_cotransmission_events <- rep_len(cotransmission_freq_vector,num_human_infs*hum_imp_rate)
-  imported_oocyst_events <- rep_len(oocyst_freq_vector,num_mos_infs*mos_imp_rate)
-  
-  spatial_list <- list("PLAF" = island_PLAF,
-                       "imported_cotransmissions_events"=imported_cotransmission_events,
-                       "imported_oocyst_events"=imported_oocyst_events)
-  
+    spatial_list <- list("spatial_type" = spatial_type,
+                         "cotransmission_freq_vector" = cotransmission_freq_vector,
+                         "oocyst_freq_vector" = oocyst_freq_vector,
+                         "imported_cotransmissions_events"=0,
+                         "imported_oocyst_events"=0)
+    
+    # if island spatial  
+  } else if(spatial_type == 1){
+    
+    # first work out how frequent importation is:
+    hum_imp_rate <- sum(human_importation_rate_vector,na.rm=TRUE)
+    mos_imp_rate <- sum(mosquito_imporation_rate_vector,na.rm=TRUE)
+    
+    # therefore we frst want to work out the number of transmission events that are due to importation and how large
+    imported_cotransmission_events <- rep_len(cotransmission_freq_vector,num_human_infs*hum_imp_rate)
+    imported_oocyst_events <- rep_len(oocyst_freq_vector,num_mos_infs*mos_imp_rate)
+    
+    spatial_list <- list("spatial_type" = spatial_type,
+                         "cotransmission_freq_vector" = cotransmission_freq_vector,
+                         "oocyst_freq_vector" = oocyst_freq_vector,
+                         "imported_cotransmissions_events"=imported_cotransmission_events,
+                         "imported_oocyst_events"=imported_oocyst_events)
+    
+    # if metapop sspatial
   } else {
     
     # first work out how frequent importation is:
@@ -281,9 +293,12 @@ spl_create <- function(island_PLAF=NULL,
     imported_cotransmission_events <- sapply(num_human_infs*hum_imp_rate,function(x) rep_len(cotransmission_freq_vector,x))
     imported_oocyst_events <- rep_len(oocyst_freq_vector,num_mos_infs*mos_imp_rate)
     
-    spatial_list <- list("PLAF" = island_PLAF,
+    spatial_list <- list("spatial_type" = spatial_type,
+                         "cotransmission_freq_vector" = cotransmission_freq_vector,
+                         "oocyst_freq_vector" = oocyst_freq_vector,
                          "imported_cotransmissions_events"=imported_cotransmission_events,
                          "imported_oocyst_events"=imported_oocyst_events)
+    
     
   }
   
@@ -461,7 +476,6 @@ barcode_parms_create <- function(num_loci = 24,
   return(res)
   
 }
-  
-  
-  
-  
+
+
+

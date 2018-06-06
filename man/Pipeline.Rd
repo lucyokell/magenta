@@ -8,12 +8,11 @@ Pipeline(EIR = 120, ft = 0.4, N = 1e+05, years = 20,
   update_length = 365, country = NULL, admin = NULL,
   use_historic_interventions = FALSE, spatial_type = NULL,
   redis_host = "fi--dideclusthn.dide.ic.ac.uk", spatial_uuid = NULL,
-  fixed_spatial_incidence_matrix = NULL,
-  fixed_spatial_mosquitoFOI_matrix = NULL, num_loci = 24, ibd_length = 1,
-  plaf = rep(0.5, num_loci), prob_crossover = rep(0.5, num_loci),
-  num_het_brackets = 20, num_age_brackets = 20,
-  geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE,
-  mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
+  spatial_incidence_vector = NULL, spatial_mosquitoFOI_vector = NULL,
+  num_loci = 24, ibd_length = 1, plaf = rep(0.5, num_loci),
+  prob_crossover = rep(0.5, num_loci), num_het_brackets = 20,
+  num_age_brackets = 20, geometric_age_brackets = TRUE, max_age = 100,
+  use_odin = FALSE, mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
   human_only_full_save = FALSE, yearly_save = FALSE,
   human_yearly_save = FALSE, summary_saves_only = FALSE,
   saved_state_path = NULL, seed = runif(1, 1, 10000))
@@ -50,9 +49,9 @@ where your redis server is running.}
 string is passed to this argument. This character should be the same for each parallel task within
 the same job.}
 
-\item{fixed_spatial_incidence_matrix}{Alternative parameterisation where hypothetical spatial matrix is supplied}
+\item{spatial_incidence_vector}{Spatial incidence for humans, i.e. importation vector}
 
-\item{fixed_spatial_mosquitoFOI_matrix}{Alternative parameterisation where hypothetical spatial matrix is supplied}
+\item{spatial_mosquitoFOI_vector}{Spatial mosquio FOI, i.e. importation to mosquitoes vector}
 
 \item{num_loci}{Number of loci. Default = 24}
 

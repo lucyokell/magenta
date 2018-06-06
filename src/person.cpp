@@ -290,6 +290,7 @@ void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
     if (rbernoulli1(m_biting_success_rate)) {
       
       // Allocate infection
+      // Rcpp::Rcout << "Allocate infection\n";
       allocate_infection(parameters, mosquito);
     }
   }

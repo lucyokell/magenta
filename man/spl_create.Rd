@@ -4,10 +4,10 @@
 \alias{spl_create}
 \title{Create spatial list object to be passed to main functions if required}
 \usage{
-spl_create(island_PLAF = NULL, human_importation_rate_vector = NULL,
+spl_create(spatial_type = 0, human_importation_rate_vector = NULL,
   mosquito_imporation_rate_vector = NULL,
-  cotransmission_freq_vector = rep(10000, 1),
-  oocyst_freq_vector = rep(10000, 1), num_human_infs, num_mos_infs)
+  cotransmission_freq_vector = rep(1, 10000), oocyst_freq_vector = rep(1,
+  10000), num_human_infs = 0, num_mos_infs = 0)
 }
 \description{
 \code{spl_create} creates the user required spatial 

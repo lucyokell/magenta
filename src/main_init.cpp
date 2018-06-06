@@ -71,6 +71,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // Unpack the R equilibirum state parameter list object and barcode object
   Rcpp::List eqSS = paramList["eqSS"];
   Rcpp::List barcode_parms  = paramList["barcode_parms"];
+  Rcpp::List spatial_list  = paramList["spatial_list"];
   
   // Un pack barcode parms
   parameters.g_num_loci = Rcpp::as<unsigned int>(barcode_parms["num_loci"]);
@@ -85,7 +86,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   Strain::temp_crossovers = boost::dynamic_bitset<>(Parameters::g_num_loci);
   
   // Grab seasonality and spatial
-  parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(Rcpp::as<unsigned int>(eqSS["spatial_type"]));
+  parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(Rcpp::as<unsigned int>(spatial_list["spatial_type"]));
   parameters.g_theta = Rcpp::as<vector<double> >(eqSS["theta"]);
   
   Rcpp::Rcout << "Running model of " << parameters.g_spatial_type << " spatial type.\n";

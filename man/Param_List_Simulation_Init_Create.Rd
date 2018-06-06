@@ -4,7 +4,8 @@
 \alias{Param_List_Simulation_Init_Create}
 \title{Parameter List creation for MAGENTA simulation initialisation}
 \usage{
-Param_List_Simulation_Init_Create(N = 10000, eqSS, barcode_parms)
+Param_List_Simulation_Init_Create(N = 10000, eqSS, barcode_parms,
+  spatial_list)
 }
 \arguments{
 \item{N}{Population size. Default = 1e4}
@@ -12,6 +13,8 @@ Param_List_Simulation_Init_Create(N = 10000, eqSS, barcode_parms)
 \item{eqSS}{Output of \code{Equilibrium_Steady_State_Create}}
 
 \item{barcode_parms}{List of barcode/genetic parameters}
+
+\item{spatial_list}{Spatial parmeters to come in}
 }
 \description{
 \code{Param_List_Simulation_Init_Create} creates suitable parameter list for
