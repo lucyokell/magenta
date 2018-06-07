@@ -51,6 +51,17 @@ Heatmap_ordered_binary_plot <- function(sim.save, years, EIR, ordered = TRUE,sav
   
 }
 
+
+bitsToInt<-function(x, endian = "little") {
+  if(endian == "little"){
+  packBits(rev(c(rep(FALSE, 32-length(x)%%32), as.logical(rev(x)))), "integer")
+  } else {
+  packBits(rev(c(rep(FALSE, 32-length(x)%%32), as.logical(x))), "integer")
+  }
+}
+
+
+
 #------------------------------------------------
 #' Convert human barcodes to numerics
 #'
@@ -64,7 +75,7 @@ Heatmap_ordered_binary_plot <- function(sim.save, years, EIR, ordered = TRUE,sav
 #' @export
 
 
-Convert_Barcode_Vectors <- function(sim.save, sub_patents_included=TRUE){
+Convert_Barcode_Vectors <- function(sim.save, sub_patents_included=TRUE ){
   
   
   bitsToInt<-function(x) {

@@ -27,3 +27,11 @@ test_that("ibd recombinants", {
   expect_identical(y,z)
 
   })
+
+
+test_that("ibd next generation", {
+  
+  z <- test_generate_next_ibd(bl = 96,nl = 24,ib = 2,pc = rep(1,24),id = 2)
+  expect_identical(y,z)
+  
+})

@@ -75,7 +75,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
                      num_het_brackets = 20, num_age_brackets = 20, 
                      geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, mu_vec=NULL, fv_vec=NULL,
                      full_save = FALSE, human_only_full_save = FALSE, yearly_save = FALSE, human_yearly_save = FALSE,
-                     summary_saves_only = FALSE,
+                     summary_saves_only = FALSE, set_up_only = FALSE,
                      saved_state_path = NULL,seed=runif(1,1,10000)){
   
   ## Pipeline
@@ -168,6 +168,26 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
   
   ## Create model simulation state
   sim.out <- Simulation_R(paramList = pl, seed = seed)
+  
+  if(set_up_only){
+    ## Now let's save the simulation in full
+    pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+    sim.save <- Simulation_R(pl2, seed = seed)
+    
+    ## If we want just the humans then get the keybits and save that instead
+    if(human_only_full_save)
+    {
+      Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
+      Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
+      res <- Humans
+      return(res)
+    } 
+    else
+    {
+      res <- sim.save
+      return(res)
+    }
+  }
   
   ## if it's spatial set up the necessary redis lists
   # set this up here anyway and then less if loops later

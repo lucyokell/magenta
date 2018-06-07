@@ -84,7 +84,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
   Strain::temp_identity_barcode = boost::dynamic_bitset<>(Parameters::g_ibd_length);
   Strain::temp_crossovers = boost::dynamic_bitset<>(Parameters::g_num_loci);
-  
+
   // Grab seasonality and spatial
   parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(Rcpp::as<unsigned int>(spatial_list["spatial_type"]));
   parameters.g_theta = Rcpp::as<vector<double> >(eqSS["theta"]);
@@ -163,7 +163,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   std::vector<double> infection_state_probability(6);
   
   // Temporary strain and pending strain vector needed for initialisation
-  std::vector<Strain> temp_strains(100);
+  std::vector<Strain> temp_strains; temp_strains.reserve(100);
   std::vector<int> temp_infection_time_realisation_vector; temp_infection_time_realisation_vector.reserve(100);         
   std::vector<Person::InfectionStatus> temp_infection_state_realisation_vector; temp_infection_state_realisation_vector.reserve(100); 
   std::vector<boost::dynamic_bitset<> > temp_infection_barcode_realisation_vector; temp_infection_barcode_realisation_vector.reserve(100);   
@@ -254,6 +254,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       population[n].set_m_number_of_realised_infections(population[n].get_m_number_of_strains());
       population[n].schedule_m_day_of_strain_clearance(parameters);
       
+      Strain::temp_barcode = Strain::generate_next_barcode();
+      
       // If they are treated the strains we allocate should have no state change
       if (population[n].get_m_infection_state() == Person::TREATED)
       {
@@ -261,14 +263,14 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
         {
           temp_strains.push_back( 
             Strain(
-              Strain::generate_next_barcode(),
+              Strain::temp_barcode,
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
-                                         0
+              0,
+              0
             )
           );
         }
       }
-      
       // If they are not then they will have state changes assumed equal to the human
       else
       {
@@ -276,9 +278,10 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
         {
           temp_strains.push_back(
             Strain(
-              Strain::generate_next_barcode(),
+              Strain::temp_barcode,
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
-                                         population[n].get_m_day_of_InfectionStatus_change()
+              population[n].get_m_day_of_InfectionStatus_change(),
+              0
             )
           );
         }
@@ -293,7 +296,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       }
       
       // Set human strains and associated times of strain state changing and clearing
-      population[n].set_m_active_strains(temp_strains);
+      population[n].set_m_active_strains(temp_strains); 
       population[n].set_m_day_of_next_strain_state_change();
       population[n].set_m_infection_time_realisation_vector_from_vector(temp_infection_time_realisation_vector);
       population[n].set_m_infection_state_realisation_vector(temp_infection_state_realisation_vector);

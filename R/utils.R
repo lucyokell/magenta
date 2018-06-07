@@ -256,3 +256,27 @@ person_make <- function(o,n){
   return(list("vars"=df,"l"=l))
 }
 
+
+
+
+convert_ibd_barcode <- function(b, nl){
+  
+  ib <- length(b)/nl
+  
+  br <- seq_len(ib)
+  ibd <- rep(0,nl)
+  for(i in seq_len(nl)){
+    ibd[i] <- bitsToInt(b[br+(ib*(i-1))])
+  }  
+  
+  return(ibd)
+  
+}
+
+populaton_ibd_barcodes <- function(r,nl){
+  
+  lapply(r$populations_event_and_strains_List, function(x){
+    lapply(x,convert_ibd_barcode,nl)
+  })
+  
+}

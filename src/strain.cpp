@@ -132,7 +132,7 @@ boost::dynamic_bitset<> Strain::generate_random_ibd_barcode()
 boost::dynamic_bitset<> Strain::generate_next_ibd_barcode()
 {
   // create the next identity bitset
-  Strain::temp_identity_barcode =  boost::dynamic_bitset<>(Parameters::g_ibd_length, Parameters::g_identity_id++);
+  Strain::temp_identity_barcode = boost::dynamic_bitset<>(Parameters::g_ibd_length, Parameters::g_identity_id++);
   
   unsigned int count = 0;
   
@@ -140,7 +140,6 @@ boost::dynamic_bitset<> Strain::generate_next_ibd_barcode()
   for(unsigned int i = 0; i < Parameters::g_num_loci ; i++) {
     
     for(unsigned int j = 0; j < Parameters::g_ibd_length ; j++) {
-      
       Strain::temp_barcode[count++] =  Strain::temp_identity_barcode[j];
     }
   }
@@ -245,4 +244,26 @@ SEXP test_recombinant_with_ibd(SEXP barcode_1,
   Strain::temp_barcode = Strain::generate_recombinant_barcode(barcode_a, barcode_b);
   return(bitset_to_sexp(Strain::temp_barcode));
 }
+
+// generate next ibd barcode
+// [[Rcpp::export]]
+SEXP test_generate_next_ibd(unsigned int bl, unsigned int nl,
+                               unsigned int ib, Rcpp::NumericVector pc,
+                               unsigned long long id
+)
+{
+  Parameters::g_barcode_length = bl;
+  Parameters::g_num_loci = nl;
+  Parameters::g_ibd_length = ib;
+  Parameters::g_prob_crossover = Rcpp::as<std::vector<double> >(pc);
+  Parameters::g_barcode_type = Parameters::IBD;
+  Parameters::g_identity_id = id;
+  
+  Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
+  Strain::temp_crossovers = boost::dynamic_bitset<>(Parameters::g_num_loci);
+  Strain::temp_identity_barcode = boost::dynamic_bitset<>(Parameters::g_ibd_length);
+  boost::dynamic_bitset<> barcode_a = Strain::generate_next_ibd_barcode();
+  return(bitset_to_sexp(barcode_a));
+}
+
 

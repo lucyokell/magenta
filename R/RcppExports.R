@@ -40,6 +40,10 @@ test_recombinant_with_ibd <- function(barcode_1, barcode_2, bl, nl, ib, pc) {
     .Call('_MAGENTA_test_recombinant_with_ibd', PACKAGE = 'MAGENTA', barcode_1, barcode_2, bl, nl, ib, pc)
 }
 
+test_generate_next_ibd <- function(bl, nl, ib, pc, id) {
+    .Call('_MAGENTA_test_generate_next_ibd', PACKAGE = 'MAGENTA', bl, nl, ib, pc, id)
+}
+
 test_bitset_serialisation <- function(x, n) {
     .Call('_MAGENTA_test_bitset_serialisation', PACKAGE = 'MAGENTA', x, n)
 }

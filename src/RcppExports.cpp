@@ -77,6 +77,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_generate_next_ibd
+SEXP test_generate_next_ibd(unsigned int bl, unsigned int nl, unsigned int ib, Rcpp::NumericVector pc, unsigned long long id);
+RcppExport SEXP _MAGENTA_test_generate_next_ibd(SEXP blSEXP, SEXP nlSEXP, SEXP ibSEXP, SEXP pcSEXP, SEXP idSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type bl(blSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type nl(nlSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type ib(ibSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pc(pcSEXP);
+    Rcpp::traits::input_parameter< unsigned long long >::type id(idSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_generate_next_ibd(bl, nl, ib, pc, id));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_bitset_serialisation
 SEXP test_bitset_serialisation(SEXP x, unsigned int n);
 RcppExport SEXP _MAGENTA_test_bitset_serialisation(SEXP xSEXP, SEXP nSEXP) {
@@ -97,6 +112,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_MAGENTA_Simulation_Update_cpp", (DL_FUNC) &_MAGENTA_Simulation_Update_cpp, 1},
     {"_MAGENTA_test_barcode_from_PLAF", (DL_FUNC) &_MAGENTA_test_barcode_from_PLAF, 2},
     {"_MAGENTA_test_recombinant_with_ibd", (DL_FUNC) &_MAGENTA_test_recombinant_with_ibd, 6},
+    {"_MAGENTA_test_generate_next_ibd", (DL_FUNC) &_MAGENTA_test_generate_next_ibd, 5},
     {"_MAGENTA_test_bitset_serialisation", (DL_FUNC) &_MAGENTA_test_bitset_serialisation, 2},
     {NULL, NULL, 0}
 };
