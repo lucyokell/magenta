@@ -361,7 +361,8 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
   // Increase number of succesful bites
   m_number_of_succesful_bites++;
   
-  //TODO: Add here a truncated neg binomial that details the possibility that more than one stain is pushed - if there is you simply loop through the following three lines
+  for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
+  {
   
   // Push the resultant state of infection
   m_infection_state_realisation_vector.emplace_back(m_transition_vector[sample1(m_transition_probabilities, m_sum_transition_probabilities)]);
@@ -416,6 +417,11 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     }
     
   }
+  
+  }
+  
+  // Increase cotransmission counter and catch for overflow
+  if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) parameters.g_cotransmission_frequencies_counter = 0;
   
   // Set next event date as may have changed as a result of the bite
   set_m_day_of_next_event();

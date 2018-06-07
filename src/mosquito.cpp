@@ -1,4 +1,5 @@
 #include "mosquito.h"
+#include "person.h"
 
 // Non class constructor which will inialise a random strain
 Mosquito::Mosquito(const Parameters &parameters) :
@@ -11,6 +12,9 @@ Mosquito::Mosquito(const Parameters &parameters) :
   m_oocyst_barcode_female_vector.reserve(10);
   
 }
+
+// temporary mosquito variables
+std::vector<boost::dynamic_bitset<> > gam_sampled(2);
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ALLOCATIONS
@@ -33,10 +37,64 @@ void Mosquito::allocate_gametocytes(const Parameters &parameters,
     m_mosquito_infection_state = EXPOSED;
   }
   
+}
+
+// Handle bite, i.e. allocating gametocytes and other housekeeping
+void Mosquito::handle_bite(Parameters &parameters, Person &person)
+{
+  
+  // Rcpp::Rcout << "Gam allocation" << num_bites_i << "\n"; 
+  parameters.g_total_mosquito_infections++;
+  
+  // if we are doing spatial then use the imported oocysts first 
+  if(parameters.g_spatial_imported_mosquito_infection_counter < parameters.g_spatial_total_imported_mosquito_infections)
+  {
+    
+    // handle if metapopulation
+    if(parameters.g_spatial_type == Parameters::METAPOPULATION)
+    {
+      // loop ove the multiple oocyst frequencies
+      for(int o_i = parameters.g_spatial_imported_oocyst_frequencies[parameters.g_spatial_imported_mosquito_infection_counter] ;
+          o_i < parameters.g_spatial_imported_oocyst_frequencies[parameters.g_spatial_imported_mosquito_infection_counter+1] ;
+          o_i ++)
+      {
+        allocate_gametocytes(parameters, parameters.g_spatial_imported_oocysts[o_i*2],parameters.g_spatial_imported_oocysts[(o_i*2)+1]);
+      }
+      // also need to export oocysts
+      // TODO
+    } 
+    // else for island simulations
+    else 
+    {
+      // for the time being let's not generate any mixed oocysts from imports
+      for(int o_i = 0; o_i < parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter]; o_i++)
+      {  
+        gam_sampled[0] = Strain::generate_next_barcode();
+        allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[0]);
+      }
+    }
+    
+    // and increase the counter
+    parameters.g_spatial_imported_mosquito_infection_counter++;
+    
+  }
+  else 
+  {
+    // // multiple oocyst handling
+    for(int oocyst_freq = 0 ; oocyst_freq < parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter] ; oocyst_freq++)
+    {  
+      gam_sampled = person.sample_two_barcodes(parameters);
+      allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
+    }
+  }
+  
+  // Increase oocyst counter and catch for overflow
+  if(++parameters.g_oocyst_frequencies_counter == parameters.g_oocyst_frequencies_size) parameters.g_oocyst_frequencies_counter = 0;
+  
+  // Schedule next event
   schedule_m_day_of_next_event();
   
 }
-
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // SCHEDULERS 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -214,35 +272,32 @@ bool Mosquito::event_handle(Parameters &parameters)
       if (m_oocyst_rupture_time_vector[m_ruptured_oocyst_count] == m_day_of_next_event)
       {
         
-        // Update the catch - this is needed for when two oocysts might burst on the same day - this is not possible at the moment but might be incorporated later if we assume mosquitos
-        // might produce more than 1 oocyst upon one feeding event
-        // m_oocyst_realisation_empty_catch = 1;
-        
-        // while (m_oocyst_realisation_empty_catch == 1)
-        // {
+        // Update the catch - this is needed for when two oocysts might burst on the same day
+        m_oocyst_realisation_empty_catch = 1;
         
         // Make infection status infected
         m_mosquito_infection_state = INFECTED;
         m_mosquito_infected = true;
         
-        // Update the burst oocyst count
-        m_ruptured_oocyst_count++;
-        
-        
-        // Update the catching - i.e. if there are no oocysts to rupture today then do not update the catch
-        /*if (!m_pending_oocyst_time_queue.empty())
-         {
-         if (m_pending_oocyst_time_queue.front() != parameters.g_current_time)
-         {
-         m_oocyst_realisation_empty_catch = 0;
-         }
-         }
-         else
-         {
-         m_oocyst_realisation_empty_catch = 0;
-         }
-         
-         }*/
+        while (m_oocyst_realisation_empty_catch == 1)
+        {
+          
+          // Update the burst oocyst count
+          m_ruptured_oocyst_count++;
+          
+          // Update the catching - i.e. if there are no oocysts to rupture today then do not update the catch
+          if(m_oocyst_rupture_time_vector.size() > m_ruptured_oocyst_count)
+          {
+          if (m_oocyst_rupture_time_vector[m_ruptured_oocyst_count] != parameters.g_current_time)
+          {
+            m_oocyst_realisation_empty_catch = 0;
+          }
+          }
+          else 
+          {
+            m_oocyst_realisation_empty_catch = 0;
+          }
+        }
         
         
       }

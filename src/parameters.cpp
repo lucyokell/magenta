@@ -6,6 +6,7 @@ Parameters::Parameters() {
   g_calendar_day = 1;
   g_theta = std::vector<double>(365,1.0);
   g_years = 1;
+  
   // spatial 
   g_spatial_type = Parameters::NON;
   // metapop spatial stuff
@@ -31,6 +32,14 @@ Parameters::Parameters() {
   g_total_human_infections = 0;
   g_total_mosquito_infections = 0;
   
+  // contransmission and oocyst vectors
+  g_cotransmission_frequencies = std::vector<int>();
+  g_cotransmission_frequencies_counter = 0;
+  g_cotransmission_frequencies_size = 0;
+  g_oocyst_frequencies = std::vector<int>();
+  g_oocyst_frequencies_counter = 0;
+  g_oocyst_frequencies_size = 0;
+  
   // demographic parameters
   g_N = 10000;
   g_max_age = 100 * 365;
@@ -41,8 +50,6 @@ Parameters::Parameters() {
   g_rho = 0.85;
   g_zeta_meanlog = -1.67 / 2.0;
   g_zeta_sdlog = sqrt(1.67);
-  g_importation_human = 0.01;
-  g_importation_mosquito = 0.005;
   // diagnostic parameters
   g_ft = 0.4;
   // entomological parameters

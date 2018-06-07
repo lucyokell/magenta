@@ -60,6 +60,14 @@ public:
   double g_percentage_imported_human_infections;
   double g_percentage_imported_mosquito_infections;
   
+  // cotransmission and oocyst vectors
+  std::vector<int> g_cotransmission_frequencies;
+  unsigned int g_cotransmission_frequencies_counter;
+  unsigned int g_cotransmission_frequencies_size;
+  std::vector<int> g_oocyst_frequencies;
+  unsigned int g_oocyst_frequencies_counter;
+  unsigned int g_oocyst_frequencies_size;
+  
   // demographic parameters;
   unsigned int g_N;
   int g_max_age;
@@ -70,8 +78,6 @@ public:
   double g_rho;
   double g_zeta_meanlog;
   double g_zeta_sdlog;
-  double g_importation_human;
-  double g_importation_mosquito;
   // diagnostic parameters;
   double g_ft;
   // entomological parameters;
