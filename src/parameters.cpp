@@ -24,6 +24,10 @@ Parameters::Parameters() {
   g_spatial_exported_oocysts = std::vector<boost::dynamic_bitset<>>();
   g_spatial_imported_barcodes = std::vector<boost::dynamic_bitset<>>();
   g_spatial_imported_oocysts = std::vector<boost::dynamic_bitset<>>();
+  
+  g_total_human_infections = 0;
+  g_total_mosquito_infections = 0;
+  
   // demographic parameters
   g_N = 10000;
   g_max_age = 100 * 365;

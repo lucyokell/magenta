@@ -134,7 +134,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
         if(is.null(spatial_uuid)) stop("Spatial_uuid is required if running spatial simulations")
         redis_id <- paste0("oj_",spatial_uuid)
       } else if(spatial_type == "island") {
-        spatial_type <- 2
+        spatial_type <- 1
       }
     } else {
       spatial_type <- 0
@@ -172,7 +172,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
   ## if it's spatial set up the necessary redis lists
   # set this up here anyway and then less if loops later
   imported_barcodes <- NULL
-  if(spatial_type>0){
+  if(spatial_type==2){
     
     # create barcode as binary string
     barcodes <- lapply(sim.out$Exported_Barcodes,as.numeric) %>% lapply(paste0,collapse="") %>% unlist

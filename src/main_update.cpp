@@ -386,7 +386,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
       if (u_ptr->population[bite_storage_queue[num_bites_i]].reciprocal_infection_boolean(u_ptr->parameters)) {
         
         // Rcpp::Rcout << "Gam allocation" << num_bites_i << "\n"; 
-        
+        u_ptr->parameters.g_total_mosquito_infections++;
         u_ptr->scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(u_ptr->parameters, u_ptr->population[bite_storage_queue[num_bites_i]].sample_two_barcodes(u_ptr->parameters));
         
         // if spatial then we nned to allocate mosquito importation events, i.e. where visiting infected humans pass on an infection to mosquito
@@ -541,7 +541,13 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   {
     return Rcpp::List::create(Rcpp::Named("Ptr") = u_ptr, Rcpp::Named("Loggers")=Loggers, Rcpp::Named("Exported_Barcodes")=Exported_Barcodes);
   } 
-  else
+  else if(u_ptr->parameters.g_spatial_type == Parameters::ISLAND)
+  {
+    Rcpp::List Infections = Rcpp::List::create(Rcpp::Named("Humans")=u_ptr->parameters.g_total_human_infections,
+                                               Rcpp::Named("Mosquitoes")=u_ptr->parameters.g_total_mosquito_infections);
+    return Rcpp::List::create(Rcpp::Named("Ptr") = u_ptr, Rcpp::Named("Loggers")=Loggers, Rcpp::Named("Infections")=Infections);
+  } 
+  else 
   {
     return Rcpp::List::create(Rcpp::Named("Ptr") = u_ptr, Rcpp::Named("Loggers")=Loggers);
   }

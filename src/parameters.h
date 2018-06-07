@@ -36,6 +36,7 @@ public:
     NUMBER_OF_SPATIAL_TYPE_OPTIONS = 3
   };
   
+  // spatially relevant variables
   Parameters::g_spatial_type_enum g_spatial_type;
   std::vector<int> g_spatial_imported_cotransmission_frequencies;
   std::vector<int> g_spatial_imported_oocyst_frequencies;
@@ -53,6 +54,10 @@ public:
   std::vector<boost::dynamic_bitset<> > g_spatial_imported_barcodes;
   std::vector<boost::dynamic_bitset<> > g_spatial_exported_oocysts;
   std::vector<boost::dynamic_bitset<> > g_spatial_imported_oocysts;
+  
+  unsigned int g_total_human_infections;
+  unsigned int g_total_mosquito_infections;
+  
   
   // demographic parameters;
   unsigned int g_N;
