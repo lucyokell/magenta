@@ -95,6 +95,12 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
     // 
     
+  } else if (u_ptr->parameters.g_spatial_type == Parameters::ISLAND) {
+    Rcpp::List spatial_list = paramList["spatial_list"];
+    u_ptr->parameters.g_percentage_imported_human_infections = Rcpp::as<double>(spatial_list["imported_cotransmissions_events"]);
+    u_ptr->parameters.g_percentage_imported_mosquito_infections = Rcpp::as<double>(spatial_list["imported_oocyst_events"]);
+    u_ptr->parameters.g_spatial_total_imported_human_infections = u_ptr->parameters.g_percentage_imported_human_infections * u_ptr->parameters.g_total_human_infections;
+    u_ptr->parameters.g_spatial_total_imported_mosquito_infections = u_ptr->parameters.g_percentage_imported_mosquito_infections * u_ptr->parameters.g_total_mosquito_infections;
   }
   
   // Initialise the mosquito intervention parameter vectors
@@ -154,6 +160,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   std::vector<int> mosquito_biting_queue;
   mosquito_biting_queue.reserve(scourge_size);
   std::vector<int> bite_storage_queue;
+  std::vector<boost::dynamic_bitset<> > gam_sampled(2);
   bite_storage_queue.reserve(scourge_size);
   IntegerVector bite_allocation(u_ptr->parameters.g_N);
   // biting allocation
@@ -193,11 +200,17 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // Reset maternal immunity sums
     u_ptr->parameters.g_sum_maternal_immunity = 0;
     u_ptr->parameters.g_total_mums = 0;
-    u_ptr->parameters.g_spatial_imported_barcode_counter = 0;
-    u_ptr->parameters.g_spatial_exported_barcode_counter = 0;
+    
+    // Reset import counters
+    u_ptr->parameters.g_spatial_imported_human_infection_counter = 0;
+    u_ptr->parameters.g_spatial_imported_mosquito_infection_counter = 0;
     
     // Reset age dependent biting rate sum
     psi_sum = 0;
+    
+    // Reset total infections
+    u_ptr->parameters.g_total_human_infections = 0;
+    u_ptr->parameters.g_total_mosquito_infections = 0;
     
     // Second calculate the average biting rate and mosquito mortality for today given interventions
     // --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -387,12 +400,43 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
         
         // Rcpp::Rcout << "Gam allocation" << num_bites_i << "\n"; 
         u_ptr->parameters.g_total_mosquito_infections++;
-        u_ptr->scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(u_ptr->parameters, u_ptr->population[bite_storage_queue[num_bites_i]].sample_two_barcodes(u_ptr->parameters));
         
-        // if spatial then we nned to allocate mosquito importation events, i.e. where visiting infected humans pass on an infection to mosquito
-        if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION){
-         
+        // if we are doing spatial then use the imported oocysts first 
+        if(u_ptr->parameters.g_spatial_imported_mosquito_infection_counter < u_ptr->parameters.g_spatial_total_imported_mosquito_infections)
+        {
+          
+          // asign the exported barcode and increase the count
+          if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
+          {
+            // loop ove the multiple oocyst frequencies
+            for(int o_i = u_ptr->parameters.g_spatial_imported_oocyst_frequencies[u_ptr->parameters.g_spatial_imported_mosquito_infection_counter] ;
+                o_i < u_ptr->parameters.g_spatial_imported_oocyst_frequencies[u_ptr->parameters.g_spatial_imported_mosquito_infection_counter+1] ;
+                o_i ++)
+            {
+            u_ptr->scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(
+                u_ptr->parameters, 
+                u_ptr->parameters.g_spatial_imported_oocysts[o_i*2],
+                u_ptr->parameters.g_spatial_imported_oocysts[(o_i*2)+1]
+            );
+            }
+          // also need to export oocysts
+          } 
+          else 
+          {
+            Strain::temp_barcode = Strain::generate_next_barcode();
+            u_ptr->scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(u_ptr->parameters, 
+                                                                                    Strain::temp_barcode,
+                                                                                    Strain::temp_barcode);
+          }
+          u_ptr->parameters.g_spatial_imported_mosquito_infection_counter++;
+          
         }
+        else 
+          {
+        gam_sampled = u_ptr->population[bite_storage_queue[num_bites_i]].sample_two_barcodes(u_ptr->parameters);
+        u_ptr->scourge[mosquito_biting_queue[num_bites_i]].allocate_gametocytes(u_ptr->parameters, gam_sampled[0], gam_sampled[1]);
+        }
+
       }
       
     }

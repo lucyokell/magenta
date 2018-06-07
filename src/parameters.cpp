@@ -8,23 +8,26 @@ Parameters::Parameters() {
   g_years = 1;
   // spatial 
   g_spatial_type = Parameters::NON;
+  // metapop spatial stuff
   g_spatial_imported_cotransmission_frequencies = std::vector<int>();
   g_spatial_imported_oocyst_frequencies = std::vector<int>();
   g_spatial_exported_cotransmission_frequencies = std::vector<int>();
   g_spatial_exported_oocyst_frequencies = std::vector<int>();
   g_spatial_total_exported_barcodes = 0;
   g_spatial_total_exported_oocysts = 0;
-  g_spatial_total_imported_barcodes = 0;
-  g_spatial_total_imported_oocysts = 0;
-  g_spatial_imported_barcode_counter = 0;
-  g_spatial_imported_oocyst_counter = 0;
+  g_spatial_total_imported_human_infections = 0;
+  g_spatial_total_imported_mosquito_infections = 0;
+  g_spatial_imported_human_infection_counter = 0;
+  g_spatial_imported_mosquito_infection_counter = 0;
   g_spatial_exported_barcode_counter = 0;
   g_spatial_exported_oocyst_counter = 0;
   g_spatial_exported_barcodes = std::vector<boost::dynamic_bitset<>>();
   g_spatial_exported_oocysts = std::vector<boost::dynamic_bitset<>>();
   g_spatial_imported_barcodes = std::vector<boost::dynamic_bitset<>>();
   g_spatial_imported_oocysts = std::vector<boost::dynamic_bitset<>>();
-  
+  // more island stuff
+  g_percentage_imported_human_infections = 0.0;
+  g_percentage_imported_mosquito_infections = 0.0;
   g_total_human_infections = 0;
   g_total_mosquito_infections = 0;
   

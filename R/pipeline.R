@@ -139,7 +139,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
     } else {
       spatial_type <- 0
     }
-    sp_list <- spl_create(spatial_type = spatial_type,
+    spatial_list <- spl_create(spatial_type = spatial_type,
                           human_importation_rate_vector = spatial_incidence_vector,
                           mosquito_imporation_rate_vector = spatial_mosquitoFOI_vector,
                           cotransmission_freq_vector = sample(2,10000,replace = TRUE, prob = c(0.82,0.18)),
@@ -148,7 +148,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
     ## Now check and create the parameter list for use in the Rcpp simulation
     pl <- Param_List_Simulation_Init_Create(N=N,eqSS=eqSS,
                                             barcode_parms = barcode_parms,
-                                            spatial_list = sp_list)
+                                            spatial_list = spatial_list)
     
   }
   
@@ -312,11 +312,11 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
       pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft,
                                                  mu_vec = out$mu[1:update_length + ((i-1)*update_length)],
                                                  fv_vec = out$fv[1:update_length + ((i-1)*update_length)], 
-                                                 #imported_barcodes = imported_barcodes,
+                                                 spatial_list = spatial_list,
                                                  statePtr = sim.out$Ptr)
       } else {
         pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft,
-                                                  # imported_barcodes = imported_barcodes,
+                                                   spatial_list = spatial_list,
                                                    statePtr = sim.out$Ptr)  
       }
       
@@ -349,7 +349,7 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
       }
      
       ## spatial export
-      if(!is.null(spatial_type)){
+      if(spatial_type==2){
         
         # Push barcodes to redis
         for(i in 1:length(export_proportions)){
@@ -387,11 +387,11 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
       pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft,
                                                  mu_vec = out$mu[1:update_length + ((i)*update_length)],
                                                  fv_vec = out$fv[1:update_length + ((i)*update_length)],
-                                                 #imported_barcodes = imported_barcodes,
+                                                 spatial_list = spatial_list,
                                                  statePtr = sim.out$Ptr)
     } else {
       pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, ft = ft,
-                                                 #imported_barcodes = imported_barcodes,
+                                                 spatial_list = spatial_list,
                                                  statePtr = sim.out$Ptr)  
     }
 
@@ -435,9 +435,12 @@ Pipeline <- function(EIR=120, ft = 0.4, N=100000, years = 20,update_length = 365
       pl2 <- Param_List_Simulation_Update_Create(years = years, ft = ft,
                                                  mu_vec = out$mu,
                                                  fv_vec = out$fv,
+                                                 spatial_list = spatial_list,
                                                  statePtr = sim.out$Ptr)
     } else {
-      pl2 <- Param_List_Simulation_Update_Create(years = years, ft = ft, statePtr = sim.out$Ptr)
+      pl2 <- Param_List_Simulation_Update_Create(years = years, ft = ft,
+                                                 spatial_list = spatial_list,
+                                                 statePtr = sim.out$Ptr)
     }
 
     

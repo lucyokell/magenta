@@ -372,12 +372,19 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
   // Allocate strains from mosquito
   
   // if we are doing spatial then use the exported barcodes first - the human biting quueue is shuffled so distributed across humans fine.
-  if(parameters.g_spatial_imported_barcode_counter < parameters.g_spatial_total_imported_barcodes)
+  if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections)
   {
     
     // asign the exported barcode and increase the count
-    m_infection_barcode_realisation_vector.emplace_back(parameters.g_spatial_imported_barcodes[parameters.g_spatial_imported_barcode_counter]);
-    parameters.g_spatial_imported_barcode_counter++;
+    if(parameters.g_spatial_type == Parameters::METAPOPULATION)
+    {
+      m_infection_barcode_realisation_vector.emplace_back(parameters.g_spatial_imported_barcodes[parameters.g_spatial_imported_human_infection_counter]);
+    } 
+    else 
+    {
+      m_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());  
+    }
+    parameters.g_spatial_imported_human_infection_counter++;
     
   }
   else 
@@ -401,7 +408,7 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
       );
     }
     
-    // export a barcode if doing spacial
+    // export a barcode if doing metapopulation spatial
     if(parameters.g_spatial_exported_barcode_counter < parameters.g_spatial_total_exported_barcodes)
     {
       parameters.g_spatial_exported_barcodes[parameters.g_spatial_exported_barcode_counter] = m_infection_barcode_realisation_vector.back();

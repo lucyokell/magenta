@@ -56,12 +56,13 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms, sp
 #' @param fv_vec Vector of mosquito bitings for each day with years. Default = NULL, which
 #' will result in rep(1/3,floor(years*365))
 #' @param statePtr Pointer for current model state as return by \code{Simulation_R}$Ptr
+#' @param spatial_list Spatial list
 #' 
 #' @export
 
 Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
                                                 mu_vec = NULL, fv_vec = NULL,
-                                                statePtr)
+                                                statePtr, spatial_list)
 {
   
   ## CHECKS ##
@@ -90,7 +91,8 @@ Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
   # Create paramlist
   paramList <- list(years = years, ft = ft, mu_vec = mu_vec,
                     fv_vec = fv_vec,
-                    statePtr = statePtr)
+                    statePtr = statePtr, 
+                    spatial_list = spatial_list)
   
   return(paramList)
   
@@ -222,9 +224,10 @@ Simulation_R <- function(paramList, seed)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==5)
+    if(length(paramList)==6)
     {
-      stopifnot(identical(names(paramList), c("years","ft","mu_vec","fv_vec","statePtr")))  
+      stopifnot(identical(names(paramList), 
+                          c("years","ft","mu_vec","fv_vec","statePtr", "spatial_list")))  
     }
     else 
     {

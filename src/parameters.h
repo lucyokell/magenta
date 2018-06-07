@@ -44,10 +44,10 @@ public:
   std::vector<int> g_spatial_exported_oocyst_frequencies;
   unsigned int g_spatial_total_exported_barcodes;
   unsigned int g_spatial_total_exported_oocysts;
-  unsigned int g_spatial_total_imported_barcodes;
-  unsigned int g_spatial_total_imported_oocysts;
-  unsigned int g_spatial_imported_barcode_counter;
-  unsigned int g_spatial_imported_oocyst_counter;
+  unsigned int g_spatial_total_imported_human_infections;
+  unsigned int g_spatial_total_imported_mosquito_infections;
+  unsigned int g_spatial_imported_human_infection_counter;
+  unsigned int g_spatial_imported_mosquito_infection_counter;
   unsigned int g_spatial_exported_barcode_counter;
   unsigned int g_spatial_exported_oocyst_counter;
   std::vector<boost::dynamic_bitset<> > g_spatial_exported_barcodes;
@@ -57,7 +57,8 @@ public:
   
   unsigned int g_total_human_infections;
   unsigned int g_total_mosquito_infections;
-  
+  double g_percentage_imported_human_infections;
+  double g_percentage_imported_mosquito_infections;
   
   // demographic parameters;
   unsigned int g_N;

@@ -356,7 +356,7 @@ plot_prevalence <- function(res){
   l <- length(res)
   prev <- rep(0, l-1)
   
-  if(length(names(res[[1]])==6)){
+  if(length(names(res[[1]]))==6){
     n <- length(res[[1]]$Infection_States)
     for(i in 1:(l-1)){
       prev[i] <-  sum(res[[i]]$Infection_States %in% c(1,2,3,4))/n

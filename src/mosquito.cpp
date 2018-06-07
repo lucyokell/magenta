@@ -17,12 +17,14 @@ Mosquito::Mosquito(const Parameters &parameters) :
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Allocate male and female gameteocyte resulting froom biting infected human
-void Mosquito::allocate_gametocytes(const Parameters &parameters, std::vector<boost::dynamic_bitset<>> gametocytes)
+void Mosquito::allocate_gametocytes(const Parameters &parameters,
+                                    boost::dynamic_bitset<> &gam_1,
+                                    boost::dynamic_bitset<> &gam_2)
 {
   // Push gametocyte barcodes and time of bursting
   
-  m_oocyst_barcode_male_vector.emplace_back(gametocytes[0]);
-  m_oocyst_barcode_female_vector.emplace_back(gametocytes[1]);
+  m_oocyst_barcode_male_vector.emplace_back(gam_1);
+  m_oocyst_barcode_female_vector.emplace_back(gam_2);
   m_oocyst_rupture_time_vector.emplace_back(parameters.g_current_time + static_cast<int>(parameters.g_delay_mos));
   
   // Update infection status if mosquito is susceptible

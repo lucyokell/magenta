@@ -209,7 +209,9 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Allocate male and female gameteocyte resulting froom biting infected human
-  void allocate_gametocytes(const Parameters &parameters, std::vector<boost::dynamic_bitset<>> gametocytes);
+  void allocate_gametocytes(const Parameters &parameters, 
+                            boost::dynamic_bitset<> &gam_1,
+                            boost::dynamic_bitset<> &gam_2);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SCHEDULERS 

@@ -253,15 +253,11 @@ spl_create <- function(spatial_type = 0,
     hum_imp_rate <- sum(human_importation_rate_vector,na.rm=TRUE)
     mos_imp_rate <- sum(mosquito_imporation_rate_vector,na.rm=TRUE)
     
-    # therefore we frst want to work out the number of transmission events that are due to importation and how large
-    imported_cotransmission_events <- rep_len(cotransmission_freq_vector,num_human_infs*hum_imp_rate)
-    imported_oocyst_events <- rep_len(oocyst_freq_vector,num_mos_infs*mos_imp_rate)
-    
     spatial_list <- list("spatial_type" = spatial_type,
                          "cotransmission_freq_vector" = cotransmission_freq_vector,
                          "oocyst_freq_vector" = oocyst_freq_vector,
-                         "imported_cotransmissions_events"=imported_cotransmission_events,
-                         "imported_oocyst_events"=imported_oocyst_events)
+                         "imported_cotransmissions_events"=hum_imp_rate,
+                         "imported_oocyst_events"=mos_imp_rate)
     
     # if metapop sspatial
   } else {
@@ -296,8 +292,8 @@ spl_create <- function(spatial_type = 0,
     spatial_list <- list("spatial_type" = spatial_type,
                          "cotransmission_freq_vector" = cotransmission_freq_vector,
                          "oocyst_freq_vector" = oocyst_freq_vector,
-                         "imported_cotransmissions_events"=imported_cotransmission_events,
-                         "imported_oocyst_events"=imported_oocyst_events)
+                         "imported_cotransmissions_events"=c(0,imported_cotransmission_events),
+                         "imported_oocyst_events"=c(0,imported_oocyst_events))
     
     
   }
