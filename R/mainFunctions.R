@@ -11,7 +11,8 @@
 #' @param spatial_list Spatial parmeters to come in
 #' @export
 
-Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms, spatial_list)
+Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms, 
+                                              spatial_list, housekeeping_list)
 {
   
   ## CHECKS ##
@@ -36,7 +37,9 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms, sp
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(N = N, eqSS = eqSS, barcode_parms = barcode_parms, spatial_list = spatial_list)
+  paramList <- list(N = N, eqSS = eqSS, barcode_parms = barcode_parms, 
+                    spatial_list = spatial_list,
+                    housekeeping_list = housekeeping_list)
   
   return(paramList)
   
@@ -176,7 +179,7 @@ Simulation_R <- function(paramList, seed)
 {
   
   # check that this function is working
-  print("R function is working!")
+  #print("R function is working!")
   stopifnot(is.list(paramList))
   
   ## Decide whether the paramList is from initialisation, memory-continutation or continuation
@@ -188,17 +191,17 @@ Simulation_R <- function(paramList, seed)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==4)
+    if(length(paramList)==5)
     {
-      stopifnot(identical(names(paramList), c("N","eqSS","barcode_parms","spatial_list")))  
+      stopifnot(identical(names(paramList), c("N","eqSS","barcode_parms","spatial_list", "housekeeping_list")))  
     }
     # if it is length one it may be an unpacked list in which case unpack and check
     # this might happen in the future when a list of paramLists is fed directly to this
     # fucntion in a cluster way
-    else if(length(paramList)==1)
+    else if(length(paramList)==5)
     {
       paramList <- paramList[[1]]
-      stopifnot(identical(names(paramList), c("N", "eqSS", "barcode_parms","spatial_list")))  
+      stopifnot(identical(names(paramList), c("N", "eqSS", "barcode_parms","spatial_list", "housekeeping_list")))  
     } 
     else 
     {
@@ -209,7 +212,6 @@ Simulation_R <- function(paramList, seed)
     
     # call Rcpp command with input list
     set.seed(seed)
-    message(runif(1,0,1))
     rawOutput <- Simulation_Init_cpp(paramList)
     
     # ----------------------------------------------------------------------- #

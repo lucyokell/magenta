@@ -5,11 +5,13 @@
 #' @param PfPR_micro Parasite prevaence by microscopy (Default = NULL)
 #' @param mv Mosquito size if it's known. Default = NULL
 #' @param ft Treatment seeking
+#' @param ... Any other params to be fed to the model parameter list
 #' 
 
-PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,ft){
+PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
+                                  ft, ...){
   
-  mpl <- Model_Param_List_Create(eta = 1/(21*365))
+  mpl <- Model_Param_List_Create(eta = 1/(21*365),...)
   
   num_het_brackets <- 5
   num_age_brackets <- 20

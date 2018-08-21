@@ -7,10 +7,11 @@ Results
 plots
 ^Results$
 ^plots$
-^tutorials$
+^tutorials/
 tutorials
 ^data-raw$
 ^.*\.rds$
 inst/include
 ^scripts/
 ^data-raw/
+^TODO\.md$

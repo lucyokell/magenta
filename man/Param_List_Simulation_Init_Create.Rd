@@ -5,7 +5,7 @@
 \title{Parameter List creation for MAGENTA simulation initialisation}
 \usage{
 Param_List_Simulation_Init_Create(N = 10000, eqSS, barcode_parms,
-  spatial_list)
+  spatial_list, housekeeping_list)
 }
 \arguments{
 \item{N}{Population size. Default = 1e4}

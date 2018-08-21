@@ -4,8 +4,8 @@
 \alias{COI_age_plot_sample_x}
 \title{Plot COI against age from random sample}
 \usage{
-COI_age_plot_sample_x(Sample_COI_out, x, span = span, ylimmax = NULL,
-  xlimmax = NULL, plot = TRUE)
+COI_age_plot_sample_x(Sample_COI_out, x, span = 0.6, ylimmax = NULL,
+  xlimmax = NULL)
 }
 \arguments{
 \item{Sample_COI_out}{Output of Sample_COI}

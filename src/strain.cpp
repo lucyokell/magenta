@@ -180,7 +180,7 @@ boost::dynamic_bitset<> Strain::generate_recombinant_barcode(boost::dynamic_bits
 }
 
 // Generate a random barcode given probability of each SNP, i.e. PLAF
-boost::dynamic_bitset<> Strain::generate_random_barcode_given_SNP_frequencies(std::vector<double> x)
+boost::dynamic_bitset<> Strain::generate_random_barcode_given_SNP_frequencies(std::vector<double> &x)
 {
   // create and fill the temp barcode
   for(unsigned int i = 0; i < Parameters::g_barcode_length ; i++){
@@ -210,6 +210,31 @@ boost::dynamic_bitset<> Strain::replicate_by_bit(boost::dynamic_bitset<> x, unsi
   // return barcode
   return(Strain::temp_barcode);
 }
+
+// Turns our ibd barcode into a vector of the ints making it up
+std::vector<unsigned long> Strain::ibd_barcode_to_integer_vector(boost::dynamic_bitset<> x)
+{
+  
+  unsigned long mask = 1;
+  unsigned long result = 0;
+  std::vector<unsigned long> vec(Parameters::g_num_loci);
+  
+  for(unsigned int j = 0; j < Parameters::g_num_loci; j++)
+  {
+    mask = 1;
+    result = 0;
+  for (size_t i = (0+((j)*Parameters::g_ibd_length)); i < ((j+1)*Parameters::g_ibd_length); ++ i) {
+    if (x.test(i))
+      result |= mask;
+    mask <<= 1;
+  }
+  vec[j] = result;
+  }
+  // return barcode
+  return(vec);
+}
+
+// TESTS -----------------------------------------------------------------------
 
 // PLAF test
 // [[Rcpp::export]]
@@ -264,6 +289,25 @@ SEXP test_generate_next_ibd(unsigned int bl, unsigned int nl,
   Strain::temp_identity_barcode = boost::dynamic_bitset<>(Parameters::g_ibd_length);
   boost::dynamic_bitset<> barcode_a = Strain::generate_next_ibd_barcode();
   return(bitset_to_sexp(barcode_a));
+}
+
+// ibd to vector of ints
+// [[Rcpp::export]]
+Rcpp::List test_ibd_conversion(SEXP barcode, unsigned int bl, 
+                        unsigned int nl,
+                        unsigned int ib
+)
+{
+  Parameters::g_barcode_length = bl;
+  Parameters::g_num_loci = nl;
+  Parameters::g_ibd_length = ib;
+  Parameters::g_barcode_type = Parameters::IBD;
+  
+  Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
+  
+  boost::dynamic_bitset<> barcode_a = sexp_to_bitset(barcode, bl);
+  std::vector<unsigned long> res(Strain::ibd_barcode_to_integer_vector(barcode_a));
+  return(Rcpp::List::create(Rcpp::Named("vec") = res));
 }
 
 

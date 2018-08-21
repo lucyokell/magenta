@@ -92,6 +92,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_ibd_conversion
+Rcpp::List test_ibd_conversion(SEXP barcode, unsigned int bl, unsigned int nl, unsigned int ib);
+RcppExport SEXP _MAGENTA_test_ibd_conversion(SEXP barcodeSEXP, SEXP blSEXP, SEXP nlSEXP, SEXP ibSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type barcode(barcodeSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type bl(blSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type nl(nlSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type ib(ibSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_ibd_conversion(barcode, bl, nl, ib));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_bitset_serialisation
 SEXP test_bitset_serialisation(SEXP x, unsigned int n);
 RcppExport SEXP _MAGENTA_test_bitset_serialisation(SEXP xSEXP, SEXP nSEXP) {
@@ -113,6 +127,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_MAGENTA_test_barcode_from_PLAF", (DL_FUNC) &_MAGENTA_test_barcode_from_PLAF, 2},
     {"_MAGENTA_test_recombinant_with_ibd", (DL_FUNC) &_MAGENTA_test_recombinant_with_ibd, 6},
     {"_MAGENTA_test_generate_next_ibd", (DL_FUNC) &_MAGENTA_test_generate_next_ibd, 5},
+    {"_MAGENTA_test_ibd_conversion", (DL_FUNC) &_MAGENTA_test_ibd_conversion, 4},
     {"_MAGENTA_test_bitset_serialisation", (DL_FUNC) &_MAGENTA_test_bitset_serialisation, 2},
     {NULL, NULL, 0}
 };

@@ -37,7 +37,7 @@ public:
   };
   
   bool m_mosquito_infected = false;					// bool for infection speed
-  bool m_mosquito_biting_today = false;
+  bool m_mosquito_biting_today = false;     // bool for bting day
   
 private:
   
@@ -50,8 +50,10 @@ private:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   std::vector<unsigned short int> m_oocyst_rupture_time_vector;	// First oocyst in mosquito at position 0 etc vector to store pending sporozoite times, i.e. day of biting + 10
-  std::vector<boost::dynamic_bitset<>> m_oocyst_barcode_male_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from male
-  std::vector<boost::dynamic_bitset<>> m_oocyst_barcode_female_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from female
+  std::vector<boost::dynamic_bitset<> > m_oocyst_barcode_male_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from male
+  std::vector<boost::dynamic_bitset<> > m_oocyst_barcode_female_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from female
+  std::vector<boost::dynamic_bitset<> > m_generated_sporozoites_vector; // Sporozites that have already been simulated for this mosquito
+  unsigned short int m_generated_sporozoite_count = 0;						// Count of spz generated. 
   
   unsigned short int m_day_of_death = 0;						// Mosquito's time of death
   unsigned short int m_day_of_next_blood_meal = 0;			// Mosquito's day of next blood meal, i.e. day of current blood meal + 3
@@ -97,11 +99,17 @@ public:
   // Get Mosquito's ruptured oocyst count
   int get_m_ruptured_oocyst_count() { return(m_ruptured_oocyst_count); }
   
+  // Get Mosquito's ruptured oocyst count
+  int get_m_generated_sporozoite_count() { return(m_generated_sporozoite_count); }
+  
   // Get Mosquito's oocyst male barcode given a chosen oocyst count
   boost::dynamic_bitset<> get_m_oocyst_barcode_male_vector(int x) { return(m_oocyst_barcode_male_vector[x]); }
   
   // Get Mosquito's oocyst female barcode given a chosen oocyst count
   boost::dynamic_bitset<> get_m_oocyst_barcode_female_vector(int x) { return(m_oocyst_barcode_female_vector[x]); }
+  
+  // Get Mosquito's sporozoite x
+  boost::dynamic_bitset<> get_m_generated_sporozoites_vector(int x) { return(m_generated_sporozoites_vector[x]); }
   
   // Get Mosquito's oocyst rupture time vector
   std::vector<unsigned short int> get_m_oocyst_rupture_time_vector() { return(m_oocyst_rupture_time_vector); }
@@ -135,6 +143,9 @@ public:
   void set_m_day_of_next_event(int x) { m_day_of_next_event = x; }
   
   // Set Mosquito's ruptured oocyst count
+  void set_m_generated_sporozoite_count(int x) { m_generated_sporozoite_count = x; }
+  
+  // Set Mosquito's ruptured oocyst count
   void set_m_ruptured_oocyst_count(int x) { m_ruptured_oocyst_count = x; }
   
   // Set Mosquito's ruptured oocyst male barcode by emplacing to back
@@ -142,6 +153,9 @@ public:
   
   // Set Mosquito's ruptured oocyst female barcode by emplacing to back
   void set_m_oocyst_barcode_female_vector(boost::dynamic_bitset<> x) { m_oocyst_barcode_female_vector.emplace_back(x); }
+  
+  // Set Mosquito's new sporozoite by emplacing to back
+  void set_m_generated_sporozoites_vector(boost::dynamic_bitset<> x) { m_generated_sporozoites_vector.emplace_back(x); }
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // CHECKERS
@@ -205,7 +219,7 @@ public:
   }
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // ALLOCATIONS
+  // ALLOCATIONS ETC
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Allocate male and female gameteocyte resulting froom biting infected human
@@ -216,6 +230,12 @@ public:
   // Handle bite, i.e. allocating gametocytes and other housekeeping
   void handle_bite(Parameters &parameters, Person &person);
   
+  // Allocate sporozoite arising from importation
+  void allocate_imported_sporozoite(boost::dynamic_bitset<> x); 
+  
+  // Sample one sporozoite to be passed on to the human
+  boost::dynamic_bitset<> sample_sporozoite();
+    
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SCHEDULERS 
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

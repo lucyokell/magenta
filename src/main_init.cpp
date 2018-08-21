@@ -55,9 +55,6 @@ struct Universe {
 Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
 {
   
-  // prove that C++ code is being run
-  Rcpp::Rcout << "Rcpp function is working!\n";
-  
   // Initialise parameters object
   Parameters parameters;
   
@@ -72,6 +69,13 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   Rcpp::List eqSS = paramList["eqSS"];
   Rcpp::List barcode_parms  = paramList["barcode_parms"];
   Rcpp::List spatial_list  = paramList["spatial_list"];
+  Rcpp::List housekeeping_list  = paramList["housekeeping_list"];
+  
+  // Un pack housekeeping parms
+  parameters.g_h_quiet_print = Rcpp::as<bool>(housekeeping_list["quiet_print"]);
+  
+  // prove that C++ code is being run
+  rcpp_out(parameters.g_h_quiet_print, "Rcpp function is working!\n");
   
   // Un pack barcode parms
   parameters.g_num_loci = Rcpp::as<unsigned int>(barcode_parms["num_loci"]);
@@ -89,7 +93,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(Rcpp::as<unsigned int>(spatial_list["spatial_type"]));
   parameters.g_theta = Rcpp::as<vector<double> >(eqSS["theta"]);
   
-  Rcpp::Rcout << "Running model of " << parameters.g_spatial_type << " spatial type.\n";
+  rcpp_out(parameters.g_h_quiet_print, "Running model of " + enum_spatial_convert(parameters.g_spatial_type) + " spatial type.\n");
 
   // Mosquito steady state values at a population level
   double Sv = Rcpp::as<double>(eqSS["Sv"]);
@@ -116,10 +120,10 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   parameters.g_scourge_today = parameters.g_mean_mv * parameters.g_theta[parameters.g_calendar_day];
   
   
-  Rcpp::Rcout << "Mean mv = " << parameters.g_mean_mv << "!\n";
-  Rcpp::Rcout << "Sv = " << Sv << "!\n";
-  Rcpp::Rcout << "Ev = " << Ev << "!\n";
-  Rcpp::Rcout << "Iv = " << Iv << "!\n";
+  rcpp_out(parameters.g_h_quiet_print, "Mean mv = " + std::to_string(parameters.g_mean_mv) + "!\n");
+  rcpp_out(parameters.g_h_quiet_print, "Sv = " + std::to_string(Sv) + "!\n");
+  rcpp_out(parameters.g_h_quiet_print, "Ev = " + std::to_string(Ev) + "!\n");
+  rcpp_out(parameters.g_h_quiet_print, "Iv = " + std::to_string(Iv) + "!\n");
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: INITIALISATION
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -144,7 +148,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  Rcpp::Rcout << "Matrix unpacking working!\n";
+  rcpp_out(parameters.g_h_quiet_print, "Matrix unpacking working!\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: HUMAN INITIALISATION FROM EQUILIBRIUM
@@ -254,19 +258,20 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       population[n].set_m_number_of_realised_infections(population[n].get_m_number_of_strains());
       population[n].schedule_m_day_of_strain_clearance(parameters);
       
-      Strain::temp_barcode = Strain::generate_next_barcode();
-      
       // If they are treated the strains we allocate should have no state change
       if (population[n].get_m_infection_state() == Person::TREATED)
       {
         for (int s = 0; s < population[n].get_m_number_of_strains(); s++)
         {
+          
+          Strain::temp_barcode = Strain::generate_next_barcode();
+          
           temp_strains.push_back( 
             Strain(
               Strain::temp_barcode,
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
               0,
-              0
+              -13
             )
           );
         }
@@ -276,12 +281,15 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       {
         for (int s = 0; s < population[n].get_m_number_of_strains(); s++)
         {
+          
+          Strain::temp_barcode = Strain::generate_next_barcode();
+          
           temp_strains.push_back(
             Strain(
               Strain::temp_barcode,
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
               population[n].get_m_day_of_InfectionStatus_change(),
-              0
+              -13
             )
           );
         }
@@ -320,7 +328,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // END: HUMAN INITIALISATION FROM EQUILIBRIUM
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Human initilisation working\n";
+  rcpp_out(parameters.g_h_quiet_print, "Human initilisation working\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: MOSQUITO INITIALISATION FROM EQUILIBRIUM
@@ -344,9 +352,9 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   }
   
   
-  Rcpp::Rcout << "Mosquito preallocation initilisation working\n";
-  Rcpp::Rcout << scourge.capacity() << "\n";
-  Rcpp::Rcout << infected_human_count.size() << "\n";
+  rcpp_out(parameters.g_h_quiet_print, "Mosquito preallocation initilisation working\n");
+  rcpp_out(parameters.g_h_quiet_print, std::to_string(scourge.capacity()) + "\n");
+  rcpp_out(parameters.g_h_quiet_print, std::to_string(infected_human_count.size()) + "\n");
   
   // mosquito initialisation
   for (unsigned int n = 0; n < scourge.capacity(); n++)
@@ -377,8 +385,9 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       // If human has more than one strain then pick random strain for both male and female mosquito barcode
       else
       {
-        scourge[n].set_m_oocyst_barcode_male_vector(population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode());
-        scourge[n].set_m_oocyst_barcode_female_vector(population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode());
+        int temp_choice = runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1);
+        scourge[n].set_m_oocyst_barcode_male_vector(population[infected_human_count[parent_source]].get_m_person_strain_x(temp_choice).get_m_barcode());
+        scourge[n].set_m_oocyst_barcode_female_vector(population[infected_human_count[parent_source]].get_m_person_strain_x(temp_choice).get_m_barcode());
       }
 
       // exported barcodes vector add barcode
@@ -407,7 +416,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       // If human has only one strain then assign the first strain
       if (population[infected_human_count[parent_source]].get_m_number_of_strains() == 1)
       {
-        pending_oocyst_time[0] = static_cast<unsigned short int>(runiform_int_1(parameters.g_current_time, static_cast<int>(parameters.g_delay_mos)) + 1);
+        pending_oocyst_time[0] = static_cast<unsigned short int>(runiform_int_1(parameters.g_current_time, static_cast<int>(parameters.g_delay_mos)-7));
         pending_oocyst_barcode_male[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode();
         pending_oocyst_barcode_female[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode();
         scourge[n].set_m_oocyst_rupture_time_vector(pending_oocyst_time);
@@ -438,7 +447,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // END: MOSQUITO INITIALISATION FROM EQUILIBRIUM
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Mosquito initilisation working\n";
+  rcpp_out(parameters.g_h_quiet_print, "Mosquito initilisation working\n");
   
 
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -524,12 +533,12 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   }
   
   // divide by population size and log counter and print to give overview
-  Rcpp::Rcout << "S | D | A | U | T | P:\n" ;
+  rcpp_out(parameters.g_h_quiet_print, "S | D | A | U | T | P:\n");
   
   for (int element = 0; element < 6; element++) 
   {
     status_eq[element] /= (parameters.g_N);
-    Rcpp::Rcout << status_eq[element] << " | ";
+    rcpp_out(parameters.g_h_quiet_print, std::to_string(status_eq[element]) + " | ");
   }
   
   // Create Rcpp loggers list

@@ -4,7 +4,8 @@
 \alias{COI_df_create}
 \title{Create COI dataframe}
 \usage{
-COI_df_create(sim_save, groupvars = c("Age_Bin", "State"), barcodes = FALSE)
+COI_df_create(sim_save, groupvars = c("Age_Bin", "State"), barcodes = FALSE,
+  ibd = 0, nl = 24)
 }
 \arguments{
 \item{sim_save}{Output of a simulation save}

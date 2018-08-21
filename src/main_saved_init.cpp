@@ -52,9 +52,6 @@ struct Universe {
 Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
 {
   
-  // prove that C++ code is being run
-  Rcpp::Rcout << "Rcpp function is working!\n";
-  
   // Initialise parameters
   Parameters parameters;
   
@@ -64,6 +61,11 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   Rcpp::List populations_event_and_strains_List = savedState["populations_event_and_strains_List"];
   Rcpp::List scourge_List = savedState["scourge_List"];
   Rcpp::List parameters_List = savedState["parameters_List"];
+  
+  
+  // prove that C++ code is being run
+  parameters.g_h_quiet_print = Rcpp::as<bool>(parameters_List["g_h_quiet_print"]);
+  rcpp_out(parameters.g_h_quiet_print, "Rcpp function is working!\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: R -> C++ CONVERSIONS: parameters
@@ -98,7 +100,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // END: R -> C++ CONVERSIONS: parameters
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Paremeter list conversion is working!\n";
+  rcpp_out(parameters.g_h_quiet_print, "Paremeter list conversion is working!\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: INITIALISATION
@@ -157,7 +159,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // END: R -> C++ CONVERSIONS: humans
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Human list conversions are working!\n";
+  rcpp_out(parameters.g_h_quiet_print, "Human list conversions are working!\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: R -> C++ CONVERSIONS: mosquitos
@@ -180,7 +182,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   
-  Rcpp::Rcout << "Mosquito list unpacking working!\n";
+  rcpp_out(parameters.g_h_quiet_print, "Mosquito list unpacking working!\n");
   
   // Use read in R equilibrium state to then allocate each individual accordingly given tehir age and biting heterogeneity
   
@@ -288,13 +290,13 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // END: HUMAN FETCHING
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Human fetching working\n";
+  rcpp_out(parameters.g_h_quiet_print, "Human fetching working\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: MOSQUITO FETCHING
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Pre mosquito-fetching working!\n";
+  rcpp_out(parameters.g_h_quiet_print, "Pre mosquito-fetching working!\n");
   int test = 0;
   for (unsigned int n=0; n < scourge_size; n++) 
   {
@@ -305,6 +307,9 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     
     // Set infection state
     scourge[n].set_m_mosquito_infection_state(static_cast<Mosquito::InfectionStatus>(Mosquito_Infection_States[n]));
+    if(scourge[n].get_m_mosquito_infection_state() == Mosquito::INFECTED){
+      scourge[n].m_mosquito_infected = true;
+    }
     
     // Set number of ruptured oocysts
     scourge[n].set_m_ruptured_oocyst_count(Mosquito_Number_of_ruptured_oocysts[n]);
@@ -315,7 +320,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     scourge[n].set_m_mosquito_off_season(Mosquito_Off_Season[n]);
     
     if(test ==0){
-      Rcpp::Rcout << "Pre-mosquito_vectors working\n";
+      rcpp_out(parameters.g_h_quiet_print, "Pre-mosquito_vectors working\n");
       test=1;
     }
     
@@ -334,7 +339,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   // END: MOSQUITO FETCHING
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Mosquito fetching working\n";
+  rcpp_out(parameters.g_h_quiet_print, "Mosquito fetching working\n");
   
   /*
   
@@ -400,12 +405,12 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   }
   
   // divide by population size and log counter and print to give overview
-  Rcpp::Rcout << "S | D | A | U | T | P:\n" ;
+  rcpp_out(parameters.g_h_quiet_print, "S | D | A | U | T | P:\n");
   
   for (int element = 0; element < 6; element++) 
   {
     status_eq[element] /= (parameters.g_N);
-    Rcpp::Rcout << status_eq[element] << " | ";
+    rcpp_out(parameters.g_h_quiet_print, std::to_string(status_eq[element]) + " | ");
   }
   
   // Create Rcpp loggers list

@@ -52,9 +52,7 @@ struct Universe {
 Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
 {
   
-  // prove that C++ code is being run
-  Rcpp::Rcout << "Rcpp function is working!\n";
-  
+ 
   // start timer
   chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
   
@@ -64,6 +62,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
   // Create universe pointer from paramList statePtr
   Rcpp::XPtr<Universe> u_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (paramList["statePtr"]);
+  
+  // prove that C++ code is being run
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "Rcpp function is working!\n");
   
   // Initialise all the universal variables from the statePtr provided
   u_ptr->parameters.g_years = Rcpp::as<double>(paramList["years"]);
@@ -117,20 +118,20 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   // END: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Pointer unpacking working!\n";
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "Pointer unpacking working!\n");
   double Scount = 0;
   for(auto &element : u_ptr->population){
     if(element.get_m_infection_state()==Person::SUSCEPTIBLE){
       Scount++;
     }
   }
-  Rcpp::Rcout << "Starting susceptible population: " << Scount/u_ptr->parameters.g_N << "\n";
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "Starting susceptible population: " + std::to_string(Scount/u_ptr->parameters.g_N) + "\n");
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: TIMERS AND PRE LOOP
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  Rcpp::Rcout << "Time elapsed in initialisation: " << duration << " seconds\n";
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "Time elapsed in initialisation: " + std::to_string(duration) + " seconds\n");
   
   // End of simulation time
   int g_end_time = u_ptr->parameters.g_current_time + (u_ptr->parameters.g_years * 365);
@@ -146,6 +147,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
   // status eq for logging and other logging variables
   std::vector<double> status_eq = { 0,0,0,0,0,0 };
+  std::vector<double> mosq_status_eq = { 0,0,0,0,0,0 };
   unsigned int log_counter = 0;
   double total_incidence = 0;
   double total_incidence_05 = 0;
@@ -188,7 +190,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // Counter print
     if (u_ptr->parameters.g_current_time % 100 == 0) 
     { 
-      Rcpp::Rcout << u_ptr->parameters.g_current_time << " days" << "\n"; 
+      rcpp_out(u_ptr->parameters.g_h_quiet_print, std::to_string(u_ptr->parameters.g_current_time) + " days" + "\n"); 
     }
     
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -248,7 +250,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // PARALLEL_TODO: This loop could easily be parallelised as each person will not require any shared memory (except for u_ptr->parameters)
     
     // Human update loop
-    // Rcpp::Rcout << "Human loop" << "\n"; 
+    // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Human loop" + "\n"); 
     for (human_update_i = 0; human_update_i < u_ptr->parameters.g_N; human_update_i++)
     {
       psi_sum += u_ptr->psi_vector[human_update_i] = u_ptr->population[human_update_i].update(u_ptr->parameters);
@@ -272,7 +274,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     temp_deficit = (u_ptr->parameters.g_mosquito_deficit > 0) ? (u_ptr->parameters.g_scourge_today + u_ptr->parameters.g_mosquito_deficit) : u_ptr->parameters.g_scourge_today;
     
     // loop through the mosquitos up to the number that should be active today
-    // Rcpp::Rcout << "Mosquito loop" << "\n"; 
+    // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Mosquito loop" + "\n"); 
     for (mosquito_update_i = 0; mosquito_update_i < temp_deficit; mosquito_update_i++)
     {
       // if the mosquito considered is more than needed then set to off season
@@ -283,6 +285,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
       }
       else // otherwise update the mosquito
       {
+        
         // if the mosquito is off season and we are considering it, i.e. we need it then set it equal to a random mosquito
         // and check if that mosquito is biting today by just looking at its next blood meal time as it will have already been 
         // updated.
@@ -305,7 +308,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
       }
     }
     
-    // Rcpp::Rcout << "Shuffle bite queue" << "\n"; 
+    // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Shuffle bite queue" + "\n"); 
     // shuffle the bite queue otherwise you will introduce stepping-stone-esque genetic structuring
     shuffle_integer_vector(mosquito_biting_queue);
     
@@ -384,13 +387,13 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // ALLOCATE BITES
     // --------------------------------------------------------------------------------------------------------------------------------------------------
     
-    // Rcpp::Rcout << "Bite allocation" << "\n"; 
+    // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Bite allocation" + "\n"); 
     // PARALLEL_TODO: Don't know how this could be parallelised yet - come back to with mosquitos in.
     for (num_bites_i = 0; num_bites_i < num_bites; num_bites_i++)
     {
       
       // allocate bite to human if mosquito is infected
-      if (u_ptr->scourge[mosquito_biting_queue[num_bites_i]].m_mosquito_infected) 
+      if (u_ptr->scourge[mosquito_biting_queue[num_bites_i]].get_m_mosquito_infection_state() == Mosquito::INFECTED) 
       {
         u_ptr->population[bite_storage_queue[num_bites_i]].allocate_bite(u_ptr->parameters, u_ptr->scourge[mosquito_biting_queue[num_bites_i]]);
         if ( u_ptr->parameters.g_current_time > g_end_time - 7) daily_bite_counters++;
@@ -415,8 +418,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
     // Log the last week //
     
-    if (u_ptr->parameters.g_current_time > g_end_time - 7)
-    {
+     if (u_ptr->parameters.g_current_time > g_end_time - 7)
+     {
       
       log_counter++;
       
@@ -461,6 +464,26 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
         }
         
       }
+      
+      for (auto &element : u_ptr->scourge)
+      {
+        // Match infection state and schedule associated next state change
+        switch (element.get_m_mosquito_infection_state())
+        {
+        case Mosquito::SUSCEPTIBLE:
+          mosq_status_eq[0]++;
+          break;
+        case Mosquito::EXPOSED :
+          mosq_status_eq[1]++;
+          break;
+        case Mosquito::INFECTED:
+          mosq_status_eq[2]++;
+          break;
+        default:
+          assert(NULL && "Schedule Infection Status Change Error - mosquito's infection status not S, E, I");
+        break;
+        }
+      }
     }
     
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -475,7 +498,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
   t1 = std::chrono::high_resolution_clock::now();
   duration = std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  Rcpp::Rcout << "Time elapsed total: " << duration << " seconds\n";
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "Time elapsed total: " + std::to_string(duration) + " seconds\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SUMMARY LOGGING AVERAGING AND VARIABLE RETURN
@@ -486,7 +509,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   std::vector<SEXP>  Exported_Barcodes(u_ptr->parameters.g_spatial_total_exported_barcodes);
   if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
-    
+  
     for(unsigned int temp_status_iterator = 0; temp_status_iterator < u_ptr->parameters.g_spatial_total_exported_barcodes ; temp_status_iterator++)
     {
       Exported_Barcodes[temp_status_iterator] = bitset_to_sexp(u_ptr->parameters.g_spatial_exported_barcodes[temp_status_iterator]);
@@ -495,12 +518,12 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   }
   
   // divide by population size and log counter and print to give overview
-  Rcpp::Rcout << "S | D | A | U | T | P:\n" ;
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "S | D | A | U | T | P:\n");
   
   for (int element = 0; element < 6; element++) 
   {
     status_eq[element] /= (u_ptr->parameters.g_N * log_counter);
-    Rcpp::Rcout << status_eq[element] << " | ";
+    rcpp_out(u_ptr->parameters.g_h_quiet_print, std::to_string(status_eq[element]) + " | ");
   }
   
   
@@ -530,17 +553,24 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
   }
   
-  Rcpp::Rcout << "\n Ages and Immunity Done \n";
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "\n Ages and Immunity Done \n");
   
   // Create Rcpp loggers list
   Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
-                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],Rcpp::Named("Incidence")=total_incidence/log_counter,
-                                          Rcpp::Named("Incidence_05")=total_incidence_05/log_counter,Rcpp::Named("InfectionStates")=Infection_States,Rcpp::Named("Ages")=Ages,
-                                                      Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID,
-                                                                  Rcpp::Named("Daily_Bites")=daily_bite_counters/log_counter);
+                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
+                                          Rcpp::Named("Incidence")=total_incidence/log_counter,
+                                          Rcpp::Named("Incidence_05")=total_incidence_05/log_counter, 
+                                          Rcpp::Named("InfectionStates")=Infection_States, 
+                                          Rcpp::Named("Ages")=Ages, 
+                                          Rcpp::Named("IB")=IB, 
+                                          Rcpp::Named("ICA")=ICA, 
+                                          Rcpp::Named("ICM")=ICM, 
+                                          Rcpp::Named("ID")=ID,
+                                          Rcpp::Named("Daily_Bites")=daily_bite_counters/log_counter,
+                                          Rcpp::Named("Mos_S")=mosq_status_eq[0], Rcpp::Named("Mos_E")=mosq_status_eq[1], Rcpp::Named("Mos_I")=mosq_status_eq[2]);
   
   
-  Rcpp::Rcout << "\n Loggers Done \n";
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "\n Loggers Done \n");
   
   // Return Named List with pointer and loggers
   // If spatial also required then export the barcodes

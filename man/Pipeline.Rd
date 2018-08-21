@@ -4,18 +4,20 @@
 \alias{Pipeline}
 \title{Pipeline for cluster submission}
 \usage{
-Pipeline(EIR = 120, ft = 0.4, N = 1e+05, years = 20,
-  update_length = 365, country = NULL, admin = NULL,
-  use_historic_interventions = FALSE, spatial_type = NULL,
+Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
+  survival_percentage = 0.18, oocyst_mean = 5, oocyst_shape = 5,
+  N = 1e+05, years = 20, update_length = 365, country = NULL,
+  admin = NULL, use_historic_interventions = FALSE, spatial_type = NULL,
   redis_host = "fi--dideclusthn.dide.ic.ac.uk", spatial_uuid = NULL,
   spatial_incidence_vector = NULL, spatial_mosquitoFOI_vector = NULL,
   num_loci = 24, ibd_length = 1, plaf = rep(0.5, num_loci),
-  prob_crossover = rep(0.5, num_loci), num_het_brackets = 20,
+  prob_crossover = rep(0.5, num_loci), num_het_brackets = 5,
   num_age_brackets = 20, geometric_age_brackets = TRUE, max_age = 100,
   use_odin = FALSE, mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
-  human_only_full_save = FALSE, yearly_save = FALSE,
-  human_yearly_save = FALSE, summary_saves_only = FALSE,
-  saved_state_path = NULL, seed = runif(1, 1, 10000))
+  human_only_full_save = FALSE, update_save = FALSE,
+  human_update_save = FALSE, summary_saves_only = FALSE,
+  set_up_only = FALSE, saved_state_path = NULL, seed = runif(1, 1, 10000),
+  housekeeping_list = housekeeping_list_create())
 }
 \arguments{
 \item{EIR}{Numeric for desired annual EIR. Default = 120}
@@ -74,7 +76,7 @@ Default = rep(0.5, num_loci)}
   barcode. Default = rep(0.5, num_loci)
 ## odin Params}
 
-\item{num_het_brackets}{Number of heterogeinity brackets to use in initialisation. Default = 200}
+\item{num_het_brackets}{Number of heterogeinity brackets to use in initialisation. Default = 5}
 
 \item{num_age_brackets}{Number of age brackets to use in initialisation. Default = 200}
 
@@ -93,9 +95,9 @@ first. Default = FALSE while the model is still buggy.}
 
 \item{human_only_full_save}{Boolean detailing whether just the human component of the simulation is saved within full_save. Default = FALSE}
 
-\item{yearly_save}{Boolean detailing whether the logging output is saved each update_length up to years. Default = FALSE}
+\item{update_save}{Boolean detailing whether the logging output is saved each update_length up to years. Default = FALSE}
 
-\item{human_yearly_save}{Boolean detailing if the human state is also saved during each update_length. Default = FALSE}
+\item{human_update_save}{Boolean detailing if the human state is also saved during each update_length. Default = FALSE}
 
 \item{summary_saves_only}{Boolean if summary tables about COI are saved within human yearly save only. Dataframes of age, clinical status
 binned COI.}

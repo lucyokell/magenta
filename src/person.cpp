@@ -130,7 +130,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
   }
   else
   {
-    // TODO: Introduce effective selfing here, by making a m_temp_active_strain_contribution, for which the position that 
+    // TODO: If we need selfing, then introduce effective selfing here, by making a m_temp_active_strain_contribution, for which the position that 
     // was drawn for the first barcode becomes x, such that p(selfing) = x/std::accumulate(m_temp_active_strain_contribution)
     return(std::vector<boost::dynamic_bitset<>> { m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode(), 
            m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode() });
@@ -291,7 +291,6 @@ void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
       
       // Allocate infection
       parameters.g_total_human_infections++;
-      // Rcpp::Rcout << "Allocate infection\n";
       allocate_infection(parameters, mosquito);
     }
   }
@@ -361,70 +360,61 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
   // Increase number of succesful bites
   m_number_of_succesful_bites++;
   
+  // Allocate strains being passed on
   for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
   {
-  
-  // Push the resultant state of infection
-  m_infection_state_realisation_vector.emplace_back(m_transition_vector[sample1(m_transition_probabilities, m_sum_transition_probabilities)]);
-  
-  // Push the resultant state change time
-  m_infection_time_realisation_vector.emplace_back(static_cast<int>(parameters.g_dur_E + parameters.g_current_time));
-  
-  // Allocate strains from mosquito
-  
-  // if we are doing spatial then use the exported barcodes first - the human biting quueue is shuffled so distributed across humans fine.
-  if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections)
-  {
     
-    // asign the exported barcode and increase the count
-    if(parameters.g_spatial_type == Parameters::METAPOPULATION)
-    {
-      m_infection_barcode_realisation_vector.emplace_back(parameters.g_spatial_imported_barcodes[parameters.g_spatial_imported_human_infection_counter]);
-    } 
-    else 
-    {
-      m_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());  
+    // if it is the first sporozoite then it is always taken. For successive sporozoites, we probabilistically decide based on their immunity
+    if(cotransmission == 0 || rbernoulli1(m_biting_success_rate)) {
+      
+      // Push the resultant state of infection
+      m_infection_state_realisation_vector.emplace_back(m_transition_vector[sample1(m_transition_probabilities, m_sum_transition_probabilities)]);
+      
+      // Push the resultant state change time
+      m_infection_time_realisation_vector.emplace_back(static_cast<int>(parameters.g_dur_E + parameters.g_current_time));
+      
+      // Allocate strains from mosquito
+      
+      // if we are doing spatial then use the exported barcodes first - the human biting quueue is shuffled so distributed across humans fine.
+      if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections)
+      {
+        
+        // asign the exported barcode and increase the count
+        if(parameters.g_spatial_type == Parameters::METAPOPULATION)
+        {
+          m_infection_barcode_realisation_vector.emplace_back(parameters.g_spatial_imported_barcodes[parameters.g_spatial_imported_human_infection_counter]);
+        } 
+        else 
+        {
+          m_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());  
+        }
+        
+        parameters.g_spatial_imported_human_infection_counter++;
+        
+      }
+      else 
+      {
+        
+        m_infection_barcode_realisation_vector.emplace_back(mosquito.sample_sporozoite());
+        
+        // export a barcode if doing metapopulation spatial
+        if(parameters.g_spatial_exported_barcode_counter < parameters.g_spatial_total_exported_barcodes)
+        {
+          parameters.g_spatial_exported_barcodes[parameters.g_spatial_exported_barcode_counter] = m_infection_barcode_realisation_vector.back();
+          parameters.g_spatial_exported_barcode_counter++;  
+        }
+        
+      }
+      
     }
-    parameters.g_spatial_imported_human_infection_counter++;
     
-  }
-  else 
-  {
-    if (mosquito.get_m_ruptured_oocyst_count() == 1)
-    {
-      m_infection_barcode_realisation_vector.emplace_back(
-        Strain::generate_recombinant_barcode(
-          mosquito.get_m_oocyst_barcode_male_vector(0),
-          mosquito.get_m_oocyst_barcode_female_vector(0)
-        )
-      );
-    }
-    else
-    {
-      m_infection_barcode_realisation_vector.emplace_back(
-        Strain::generate_recombinant_barcode(
-          mosquito.get_m_oocyst_barcode_male_vector(runiform_int_1(1, mosquito.get_m_ruptured_oocyst_count()) - 1),
-          mosquito.get_m_oocyst_barcode_female_vector(runiform_int_1(1, mosquito.get_m_ruptured_oocyst_count()) - 1)
-        )
-      );
-    }
+    // Increase cotransmission counter and catch for overflow
+    if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) parameters.g_cotransmission_frequencies_counter = 0;
     
-    // export a barcode if doing metapopulation spatial
-    if(parameters.g_spatial_exported_barcode_counter < parameters.g_spatial_total_exported_barcodes)
-    {
-      parameters.g_spatial_exported_barcodes[parameters.g_spatial_exported_barcode_counter] = m_infection_barcode_realisation_vector.back();
-      parameters.g_spatial_exported_barcode_counter++;  
-    }
+    // Set next event date as may have changed as a result of the bite
+    set_m_day_of_next_event();
     
   }
-  
-  }
-  
-  // Increase cotransmission counter and catch for overflow
-  if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) parameters.g_cotransmission_frequencies_counter = 0;
-  
-  // Set next event date as may have changed as a result of the bite
-  set_m_day_of_next_event();
   
 }
 
@@ -550,7 +540,7 @@ void Person::all_strain_clearance() {
   m_infection_time_realisation_vector.clear();
   m_infection_state_realisation_vector.clear();
   m_infection_barcode_realisation_vector.clear();
-
+  
   // Set new day of next event
   set_m_day_of_next_event();
   
@@ -610,19 +600,19 @@ void Person::event_handle(const Parameters &parameters) {
   else
   {
     /*
-    // All other events could happen theoretically on the same day though so within same else block
-    // Clear strain if time to do so
-    if (m_day_of_strain_clearance == m_day_of_next_event) {
-      
-      individual_strain_clearance(); // clear strain
-      if (m_number_of_strains > 1) {
-        schedule_m_day_of_strain_clearance(parameters); // Schedule the next strain clearance
-      }
-      else {
-        m_day_of_strain_clearance = 0; // If the strain cleared was the second last strain then there will be no clearnance date as we don't want to remove the last strain
-      }
-    }
-    */
+     // All other events could happen theoretically on the same day though so within same else block
+     // Clear strain if time to do so
+     if (m_day_of_strain_clearance == m_day_of_next_event) {
+     
+     individual_strain_clearance(); // clear strain
+     if (m_number_of_strains > 1) {
+     schedule_m_day_of_strain_clearance(parameters); // Schedule the next strain clearance
+     }
+     else {
+     m_day_of_strain_clearance = 0; // If the strain cleared was the second last strain then there will be no clearnance date as we don't want to remove the last strain
+     }
+     }
+     */
     
     // Change Infection Status due to recoveries etc if time to do so
     if (m_day_of_InfectionStatus_change == m_day_of_next_event) {
@@ -694,17 +684,17 @@ void Person::event_handle(const Parameters &parameters) {
               case Strain::SUBPATENT:
                 
                 if(m_number_of_strains > 1) {
-                // If strain is subpatent to change then we clear it.
-                // Swap the strain pointer and strain acquisition date at that position to the back
-                std::swap(m_active_strains[n], m_active_strains.back());
-                
-                // Pop thus deleting the random strain pointer
-                m_active_strains.pop_back();
-                
-                // Lower strain counter and decrease n so that we check the strain we just put here
-                m_number_of_strains--;
-                n--;
-                if(m_number_of_strains==0) Rcpp::Rcout << "removed last strain\n!";
+                  // If strain is subpatent to change then we clear it.
+                  // Swap the strain pointer and strain acquisition date at that position to the back
+                  std::swap(m_active_strains[n], m_active_strains.back());
+                  
+                  // Pop thus deleting the random strain pointer
+                  m_active_strains.pop_back();
+                  
+                  // Lower strain counter and decrease n so that we check the strain we just put here
+                  m_number_of_strains--;
+                  n--;
+                  if(m_number_of_strains==0) rcpp_out(parameters.g_h_quiet_print, "removed last strain\n!");
                 }
                 break;
               default:
@@ -742,17 +732,17 @@ void Person::event_handle(const Parameters &parameters) {
         case Strain::SUBPATENT:
           
           if(m_number_of_strains > 1) {
-          // If strain is subpatent to change then we clear it.
-          // Swap the strain pointer and strain acquisition date at that position to the back
-          std::swap(m_active_strains[m_temp_strain_to_next_change], m_active_strains.back());
-        
-          // Pop thus deleting the random strain pointer
-          m_active_strains.pop_back();
-        
-          // Lower strain counter
-          m_number_of_strains--;
+            // If strain is subpatent to change then we clear it.
+            // Swap the strain pointer and strain acquisition date at that position to the back
+            std::swap(m_active_strains[m_temp_strain_to_next_change], m_active_strains.back());
+            
+            // Pop thus deleting the random strain pointer
+            m_active_strains.pop_back();
+            
+            // Lower strain counter
+            m_number_of_strains--;
           }
-        break;
+          break;
         default:
           assert(NULL && "Strain state change equested on strain that is not diseasod or asymptomatic or subpatent");
         break;
@@ -802,9 +792,9 @@ void Person::event_handle(const Parameters &parameters) {
             // Push the pending strain
             m_active_strains.emplace_back(
               m_infection_barcode_realisation_vector[m_number_of_realised_infections],
-              Strain::m_transition_vector[static_cast<int>(m_infection_state)],
-              m_day_of_InfectionStatus_change,
-              parameters.g_current_time
+                                                    Strain::m_transition_vector[static_cast<int>(m_infection_state)],
+                                                                               m_day_of_InfectionStatus_change,
+                                                                               parameters.g_current_time
             );
             
             // We don't care if the new strain will state change earlier than the next state change as this would cause recovery
@@ -815,11 +805,11 @@ void Person::event_handle(const Parameters &parameters) {
             
             // Schedule new strain clearance day if there is more than one strain
             /*
-            if (m_number_of_strains > 1)
-            {
-              schedule_m_day_of_strain_clearance(parameters);
-            }
-            */
+             if (m_number_of_strains > 1)
+             {
+             schedule_m_day_of_strain_clearance(parameters);
+             }
+             */
             
           }
           // Otherwise pop the time and state and schedule state change
@@ -827,13 +817,13 @@ void Person::event_handle(const Parameters &parameters) {
           {
             // Schedule new infection state change and pop the time and state queue
             schedule_m_day_of_InfectionStatus_change(parameters);
-
+            
             // Push next strain
             m_active_strains.emplace_back(
               m_infection_barcode_realisation_vector[m_number_of_realised_infections],
-              Strain::m_transition_vector[static_cast<int>(m_infection_state)],
-              m_day_of_InfectionStatus_change,
-              parameters.g_current_time
+                                                    Strain::m_transition_vector[static_cast<int>(m_infection_state)],
+                                                                               m_day_of_InfectionStatus_change,
+                                                                               parameters.g_current_time
             );
             
             // If the new strain will change state earlier than anyother strain then update the state change event day
@@ -857,11 +847,11 @@ void Person::event_handle(const Parameters &parameters) {
             
             // Schedule new strain clearance day if there is more than one strain
             /*
-            if (m_number_of_strains > 1)
-            {
-              schedule_m_day_of_strain_clearance(parameters);
-            }
-            */
+             if (m_number_of_strains > 1)
+             {
+             schedule_m_day_of_strain_clearance(parameters);
+             }
+             */
             
           }
           

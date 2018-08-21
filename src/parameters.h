@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <vector>
+#include <string>
 #include <queue>
 #include <bitset>
 #include <boost/dynamic_bitset.hpp>
@@ -151,6 +152,10 @@ public:
     NUMBER_OF_BARCODE_TYPE_OPTIONS = 2
   };
   static g_barcode_type_enum g_barcode_type;
+  
+  
+  // Housekeeping parameters
+  bool g_h_quiet_print;
   
   // Default Constructor
   Parameters();

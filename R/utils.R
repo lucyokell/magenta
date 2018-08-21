@@ -116,48 +116,54 @@ country_seasonal_profiles <- function(country){
 #' @param data Dataframe to be summarised
 #' @param measurevar Character for measure variable
 #' @param groupvars Characters of grouping variables
-#' @param na.rm Boolean to remove NAs. 
 #' @param conf.interval numeric for CI
-#' @param .drop drop within ddply
 #' 
-#' @importFrom plyr ddply rename
 #' 
-summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
-                      conf.interval=.95, .drop=TRUE) {
- # library(plyr)
+summarySE <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State"),
+                      conf.interval=.95) {
+
   
-  # New version of length which can handle NA's: if na.rm==T, don't count them
-  length2 <- function (x, na.rm=FALSE) {
-    if (na.rm) sum(!is.na(x))
-    else       length(x)
-  }
-  
-  # This does the summary. For each group's data frame, return a vector with
-  # N, mean, and sd
-  datac <- ddply(data, groupvars, .drop=.drop,
-                 .fun = function(xx, col) {
-                   c(N    = length2(xx[[col]], na.rm=na.rm),
-                     mean = mean   (xx[[col]], na.rm=na.rm),
-                     sd   = sd     (xx[[col]], na.rm=na.rm)
-                   )
-                 },
-                 measurevar
-  )
-  
-  # Rename the "mean" column    
-  datac <- rename(datac, c("mean" = measurevar))
-  
-  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
-  
-  # Confidence interval multiplier for standard error
-  # Calculate t-statistic for confidence interval: 
-  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
-  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
-  datac$ci <- datac$se * ciMult
-  
-  return(datac)
+  res <- dplyr::group_by_at(data,dplyr::vars(dplyr::one_of(groupvars))) %>% 
+    dplyr::summarise(N=length(!!dplyr::sym(measurevar)),
+              mean=mean(!!dplyr::sym(measurevar),na.rm=TRUE),
+              sd = sd(!!dplyr::sym(measurevar),na.rm=TRUE),
+              se = sd/sqrt(N),
+              ci = se * qt(conf.interval/2 + .5, N-1)
+              )
+                                                           
+  return(as.data.frame(res))
 }
 
+ztrgeomintp <- function(n, mean, p){
+  
+  ngs <- rgeom(n*1.5,prob = 1/mean)
+  ngs <- round(ngs*p)
+  ngs <- ngs[ngs>0]
+  while(length(ngs) < n) {
+    ng2 <- rgeom(n*1.5,prob = 1/mean)
+    ngs <- c(ngs,round(ng2*p))
+    ngs <- ngs[ngs>0]
+  }
+  
+  ngs <- sample(ngs,size = n,replace=FALSE)
+  return(ngs)
+  
+  
+}
+
+ztrnbinom <- function(n,mean,size) {
+  
+  
+  nbs <- rnbinom(n*1.2,size = size, mu = mean)
+  nbs <- nbs[nbs>0]
+  while(length(nbs) < n) {
+    nbs <- c(nbs,rnbinom(n*.5,size = size, mu = mean))
+    nbs <- nbs[nbs>0]
+  }
+  
+    nbs <- sample(nbs,size = n,replace=FALSE)
+  return(nbs)
+}
 
 ###
 #------------------------------------------------
@@ -167,14 +173,16 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 #' @param groupvars Grouping vars for summarySE. Default = c("Age_Bin","State")
 #' @param barcodes Boolean whether to return tabled barcodes. Default = FALSE
 #' 
-COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),barcodes=FALSE){
+COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),barcodes=FALSE,
+                          ibd = 0, nl = 24){
   
   # Convert the barcodes to COIs
-  COIS <- Convert_Barcode_Vectors(sim_save$populations_event_and_strains_List,sub_patents_included=TRUE)
+  if(!ibd){
+  COIS <- Convert_Barcode_Vectors(sim_save$populations_event_and_strains_List,sub_patents_included=TRUE,ibd = ibd,nl = nl)
   COIs <- COIS$COI
   COIs[is.na(COIs)] <- 0
   clonality <- table(table(unlist(COIS$nums)))
-  barcodes <- sort(table(unlist(COIS$nums)),decreasing=TRUE)
+  barcodes_tab <- sort(table(unlist(COIS$nums)),decreasing=TRUE)
   
   # grab the age, status etc 
   ages <- sim_save$population_List$Ages
@@ -196,14 +204,67 @@ COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),barcodes=FA
   COIs <- COIS$COI
   COIs[is.na(COIs)] <- 0
   df$COI_Detected_From_Model <- COIs
+  df$polygenom <- df$COI>1
+  df$nums <- COIS$nums
   
-  summary <- summarySE(df,measurevar = "COI",groupvars = groupvars)
+  summary_coi <- summarySE(df,measurevar = "COI")
+  summary_polygenom <- summarySE(df,measurevar = "polygenom")
+  summary_polygenom <- left_join(summary_polygenom,
+                                 group_by(df, Age_Bin, State) %>% summarise(unique = sum(table(na.omit(nums %>% unlist))==1)/length(COI)),
+                                 by = groupvars)
+  
+  res <- list("summary_coi"=summary_coi,"summary_polygenom"=summary_polygenom,
+              "clonality"=clonality,"coi_table"=table(df$COI))
   
   if(barcodes){
-    return(list("Summary"=summary,"Clonality"=clonality,"Barcodes"=barcodes[barcodes>1])) 
+    res$barcodes <- barcodes_tab[barcodes_tab>1]
+  } 
+  
+  return(res)
+  
   } else {
-  return(list("Summary"=summary,"Clonality"=clonality))
+    
+    # grab the age, status etc 
+    ages <- sim_save$population_List$Ages
+    ages[ages==0] <- 0.001
+    clinical_status <- sim_save$population_List$Infection_States
+    infection_state <- c("S","D","A","U","T","P")
+    last_treatment <- sim_save$parameters_List$g_current_time - sim_save$populations_event_and_strains_List$Day_of_last_treatment
+    last_treatment[last_treatment==0] <- 0.001
+    
+    #  bring into df
+    out <- sim_save$populations_event_and_strains_List$Recent_identity_vectors
+    n.strains <- lapply(out,length) %>% unlist()
+    pibd <- rep(0,length(ages))
+    if(sum(n.strains)>0){
+    ibds <- population_ibd_distances(mat = matrix(unlist(out),nrow=sum(n.strains>0),byrow=TRUE))
+    pibd[which(sim_save$populations_event_and_strains_List$Number_of_Strains>0)] <- proxy::colMeans.dist(ibds$p_ibd,diag = FALSE)
+    }
+    df <- data.frame("pibd"=pibd,"Ages"=ages/365,"State"=infection_state[(clinical_status)+1],
+                     "Age_Bin" = cut(ages/365,breaks = c(0,1,2,3,5,10,20,40,60,100)),
+                     "Last_Treatment" = last_treatment,
+                     "Last_Treatment_Binned" = cut(last_treatment,breaks = c(0,28,90,365,sim_save$parameters_List$g_current_time)),
+                     stringsAsFactors = FALSE)
+    
+    
+    summary_ibd <- summarySE(df,measurevar = "pibd",groupvars = groupvars)
+
+    return(list("summary_ibd"=summary_ibd,
+                "Mean"=mean(pibd[which(sim_save$populations_event_and_strains_List$Number_of_Strains>0)] ))) 
+
   }
+  
+
+}
+
+#' @noRd
+rbind_list_base <- function(x) {
+  x2 <- do.call(
+    rbind.data.frame,
+    c(x, stringsAsFactors = FALSE, make.row.names = FALSE)
+  )
+  rownames(x2) <- seq_len(dim(x2)[1])
+  x2
 }
 
 
@@ -212,22 +273,24 @@ COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),barcodes=FA
 #' @export
 #' 
 tester <- function(){ 
-  Sys.setenv(BINPREF="T:/Rtools/Rtools33/mingw_64/bin/")
-  odin::can_compile()
+  packageVersion("MAGENTA")
 }
 NULL
 
 
-#------------------------------------------------
 #' Function to convert vector of bools representing up to a 32 bit number into the corresponding integer
 #'
 #' @param x Vector of logicals
-bitsToInt<-function(x) {
-  packBits(rev(c(rep(FALSE, 32-length(x)%%32), as.logical(x))), "integer")
+#' @param endian What endian is the vector. Default = "little".
+bitsToInt<-function(x, endian = "little") {
+  if(endian == "little"){
+    packBits(rev(c(rep(FALSE, 32-length(x)%%32), as.logical(rev(x)))), "integer")
+  } else {
+    packBits(rev(c(rep(FALSE, 32-length(x)%%32), as.logical(x))), "integer")
+  }
 }
 
 
-#------------------------------------------------
 #' Function to generate ggplot colours
 #'
 #' @param n Number of colors
@@ -273,10 +336,50 @@ convert_ibd_barcode <- function(b, nl){
   
 }
 
-populaton_ibd_barcodes <- function(r,nl){
+population_ibd_barcodes <- function(barcode_vec,nl){
   
-  lapply(r$populations_event_and_strains_List, function(x){
-    lapply(x,convert_ibd_barcode,nl)
-  })
+  n.strains <- lapply(barcode_vec,length) %>% unlist()
+  lapply(
+    barcode_vec[which(n.strains>0)],
+    function(x){
+    lapply(tail(x,1),convert_ibd_barcode,nl) %>% unlist
+    }
+    )
+
+  }
+
+population_ibd_barcodes_c <- function(barcode_vec,bl,nl,ib){
+  
+  n.strains <- lapply(barcode_vec,length) %>% unlist()
+  lapply(
+    barcode_vec[which(n.strains>0)],
+    function(x){
+      lapply(as.raw(tail(x[[1]],1)),test_ibd_conversion,bl,nl,ib) %>% unlist
+    }
+  )
+  
+}
+
+
+population_ibd_distances <- function(r=NULL,nl=NULL,mat=NULL){
+  
+  if(is.null(mat)){
+    mat <- unlist(population_ibd_barcodes(r,nl)) %>% matrix(nrow=length(r$population_List$Infection_States),byrow=TRUE)
+  }
+  
+  nl <- dim(mat)[2]
+  
+  return(list("p_ibd"=proxy::dist(mat,method = function(x,y) sum(x==y)/nl),
+              "pop" = mat))
+  
+}
+
+micro_prev_2_10 <- function(out){
+  
+  prevs <- lapply(out[1:(length(out)-1)], function(x) {
+    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A"))
+    kids <- c(x[[positions[i]]]$Summary$Age_Bin %in% levels(x[[positions[i]]]$Summary$Age_Bin)[3:5])
+    return((sum(x[[positions[i]]]$Summary$N[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$Summary$N[kids],na.rm=TRUE)))
+  }) %>% unlist
   
 }

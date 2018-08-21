@@ -4,8 +4,8 @@
 \alias{summarySE}
 \title{Create summary statistics df}
 \usage{
-summarySE(data = NULL, measurevar, groupvars = NULL, na.rm = FALSE,
-  conf.interval = 0.95, .drop = TRUE)
+summarySE(data = NULL, measurevar = "COI", groupvars = c("Age_Bin",
+  "State"), conf.interval = 0.95)
 }
 \arguments{
 \item{data}{Dataframe to be summarised}
@@ -14,11 +14,7 @@ summarySE(data = NULL, measurevar, groupvars = NULL, na.rm = FALSE,
 
 \item{groupvars}{Characters of grouping variables}
 
-\item{na.rm}{Boolean to remove NAs.}
-
 \item{conf.interval}{numeric for CI}
-
-\item{.drop}{drop within ddply}
 }
 \description{
 Create summary statistics df

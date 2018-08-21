@@ -4,15 +4,15 @@
 \name{admin_units_seasonal}
 \alias{admin_units_seasonal}
 \title{Admin level 1 africa seasonal parameters}
-\format{A dataframe of 576 observations of 13 variables:
+\format{A dataframe of 850 observations of 15 variables:
 
   \code{admin_units_seasonal}: A dataframe of admin units and their seasonal parameters
     \itemize{
       \item country: Country string
       \item admin1: Admin 1 string
       \item map_prev_2010: 2010 Atlas map microscopy prevalence in 2-10 year olds
-      \item id: Numeric vector of 1:576
-      \item ID_1: Numeric vector referencing shape file geoshape ids
+      \item id: Numeric vector of 1:850
+      \item gaul_code: Numeric vector for gaul code
       \item a0: Average value of fourier series
       \item a1: First of partial series cos terms
       \item b1: First of partial series sine terms
@@ -21,6 +21,8 @@
       \item a3: Third of partial series cos terms
       \item b3: Third of partial series sine terms
       \item theta_c: Rainfall normalising constant
+      \item dide_code: DIDE geo plotting code
+      \item ft: Treatment Coverage
     }}
 \usage{
 admin_units_seasonal

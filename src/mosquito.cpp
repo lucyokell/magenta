@@ -4,17 +4,19 @@
 // Non class constructor which will inialise a random strain
 Mosquito::Mosquito(const Parameters &parameters) :
   m_day_of_death(rexpint1(parameters.g_mean_mosquito_age) + parameters.g_current_time + 1),
-  m_day_of_next_blood_meal(runiform_int_1(1, 3) + parameters.g_current_time)
+  m_day_of_next_blood_meal(runiform_int_1(0,2) + parameters.g_current_time)
 {
   // Reserve vector memory
   m_oocyst_rupture_time_vector.reserve(10);
   m_oocyst_barcode_male_vector.reserve(10);
   m_oocyst_barcode_female_vector.reserve(10);
+  m_generated_sporozoites_vector.reserve(10);
   
 }
 
 // temporary mosquito variables
 std::vector<boost::dynamic_bitset<> > gam_sampled(2);
+int m_oocyst_pick = 0;
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ALLOCATIONS
@@ -43,7 +45,6 @@ void Mosquito::allocate_gametocytes(const Parameters &parameters,
 void Mosquito::handle_bite(Parameters &parameters, Person &person)
 {
   
-  // Rcpp::Rcout << "Gam allocation" << num_bites_i << "\n"; 
   parameters.g_total_mosquito_infections++;
   
   // if we are doing spatial then use the imported oocysts first 
@@ -95,6 +96,50 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
   schedule_m_day_of_next_event();
   
 }
+
+// Sample one sporozoite to be passed on to the human
+boost::dynamic_bitset<> Mosquito::sample_sporozoite() {
+  
+    // are there any spz in the mosquito
+    if(m_generated_sporozoite_count){
+      // are we using a spz
+      if(rbernoulli1(m_generated_sporozoite_count / (4*m_ruptured_oocyst_count) )) 
+      {
+       return(m_generated_sporozoites_vector[runiform_int_1(1, m_generated_sporozoite_count - 1)]);
+      }
+    }
+    
+    // sample from avaialble oocysts and then store the spz
+    // does the mosquito have more than one oocyst to pick from 
+    if (m_ruptured_oocyst_count == 1)
+    {
+      Strain::temp_barcode = Strain::generate_recombinant_barcode(
+        get_m_oocyst_barcode_male_vector(0),
+        get_m_oocyst_barcode_female_vector(0)
+      );
+    } 
+    else 
+    {
+      m_oocyst_pick = runiform_int_1(1, m_ruptured_oocyst_count - 1);
+      Strain::temp_barcode = Strain::generate_recombinant_barcode(
+        m_oocyst_barcode_male_vector[m_oocyst_pick],
+                                    m_oocyst_barcode_female_vector[m_oocyst_pick]
+      );
+    }
+  
+  m_generated_sporozoite_count++;
+  m_generated_sporozoites_vector.emplace_back(Strain::temp_barcode);
+  
+  return(Strain::temp_barcode);
+  
+} 
+
+// Allocate sporozoite arising from importation
+void Mosquito::allocate_imported_sporozoite(boost::dynamic_bitset<> x) {
+  m_generated_sporozoite_count++;
+  m_generated_sporozoites_vector.emplace_back(x);
+}
+
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // SCHEDULERS 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -182,6 +227,7 @@ bool Mosquito::die(Parameters & parameters)
   
   // Reset mosquito's age and infection status changes
   m_ruptured_oocyst_count = 0;
+  m_generated_sporozoite_count = 0;
   m_day_of_next_event = 0;
   m_mosquito_infected = false;
   m_mosquito_biting_today = true;
@@ -190,6 +236,7 @@ bool Mosquito::die(Parameters & parameters)
   m_oocyst_rupture_time_vector.clear();
   m_oocyst_barcode_male_vector.clear();
   m_oocyst_barcode_female_vector.clear();
+  m_generated_sporozoites_vector.clear();
   
   // Make mosquito susceptible again
   m_mosquito_infection_state = SUSCEPTIBLE;

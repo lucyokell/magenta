@@ -110,6 +110,9 @@ Parameters::Parameters() {
   g_cT = 0.322 * g_cD;
   g_cU = 0.0062;
   
+  // housekeeping parameters
+  g_h_quiet_print = false;
+  
 }  
 
 // barcode global static params

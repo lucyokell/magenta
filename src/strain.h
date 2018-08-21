@@ -137,11 +137,13 @@ public:
   static boost::dynamic_bitset<> generate_recombinant_barcode(boost::dynamic_bitset<> x, boost::dynamic_bitset<> y);
   
   // Generate a random barcode given probability of each SNP, i.e. PLAF
-  static boost::dynamic_bitset<> generate_random_barcode_given_SNP_frequencies(std::vector<double> x);
+  static boost::dynamic_bitset<> generate_random_barcode_given_SNP_frequencies(std::vector<double> &x);
   
   // Create a bitset by replicating each bit n times
   static boost::dynamic_bitset<> replicate_by_bit(boost::dynamic_bitset<> x, unsigned int n);
   
+  // Turns our ibd barcode into a vector of the ints making it up
+  static std::vector<unsigned long> ibd_barcode_to_integer_vector(boost::dynamic_bitset<> x);
   
 };
 

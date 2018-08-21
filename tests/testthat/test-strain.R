@@ -35,3 +35,13 @@ test_that("ibd next generation", {
   expect_identical(y,z)
   
 })
+
+
+
+test_that("ibd conversion", {
+  
+  barcode <- as.raw(c(1,1,1,0,0,1,0,0,1,0,1,0))
+  z <- test_ibd_conversion(barcode = barcode,nl = 3,ib = 4,bl = 12)
+  expect_identical(z$vec,c(7,2,5))
+  
+})

@@ -50,9 +50,7 @@ struct Universe {
 Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
 {
   
-  // prove that C++ code is being run
-  Rcpp::Rcout << "Rcpp function is working!\n";
-  
+
   // start timer
   chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
   
@@ -63,6 +61,9 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   // Create universe pointer from paramList statePtr
   Rcpp::XPtr<Universe> universe_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (paramList["statePtr"]);
   
+    // prove that C++ code is being run
+  rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Rcpp function is working!\n");
+  
   // Initialise variables from the statePtr provided that are needing to be saved
   std::vector<double> Zeta = universe_ptr->zeta_vector;
   
@@ -70,7 +71,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   // END: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  Rcpp::Rcout << "Pointer unpacking working!\n";
+  rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Pointer unpacking working!\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: MODEL STATE GET
@@ -109,7 +110,9 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   std::vector<std::vector<int> > Strain_day_of_infection_state_change_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Strain_day_of_acquisition_vectors(universe_ptr->parameters.g_N);
   
-  Rcpp::Rcout << "Vector initialisation working!\n";
+  std::vector<std::vector<unsigned long> > recent_barcode_integers(universe_ptr->parameters.g_N);
+  
+  rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Vector initialisation working!\n");
   
   // Temporary necessities for casting vectors for pending states
   std::vector<Person::InfectionStatus> temp_infection_state_realisation_vector{};
@@ -125,7 +128,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   boost::dynamic_bitset<> temp_barcode;
   int temp_strain_iterator = 0;
 
-  Rcpp::Rcout << "Preloop working!\n";
+  rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Preloop working!\n");
 
   
   for (unsigned int element = 0; element < universe_ptr->parameters.g_N ; element++) 
@@ -174,7 +177,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     // Pending Infection time vector
     Infection_time_realisation_vectors[element] = universe_ptr->population[element].get_m_infection_time_realisation_vector();
     
-    // Rcpp::Rcout << "Prepending working!"<< element <<"\n";
+    // rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Prepending working!" + std::to_string(element) "\n");
     
     // Pending Infection barcode and state vector
     // ---------------------------------------
@@ -211,7 +214,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     std::vector<Strain> temp_strain_vector;
     temp_strain_vector = universe_ptr->population[element].get_m_active_strains();
     
-    // Rcpp::Rcout << "Prestrains loop working!\n";
+    // rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Prestrains loop working!\n");
     
     // Loop through each strain converting into barcodes, states and days of infection state changes
     for(temp_strain_iterator = 0 ; temp_strain_iterator < Number_of_Strains[element] ; temp_strain_iterator++)
@@ -229,10 +232,16 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
         temp_barcode_bool_vector[temp_barcode_iterator] = temp_barcode[temp_barcode_iterator];
       }
       Strain_barcode_vectors[element].push_back(temp_barcode_bool_vector);
-  
+      
+      if(temp_strain_iterator == (Number_of_Strains[element]-1)){
+        if(universe_ptr->parameters.g_barcode_type == Parameters::IBD){
+          recent_barcode_integers[element].reserve(1);
+          recent_barcode_integers[element] = Strain::ibd_barcode_to_integer_vector(temp_barcode);
+        }
+      }
     }
     
-    // Rcpp::Rcout << "Poststrains loop working!\n";
+    // rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Poststrains loop working!\n");
     
   }
     
@@ -265,7 +274,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     temp_barcode_female_bool_vector.reserve(universe_ptr->parameters.g_barcode_length);
     temp_barcode_male_bool_vector.reserve(universe_ptr->parameters.g_barcode_length);
     
-    Rcpp::Rcout << "Premosquito loop working!\n";
+    rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Premosquito loop working!\n");
 
     for (unsigned int element = 0; element < scourge_size ; element++) 
     {
@@ -326,7 +335,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     
   
   
-  Rcpp::Rcout << "Postloop working!\n";
+  rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Postloop working!\n");
+    
   
   // Create Rcpp population list
   Rcpp::List population_List = Rcpp::List::create(
@@ -361,7 +371,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Rcpp::Named("Strain_infection_state_vectors")=Strain_infection_state_vectors,
     Rcpp::Named("Strain_day_of_infection_state_change_vectors")=Strain_day_of_infection_state_change_vectors,
     Rcpp::Named("Strain_day_of_acquisition_vectors")=Strain_day_of_acquisition_vectors,
-    Rcpp::Named("Strain_barcode_vectors")=Strain_barcode_vectors
+    Rcpp::Named("Strain_barcode_vectors")=Strain_barcode_vectors,
+    Rcpp::Named("Recent_identity_vectors")=recent_barcode_integers
   );
   
   // Create Mosquito population list
@@ -397,7 +408,9 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Rcpp::Named("g_plaf")=universe_ptr->parameters.g_plaf,
     Rcpp::Named("g_prob_crossover")=universe_ptr->parameters.g_prob_crossover,
     Rcpp::Named("g_barcode_type")=static_cast<unsigned int>(universe_ptr->parameters.g_barcode_type),
-    Rcpp::Named("g_spatial_type")=static_cast<unsigned int>(universe_ptr->parameters.g_spatial_type)
+    Rcpp::Named("g_spatial_type")=static_cast<unsigned int>(universe_ptr->parameters.g_spatial_type),
+    // housekeeping
+    Rcpp::Named("g_h_quiet_print")=universe_ptr->parameters.g_h_quiet_print
   );
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -406,7 +419,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   
   std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-   Rcpp::Rcout << "Time elapsed in fetching state: " << duration << " seconds" << std::endl;
+   rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Time elapsed in fetching state: " + std::to_string(duration) + " seconds\n");
   
   // Return Named List with population and parameters
   return Rcpp::List::create(

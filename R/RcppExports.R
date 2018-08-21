@@ -44,6 +44,10 @@ test_generate_next_ibd <- function(bl, nl, ib, pc, id) {
     .Call('_MAGENTA_test_generate_next_ibd', PACKAGE = 'MAGENTA', bl, nl, ib, pc, id)
 }
 
+test_ibd_conversion <- function(barcode, bl, nl, ib) {
+    .Call('_MAGENTA_test_ibd_conversion', PACKAGE = 'MAGENTA', barcode, bl, nl, ib)
+}
+
 test_bitset_serialisation <- function(x, n) {
     .Call('_MAGENTA_test_bitset_serialisation', PACKAGE = 'MAGENTA', x, n)
 }

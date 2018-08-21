@@ -17,3 +17,5 @@ plots
 *.rds
 ^.*\.rds$
 ^scripts/
+src-i386
+src-x64

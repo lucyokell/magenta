@@ -4,7 +4,7 @@
 \alias{PfPR_to_EIR_heuristic}
 \title{Brute force conversion of PfPR and ft to an EIR}
 \usage{
-PfPR_to_EIR_heuristic(PfPR = NULL, PfPR_micro = NULL, mv = NULL, ft)
+PfPR_to_EIR_heuristic(PfPR = NULL, PfPR_micro = NULL, mv = NULL, ft, ...)
 }
 \arguments{
 \item{PfPR}{Parasite prevaence by PCR}
@@ -14,6 +14,8 @@ PfPR_to_EIR_heuristic(PfPR = NULL, PfPR_micro = NULL, mv = NULL, ft)
 \item{mv}{Mosquito size if it's known. Default = NULL}
 
 \item{ft}{Treatment seeking}
+
+\item{...}{Any other params to be fed to the model parameter list}
 }
 \description{
 Brute force conversion of PfPR and ft to an EIR
