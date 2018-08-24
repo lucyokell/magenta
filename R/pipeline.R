@@ -303,9 +303,9 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
           # do we just want the summary data frame 
           if(summary_saves_only){
             if(i%%12 == 0 && i >= (length(res)-180)){
-              res[[i]] <- COI_df_create(sim.save,barcodes=TRUE,nl=num_loci, ibd = barcode_parms$barcode_type)
+              res[[i]] <- COI_df_create(sim.save,barcodes=TRUE,nl=num_loci, ibd = barcode_parms$barcode_type, mpl = mpl)
             } else {
-              res[[i]] <- COI_df_create(sim.save,nl=num_loci, ibd = barcode_parms$barcode_type)
+              res[[i]] <- COI_df_create(sim.save,nl=num_loci, ibd = barcode_parms$barcode_type, mpl = mpl)
             }
             
             # or do we want the full human popualation

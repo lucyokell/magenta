@@ -87,7 +87,7 @@ country_seasonal_profiles <- function(country){
   
   ads <- MAGENTA::admin_units_seasonal
   if(!is.element(country,unique(ads$country))) stop(paste0("Country is not one of ",paste(unique(ads$country),collapse=", ")))
-  admins <- ads$admin1[ads$country==country]
+  admins <- as.character(ads$admin1[which(ads$country==country)])
   
   if(length(admins)>16){
     par(mfrow=c(5,5))
@@ -173,11 +173,28 @@ ztrnbinom <- function(n,mean,size) {
 #' @param groupvars Grouping vars for summarySE. Default = c("Age_Bin","State")
 #' @param barcodes Boolean whether to return tabled barcodes. Default = FALSE
 #' 
-COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),barcodes=FALSE,
+COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),
+                          barcodes=FALSE,mpl = Model_Param_List_Create(),
                           ibd = 0, nl = 24){
   
-  # Convert the barcodes to COIs
+  # function to calculate probability of strain being detected by microscopy
+  q_fun <- function(d1, ID, ID0, kD, fd) {
+    return(d1 + ((1-d1) / (1 + ((ID/ID0)^kD)*fd)))
+  }
+  
+  fd <- function(age, fD0, aD, gammaD) {
+    return( 1 - ((1-fD0) / (1 + (age/aD)^gammaD)) )
+  }
+  
+  # population vars
+  ID <- sim_save$population_List$ID
+  ages <- sim_save$population_List$Ages
+  ages[ages==0] <- 0.001
+  micro_det <- q_fun(mpl$d1,ID,mpl$ID0,mpl$kD,sapply(ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
+  
+  
   if(!ibd){
+  # Convert the barcodes to COIs
   COIS <- Convert_Barcode_Vectors(sim_save$populations_event_and_strains_List,sub_patents_included=TRUE,ibd = ibd,nl = nl)
   COIs <- COIS$COI
   COIs[is.na(COIs)] <- 0
@@ -185,8 +202,6 @@ COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),barcodes=FA
   barcodes_tab <- sort(table(unlist(COIS$nums)),decreasing=TRUE)
   
   # grab the age, status etc 
-  ages <- sim_save$population_List$Ages
-  ages[ages==0] <- 0.001
   clinical_status <- sim_save$population_List$Infection_States
   infection_state <- c("S","D","A","U","T","P")
   last_treatment <- sim_save$parameters_List$g_current_time - sim_save$populations_event_and_strains_List$Day_of_last_treatment
@@ -203,17 +218,24 @@ COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),barcodes=FA
   COIS <- Convert_Barcode_Vectors(sim_save$populations_event_and_strains_List,sub_patents_included=FALSE)
   COIs <- COIS$COI
   COIs[is.na(COIs)] <- 0
-  df$COI_Detected_From_Model <- COIs
+  df$COI_in_A <- COIs
+  df$COI_detected_micro <- round(micro_det*df$COI_in_A)
   df$polygenom <- df$COI>1
   df$nums <- COIS$nums
   
+  # create summary dfs
   summary_coi <- summarySE(df,measurevar = "COI")
+  summary_coi_detected <- summarySE(df,measurevar = "COI_detected_micro")
   summary_polygenom <- summarySE(df,measurevar = "polygenom")
-  summary_polygenom <- left_join(summary_polygenom,
-                                 group_by(df, Age_Bin, State) %>% summarise(unique = sum(table(na.omit(nums %>% unlist))==1)/length(COI)),
-                                 by = groupvars)
+  summary_polygenom <- dplyr::left_join(
+    summary_polygenom,
+    dplyr::group_by(df, Age_Bin, State) %>% dplyr::summarise(unique = clonality_from_barcode_list(nums)), 
+    by = groupvars
+  )
   
-  res <- list("summary_coi"=summary_coi,"summary_polygenom"=summary_polygenom,
+  res <- list("summary_coi"=summary_coi,
+              "summary_coi_detected"=summary_coi_detected,
+              "summary_polygenom"=summary_polygenom,
               "clonality"=clonality,"coi_table"=table(df$COI))
   
   if(barcodes){
@@ -320,7 +342,17 @@ person_make <- function(o,n){
 }
 
 
-
+clonality_from_barcode_list <- function(barcode_list){
+  
+    tbl <- table(table(unlist(lapply(barcode_list,unique))))
+    
+    if ("1" %in% names(tbl)){
+      return(tbl[1]/sum(tbl))
+    } else {
+      return(0)
+    }
+  
+}
 
 convert_ibd_barcode <- function(b, nl){
   

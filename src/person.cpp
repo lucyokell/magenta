@@ -25,6 +25,7 @@ Person::Person(const Parameters &parameters) :
 // Initialise static class const vectors
 const std::vector<Person::InfectionStatus> Person::m_transition_vector{ DISEASED, TREATED, ASYMPTOMATIC };
 
+
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // SEMI-GETTERS
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -187,18 +188,18 @@ void Person::set_m_day_of_next_strain_state_change()
   // loop through and keep minimum non zero
   for (int s = 0; s < m_number_of_strains; s++) {
     if (m_active_strains[s].get_m_strain_infection_status() != Strain::TREATED) {
-      m_temp_day_of_next_strain_state_change = m_active_strains[s].get_m_day_of_strain_infection_status_change();
-      if (m_temp_day_of_next_strain_state_change <= m_day_of_next_strain_state_change && m_temp_day_of_next_strain_state_change != 0)
+      m_temp_int = m_active_strains[s].get_m_day_of_strain_infection_status_change();
+      if (m_temp_int <= m_day_of_next_strain_state_change && m_temp_int != 0)
       {
         
         // if the next strain state change day is the same as the temp flag the bool
-        if (m_day_of_next_strain_state_change == m_temp_day_of_next_strain_state_change)
+        if (m_day_of_next_strain_state_change == m_temp_int)
         {
           m_more_than_one_strain_to_change_today_bool = true;
         }
         
         // keep earliest time and strain position 
-        m_day_of_next_strain_state_change = m_temp_day_of_next_strain_state_change;
+        m_day_of_next_strain_state_change = m_temp_int;
         m_temp_strain_to_next_change = s;
         
       }
@@ -346,14 +347,11 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     // N -> A
     m_transition_probabilities[2] = 1 - m_symptom_success_rate;
     
-    // Need to find those who are to be infected again who are D as they should not then go to being
-    // asymptomatic trough the additonal infection. Going to T however is still fair.
-    if (m_infection_state == DISEASED) {
-      m_transition_probabilities[2] = 0;
-    }
-    
     // Set outcome probability sum 
     m_sum_transition_probabilities = m_transition_probabilities[0] + m_transition_probabilities[1] + m_transition_probabilities[2];
+    
+    // Draw what infection state they move to 
+    m_temp_infection_state = m_transition_vector[sample1(m_transition_probabilities, m_sum_transition_probabilities)];
     
   }
   
@@ -368,7 +366,7 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     if(cotransmission == 0 || rbernoulli1(m_biting_success_rate)) {
       
       // Push the resultant state of infection
-      m_infection_state_realisation_vector.emplace_back(m_transition_vector[sample1(m_transition_probabilities, m_sum_transition_probabilities)]);
+      m_infection_state_realisation_vector.emplace_back(m_temp_infection_state);
       
       // Push the resultant state change time
       m_infection_time_realisation_vector.emplace_back(static_cast<int>(parameters.g_dur_E + parameters.g_current_time));
@@ -408,46 +406,46 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
       
     }
     
-    // Increase cotransmission counter and catch for overflow
+  }
+  
+      // Increase cotransmission counter and catch for overflow
     if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) parameters.g_cotransmission_frequencies_counter = 0;
     
     // Set next event date as may have changed as a result of the bite
     set_m_day_of_next_event();
-    
-  }
-  
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// SCHEDULERS 
+// SCHEDULERS & DRAWS
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Schedule person's infection state change
-void Person::schedule_m_day_of_InfectionStatus_change(const Parameters &parameters)
+// Draw day of infection state change 
+int Person::draw_m_day_of_InfectionStatus_change(const Parameters &parameters)
 {
   // Match infection state and schedule associated next state change
   switch (m_infection_state)
   {
   case DISEASED:
-    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_D) + parameters.g_current_time + 1;
-    break;
+    return(rexpint1(parameters.g_dur_D) + parameters.g_current_time + 1);
   case ASYMPTOMATIC:
-    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_A) + parameters.g_current_time + 1;
-    break;
+    return(rexpint1(parameters.g_dur_A) + parameters.g_current_time + 1);
   case SUBPATENT:
-    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_U) + parameters.g_current_time + 1;
-    break;
+    return(rexpint1(parameters.g_dur_U) + parameters.g_current_time + 1);
   case TREATED:
-    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_T) + parameters.g_current_time + 1;
-    break;
+    return(rexpint1(parameters.g_dur_T) + parameters.g_current_time + 1);
   case PROPHYLAXIS:
-    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_P) + parameters.g_current_time + 1;
-    break;
+    return(rexpint1(parameters.g_dur_P) + parameters.g_current_time + 1);
   default:
     assert(NULL && "Schedule Infection Status Change Error - person's infection status not D, A, U, T or P");
+  return(-1);
   break;
   }
-  
+}
+
+// Schedule person's infection state change
+void Person::schedule_m_day_of_InfectionStatus_change(const Parameters &parameters)
+{
+  m_day_of_InfectionStatus_change = draw_m_day_of_InfectionStatus_change(parameters);
 }
 
 // Schedule person's death day
@@ -460,7 +458,8 @@ void Person::schedule_m_day_of_death(const Parameters &parameters)
   m_day_of_death = rexpint1(parameters.g_average_age) + parameters.g_current_time + 1;
 }
 
-// Schedule person's next strain clearance
+// Schedule person's next strain clearance#
+// DEPRECATED - NOT USED ANY MORE
 void Person::schedule_m_day_of_strain_clearance(const Parameters &parameters)
 {
   // Throw if this is called on someone with no strains
@@ -599,21 +598,8 @@ void Person::event_handle(const Parameters &parameters) {
   }
   else
   {
-    /*
      // All other events could happen theoretically on the same day though so within same else block
-     // Clear strain if time to do so
-     if (m_day_of_strain_clearance == m_day_of_next_event) {
-     
-     individual_strain_clearance(); // clear strain
-     if (m_number_of_strains > 1) {
-     schedule_m_day_of_strain_clearance(parameters); // Schedule the next strain clearance
-     }
-     else {
-     m_day_of_strain_clearance = 0; // If the strain cleared was the second last strain then there will be no clearnance date as we don't want to remove the last strain
-     }
-     }
-     */
-    
+
     // Change Infection Status due to recoveries etc if time to do so
     if (m_day_of_InfectionStatus_change == m_day_of_next_event) {
       
@@ -759,113 +745,101 @@ void Person::event_handle(const Parameters &parameters) {
       // Is the next pending infection for today
       if (m_infection_time_realisation_vector[m_number_of_realised_infections] == m_day_of_next_event)
       {
+        
+        // Assign infection state
+        
+        // If you are diseased already and the next infection would make you asymptomatic then remain diseased
+        // If it were to make you treated then this is plausible as maybe the extended duration of the fever that would result 
+        // from an additional clinical disease may cause you to seek treatment
+        if (m_infection_state == DISEASED)
+        {
+          if (m_infection_state_realisation_vector[m_number_of_realised_infections] == TREATED) {
+            m_infection_state = TREATED;
+          }
+        }
+        // If you are not diseased you can go to any of treated, diseased, and remain asymptomatic
+        else  
+        {
+          m_infection_state = m_infection_state_realisation_vector[m_number_of_realised_infections];
+        }
+        
+        // schedule next state change
+        schedule_m_day_of_InfectionStatus_change(parameters); 
+        m_temp_int = m_day_of_InfectionStatus_change;
+        
         // Reset this catch variable which ensiures multiple infections on the same day can be realised
         m_infection_realisation_empty_catch = 1;
         
-        // Set infection state to first infection state and then clear that state realisation and time
-        while (m_infection_realisation_empty_catch == 1)
+        // loop through if there are multiple sporozoites to pass on
+        while (m_infection_realisation_empty_catch)
         {
-          // Assign infection state
           
-          // If you are diseased already and the next infection would make you asymptomatic then remain diseased
-          // If it were to make you treated then this is plausible
-          
-          if (m_infection_state == DISEASED)
-          {
-            if (m_infection_state_realisation_vector[m_number_of_realised_infections] == TREATED) {
-              m_infection_state = TREATED;
-            }
-          }
-          // If you are not diseased you can go to any of treated, diseased, and remain asymptomatic
-          else  
-          {
-            m_infection_state = m_infection_state_realisation_vector[m_number_of_realised_infections];
-          }
-          
-          // If infection state is treated then we clear all pending infections
-          if (m_infection_state == TREATED)
-          {
-            
-            // schedule next state change
-            schedule_m_day_of_InfectionStatus_change(parameters); 
-            
-            // Push the pending strain
-            m_active_strains.emplace_back(
-              m_infection_barcode_realisation_vector[m_number_of_realised_infections],
-                                                    Strain::m_transition_vector[static_cast<int>(m_infection_state)],
-                                                                               m_day_of_InfectionStatus_change,
-                                                                               parameters.g_current_time
-            );
-            
-            // We don't care if the new strain will state change earlier than the next state change as this would cause recovery
-            
-            // Increase the number of strains and realised infections
-            m_number_of_strains++;
-            m_number_of_realised_infections++;
-            
-            // Schedule new strain clearance day if there is more than one strain
-            /*
-             if (m_number_of_strains > 1)
-             {
-             schedule_m_day_of_strain_clearance(parameters);
-             }
-             */
-            
-          }
-          // Otherwise pop the time and state and schedule state change
-          else
-          {
-            // Schedule new infection state change and pop the time and state queue
-            schedule_m_day_of_InfectionStatus_change(parameters);
-            
-            // Push next strain
-            m_active_strains.emplace_back(
-              m_infection_barcode_realisation_vector[m_number_of_realised_infections],
-                                                    Strain::m_transition_vector[static_cast<int>(m_infection_state)],
-                                                                               m_day_of_InfectionStatus_change,
-                                                                               parameters.g_current_time
-            );
-            
-            // If the new strain will change state earlier than anyother strain then update the state change event day
-            if (m_day_of_InfectionStatus_change <= m_day_of_next_strain_state_change) {
+          // if the person is asymptomatic we allow differeet sporozoites to have different parasitaemias
+          // by allowing them to reach < 200p/uL at different times, but not larger than the drawn time for 
+          // the humnan to move to state U.
+          if (m_infection_state == Person::ASYMPTOMATIC) {
+            if (m_infection_realisation_empty_catch != 1)
+            {
+              // Draw a potential time for this strain to move out of this state
+              m_temp_int = draw_m_day_of_InfectionStatus_change(parameters);
               
-              // if the next strain state change day is the same as the temp flag the bool
-              if (m_day_of_next_strain_state_change == m_day_of_InfectionStatus_change)
-              {
-                m_more_than_one_strain_to_change_today_bool = true;
+              // If it's large than the drawn human's state change day then set it equal to
+              if (m_temp_int > m_day_of_InfectionStatus_change) {
+                m_temp_int = m_day_of_InfectionStatus_change;
               }
-              
-              // Update the day of next strain state change and the position to the most recent strain i.e the end
-              m_day_of_next_strain_state_change = m_day_of_InfectionStatus_change;
-              m_temp_strain_to_next_change = m_number_of_strains;
-              
+            } 
+          } 
+          
+          // Push the pending strain
+          m_active_strains.emplace_back(m_infection_barcode_realisation_vector[m_number_of_realised_infections],
+                                        Strain::m_transition_vector[static_cast<int>(m_infection_state)],
+                                                                   m_temp_int,
+                                                                   parameters.g_current_time);
+          
+          // Increase the number of strains and realised infections
+          m_number_of_strains++;
+          m_number_of_realised_infections++;
+          m_infection_realisation_empty_catch++;
+          
+          // If the new strain will change state earlier than anyother strain then update the state change event day
+          if (m_temp_int <= m_day_of_next_strain_state_change) {
+            
+            // if the next strain state change day is the same as the temp flag the bool
+            if (m_day_of_next_strain_state_change == m_temp_int)
+            {
+              m_more_than_one_strain_to_change_today_bool = true;
             }
             
-            // Increase the number of strains
-            m_number_of_strains++;
-            m_number_of_realised_infections++;
-            
-            // Schedule new strain clearance day if there is more than one strain
-            /*
-             if (m_number_of_strains > 1)
-             {
-             schedule_m_day_of_strain_clearance(parameters);
-             }
-             */
+            // Update the day of next strain state change and the position to the most recent strain i.e the end
+            m_day_of_next_strain_state_change = m_temp_int;
+            m_temp_strain_to_next_change = m_number_of_strains;
             
           }
           
           // Little conditional loop to assess if there are pending infections still for today and if not to change the catch
           if (m_infection_time_realisation_vector.size() > m_number_of_realised_infections)
           {
-            
             if (m_infection_time_realisation_vector[m_number_of_realised_infections] != parameters.g_current_time)
             {
               m_infection_realisation_empty_catch = 0;
             }
           }
-          else { m_infection_realisation_empty_catch = 0; }
+          else 
+          { 
+            m_infection_realisation_empty_catch = 0; 
+          }
           
+        }
+        
+        // If infection state is treated then we clear all pending infection times meaning that we 
+        // don't allow a new infection occurring bettween today and when the individual moves from T->P 
+        // to cause them to move out of T back to D/A.
+        if (m_infection_state == TREATED)
+        {
+          // Clear all pending infection vectors 
+          m_infection_time_realisation_vector.clear();
+          m_infection_state_realisation_vector.clear();
+          m_infection_barcode_realisation_vector.clear();
         }
         
       }

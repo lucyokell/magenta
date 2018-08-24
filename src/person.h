@@ -52,6 +52,7 @@ private:
   int m_person_ID;            // member variable ID - fine to be public as constant
   int m_person_age;           // Person's age
   InfectionStatus m_infection_state;    // Infection Status enum
+  InfectionStatus m_temp_infection_state;    // Infection Status temp enum
   
   // Person's age dependent biting rate (psi) - See Griffin 2010 S1 for this specific origin
   double m_age_dependent_biting_rate;
@@ -127,10 +128,11 @@ private:
   int m_day_of_death = 0;                                                     // Person's time of death
   int m_day_of_next_strain_state_change = std::numeric_limits<int>::max();    // Person's next strain state change day. Start with very large number due to person functions being written to compare against thsis often
   int m_day_of_next_event = 0;                                                // Person's closest event day
-  int m_temp_day_of_next_strain_state_change = 0;                             // Temp next day of state change
-  int m_temp_strain_to_next_change = 0;                                       // temp variable so we know what strain is changing next
   bool m_more_than_one_strain_to_change_today_bool = false;                   // bool that declares whether there are more than one strain changing states today
   int m_day_last_treated = 0;                                                 // Day last treated
+  int m_temp_strain_to_next_change = 0;                                       // temp variable so we know what strain is changing next
+  
+  int m_temp_int = 0;                                                         // Temp integer for individual. This rather than a static int or new declaration so that it's thread safe and only one construct (?)
   
   std::vector<int> m_infection_time_realisation_vector{};         // First pending infection time in position 0 to handle multiple infections times that have not been realised yet
   std::vector<InfectionStatus> m_infection_state_realisation_vector{};  // First pending infection state in position 0 to handle multiple infections states that have not been realised yet
@@ -409,8 +411,11 @@ public:
   void allocate_strain_with_push(Strain x) { m_active_strains.push_back(x); }
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // SCHEDULERS 
+  // SCHEDULERS & DRAWS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  // Draw day of infection state change 
+  int draw_m_day_of_InfectionStatus_change(const Parameters &parameters);
   
   // Schedule person's infection state change
   void schedule_m_day_of_InfectionStatus_change(const Parameters &parameters);
@@ -419,6 +424,7 @@ public:
   void schedule_m_day_of_death(const Parameters &parameters);
   
   // Schedule person's next strain clearance
+  // DEPRECATED - NOT USED ANY MORE
   void schedule_m_day_of_strain_clearance(const Parameters &parameters);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

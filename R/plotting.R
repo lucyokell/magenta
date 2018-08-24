@@ -250,8 +250,21 @@ summary_data_frames_from_sims <- function(old_res, update_length = 30,years, ibd
   # positions of these times
   full_time_length <- 1:length(full_time)
   positions <- tail(full_time_length,length(time))
-  
   times <- sort(rep(time,length(old_res)))
+  
+  # summary function
+  mean_a_at_states_and_ages_in_c <- function(res_list,a,states=c("D","T","A","U"),ages=NULL,c){
+    if(is.null(ages)) {
+      ages <- seq_len(length(unique(ot[[1]][[1]][[1]]$Age_Bin)))
+    }
+    lapply(res_list, function(x) {
+      infs <- c(x[[positions[i]]][[c]]$State %in% states)
+      age_pos <- c(x[[positions[i]]][[c]]$Age_Bin %in% levels(x[[positions[i]]][[c]]$Age_Bin)[ages])
+      return(sum(x[[positions[i]]][[c]]$N[infs & kids]*x[[positions[i]]][[c]][[a]][infs & age_pos],na.rm=TRUE)/sum(x[[positions[i]]][[c]]$N[infs & age_pos],na.rm=TRUE))
+    }) %>% unlist
+    }
+    
+  
   
   if(!ibd) {
     meanCOI <- rep(0,length(times))
@@ -264,53 +277,17 @@ summary_data_frames_from_sims <- function(old_res, update_length = 30,years, ibd
     
     for(i in 1:(length(time))){
       
-      meanCOI[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
-        return(sum(x[[positions[i]]]$summary_coi$N[infs]*x[[positions[i]]]$summary_coi$mean[infs],na.rm=TRUE)/sum(x[[positions[i]]]$summary_coi$N[infs],na.rm=TRUE))
-      }) %>% unlist
+      meanCOI[1:reps + ((i-1)*reps)] <- mean_a_at_states_and_ages_in_c(old_res,a = "mean",c="summary_coi")
+      meanCOI_0_2[1:reps + ((i-1)*reps)] <- mean_a_at_states_and_ages_in_c(old_res,a = "mean",c="summary_coi",ages = 1:2)
+      meanCOI_2_5[1:reps + ((i-1)*reps)] <- mean_a_at_states_and_ages_in_c(old_res,a = "mean",c="summary_coi",ages = 3:4)
+      meanCOI_5_10[1:reps + ((i-1)*reps)] <- mean_a_at_states_and_ages_in_c(old_res,a = "mean",c="summary_coi",ages = 5)
+      meanCOI_10_20[1:reps + ((i-1)*reps)] <- mean_a_at_states_and_ages_in_c(old_res,a = "mean",c="summary_coi",ages = 6)
+      meanCOI_20_100[1:reps + ((i-1)*reps)] <- mean_a_at_states_and_ages_in_c(old_res,a = "mean",c="summary_coi",ages = 7:9)
       
-      meanCOI_0_2[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
-        kids <- c(x[[positions[i]]]$summary_coi$Age_Bin %in% levels(x[[positions[i]]]$summary_coi$Age_Bin)[1:2])
-        return(sum(x[[positions[i]]]$summary_coi$N[infs & kids]*x[[positions[i]]]$summary_coi$mean[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$summary_coi$N[infs & kids],na.rm=TRUE))
-      }) %>% unlist
-      
-      meanCOI_2_5[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
-        kids <- c(x[[positions[i]]]$summary_coi$Age_Bin %in% levels(x[[positions[i]]]$summary_coi$Age_Bin)[3:4])
-        return(sum(x[[positions[i]]]$summary_coi$N[infs & kids]*x[[positions[i]]]$summary_coi$mean[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$summary_coi$N[infs & kids],na.rm=TRUE))
-      }) %>% unlist
-      
-      meanCOI_5_10[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
-        kids <- c(x[[positions[i]]]$summary_coi$Age_Bin %in% levels(x[[positions[i]]]$summary_coi$Age_Bin)[5])
-        return(sum(x[[positions[i]]]$summary_coi$N[infs & kids]*x[[positions[i]]]$summary_coi$mean[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$summary_coi$N[infs & kids],na.rm=TRUE))
-      }) %>% unlist
-      
-      meanCOI_10_20[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
-        kids <- c(x[[positions[i]]]$summary_coi$Age_Bin %in% levels(x[[positions[i]]]$summary_coi$Age_Bin)[6])
-        return(sum(x[[positions[i]]]$summary_coi$N[infs & kids]*x[[positions[i]]]$summary_coi$mean[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$summary_coi$N[infs & kids],na.rm=TRUE))
-      }) %>% unlist
-      
-      meanCOI_20_100[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
-        kids <- c(x[[positions[i]]]$summary_coi$Age_Bin %in% levels(x[[positions[i]]]$summary_coi$Age_Bin)[7:9])
-        return(sum(x[[positions[i]]]$summary_coi$N[infs & kids]*x[[positions[i]]]$summary_coi$mean[infs & kids],na.rm=TRUE)/sum(x[[positions[i]]]$summary_coi$N[infs & kids],na.rm=TRUE))
-      }) %>% unlist
-      
-      ciCOI[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
-        return(sum(x[[positions[i]]]$summary_coi$N[infs]*x[[positions[i]]]$summary_coi$ci[infs],na.rm=TRUE)/sum(x[[positions[i]]]$summary_coi$N[infs],na.rm=TRUE))
-      }) %>% unlist
-      
-      sdCOI[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
-        return(sum(x[[positions[i]]]$summary_coi$N[infs]*x[[positions[i]]]$summary_coi$sd[infs],na.rm=TRUE)/sum(x[[positions[i]]]$summary_coi$N[infs],na.rm=TRUE))
-      }) %>% unlist
+      ciCOI[1:reps + ((i-1)*reps)]  <- mean_a_at_states_and_ages_in_c(old_res,a = "ci",c="summary_coi")
+      sdCOI[1:reps + ((i-1)*reps)]  <- mean_a_at_states_and_ages_in_c(old_res,a = "sd",c="summary_coi")
       
       meanclonality[1:reps + ((i-1)*reps)] <- lapply(old_res, function(x) {
-        infs <- c(x[[positions[i]]]$summary_coi$State %in% c("D","T","A","U"))
         prods <- x[[positions[i]]]$clonality * as.numeric(names(x[[positions[i]]]$clonality))
         if(is.element(el = "1",names(x[[positions[i]]]$clonality))){
           return(prods[1]/sum(prods,na.rm=TRUE))
@@ -431,7 +408,10 @@ summary_data_frames_from_sims <- function(old_res, update_length = 30,years, ibd
 
 
 
-plot_prevalence <- function(res, age_bin = NULL){
+plot_prevalence <- function(res, age_bin = NULL, states=c("D","A","U","T")){
+  
+  infs <- c("S","D","A","U","T","P")
+  inf_states <- which(infs %in% states)
   
   l <- length(res)
   prev <- rep(0, l-1)
@@ -442,17 +422,17 @@ plot_prevalence <- function(res, age_bin = NULL){
     age_bin <- age_bin*365
   }
   
-  if(length(names(res[[1]]))==6){
-    n <- length(res[[1]]$Infection_States)
+  if(sum(names(res[[1]]) %in% c("Ages","InfectionStates"))==2){
+    n <- length(res[[1]]$InfectionStates)
     for(i in 1:(l-1)){
-      prev[i] <-  sum(res[[i]]$Infection_States %in% c(1,2,3,4) &
+      prev[i] <-  sum(res[[i]]$InfectionStates %in% (inf_states-1) &
                         res[[i]]$Ages > age_bin[1] & 
                         res[[i]]$Ages < age_bin[2] )/n
     }
     
   } else {
     for(i in 1:(l-1)){
-      prev[i] <-  res[[i]][c("D","A","U","T")] %>% unlist %>% sum
+      prev[i] <-  res[[i]][states] %>% unlist %>% sum
     }
   }
   plot(prev,type="l")
