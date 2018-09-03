@@ -81,22 +81,6 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // create our temp barcodes here
   Strain::temp_identity_barcode = boost::dynamic_bitset<>(parameters.g_ibd_length);
   Strain::temp_crossovers = boost::dynamic_bitset<>(parameters.g_num_loci);
-  Strain::temp_block_range_ints_a = std::vector<unsigned long long>(parameters.g_num_loci);
-  Strain::temp_block_range_ints_b = std::vector<unsigned long long>(parameters.g_num_loci);
-  
-  switch (parameters.g_ibd_length){
-  case 8:
-    Strain::temp_barcode<unsigned char> = boost::dynamic_bitset<unsigned char>(parameters.g_barcode_length);
-  case 16: 
-    Strain::temp_barcode<unsigned short> = boost::dynamic_bitset<unsigned short>(parameters.g_barcode_length);
-  case 32:
-    Strain::temp_barcode<unsigned long> = boost::dynamic_bitset<unsigned long>(parameters.g_barcode_length);
-  case 64:
-    Strain::temp_barcode<unsigned long long> = boost::dynamic_bitset<unsigned long long>(parameters.g_barcode_length);
-  default:
-    Rcpp::stop("Unrecognised ibd_length");
-  break;
-  }
   
   // Grab seasonality and spatial
   parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(Rcpp::as<unsigned int>(spatial_list["spatial_type"]));

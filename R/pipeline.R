@@ -167,6 +167,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   sim.out <- Simulation_R(paramList = pl, seed = seed)
   
   if(set_up_only){
+    message("Set Up Grab")
     ## Now let's save the simulation in full
     pl2 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
     sim.save <- Simulation_R(pl2, seed = seed)

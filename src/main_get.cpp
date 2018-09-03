@@ -110,7 +110,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   std::vector<std::vector<int> > Strain_day_of_infection_state_change_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Strain_day_of_acquisition_vectors(universe_ptr->parameters.g_N);
   
-  std::vector<std::vector<unsigned long> > recent_barcode_integers(universe_ptr->parameters.g_N);
+  std::vector<std::vector<unsigned int> > recent_barcode_integers(universe_ptr->parameters.g_N);
   
   rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Vector initialisation working!\n");
   

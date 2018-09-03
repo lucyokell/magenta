@@ -16,7 +16,6 @@
 #define PERSON_H
   
 #include "mosquito.h"
-#include "parameters.h"
 #include <vector>
 #include <queue>
 #include <deque>

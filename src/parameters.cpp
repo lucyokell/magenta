@@ -116,7 +116,7 @@ Parameters::Parameters() {
 }  
 
 // barcode global static params
-unsigned long long Parameters::g_identity_id = 0;
+unsigned int Parameters::g_identity_id = 0;
 unsigned int Parameters::g_num_loci = 24;
 unsigned int Parameters::g_ibd_length = 1;
 unsigned int Parameters::g_barcode_length = static_cast<unsigned int>(g_ibd_length * g_num_loci);

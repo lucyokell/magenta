@@ -22,7 +22,6 @@
 #include "parameters.h"
 #include "util.h"
 
-template <class T>
 class Strain {
   
 public:
@@ -40,9 +39,14 @@ public:
   // Infection transition options. 
   const static std::vector<InfectionStatus> m_transition_vector;
   
+  // temporary barcodes for all purposes
+  static boost::dynamic_bitset<> temp_barcode;
+  static boost::dynamic_bitset<> temp_identity_barcode;
+  static boost::dynamic_bitset<> temp_crossovers;
+  
 private:
   
-  boost::dynamic_bitset<T> m_barcode;									// barcode sequence
+  boost::dynamic_bitset<> m_barcode;									// barcode sequence
   InfectionStatus m_strain_infection_status;					// infection status associated with a strain
   int m_day_of_strain_infection_status_change;				// day that strain would move infection status
   int m_day_of_acquisition;                           // day that the strain was acquired by an individual/mosquito
@@ -78,7 +82,7 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Get barcode
-  boost::dynamic_bitset<T> get_m_barcode() { return(m_barcode); }
+  boost::dynamic_bitset<> get_m_barcode() { return(m_barcode); }
   
   // Get strain infection status
   InfectionStatus get_m_strain_infection_status() { return(m_strain_infection_status); }
@@ -137,7 +141,7 @@ public:
   static boost::dynamic_bitset<> replicate_by_bit(boost::dynamic_bitset<> x, unsigned int n);
   
   // Turns our ibd barcode into a vector of the ints making it up
-  static std::vector<unsigned long> ibd_barcode_to_integer_vector(boost::dynamic_bitset<> x);
+  static std::vector<unsigned int> ibd_barcode_to_integer_vector(boost::dynamic_bitset<> x);
   
   // distances between one bitset and a vector range 
   static unsigned int distance_of_bitset_a_and_x(boost::dynamic_bitset<> a, 
@@ -161,7 +165,5 @@ public:
   static double ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl);
   
 };
-
-#include "Strain.inl"
 
 #endif

@@ -78,7 +78,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // test_generate_next_ibd
-SEXP test_generate_next_ibd(unsigned int bl, unsigned int nl, unsigned int ib, Rcpp::NumericVector pc, unsigned long long id);
+SEXP test_generate_next_ibd(unsigned int bl, unsigned int nl, unsigned int ib, Rcpp::NumericVector pc, unsigned int id);
 RcppExport SEXP _MAGENTA_test_generate_next_ibd(SEXP blSEXP, SEXP nlSEXP, SEXP ibSEXP, SEXP pcSEXP, SEXP idSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -87,7 +87,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type nl(nlSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type ib(ibSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pc(pcSEXP);
-    Rcpp::traits::input_parameter< unsigned long long >::type id(idSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type id(idSEXP);
     rcpp_result_gen = Rcpp::wrap(test_generate_next_ibd(bl, nl, ib, pc, id));
     return rcpp_result_gen;
 END_RCPP

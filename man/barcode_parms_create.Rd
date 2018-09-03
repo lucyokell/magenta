@@ -5,7 +5,7 @@
 \title{Barcode parameter list creation}
 \usage{
 barcode_parms_create(num_loci = 24, ibd_length = 1, plaf = rep(0.5, 24),
-  prob_crossover = rep(0.5, 24))
+  prob_crossover = rep(0.5, 24), starting_ibd = 0)
 }
 \arguments{
 \item{num_loci}{Number of loci. Default = 24}
@@ -27,6 +27,8 @@ Default = rep(0.5, barcode_length)}
 
 \item{prob_crossover}{Vector of probabilities for crossover events for the 
 barcode. Default = rep(0.5, barcode_length)}
+
+\item{starting_ibd}{Starting ibd. Default = 0}
 }
 \description{
 \code{barcode_parms_create} creates list detialing the barcode/genetic

@@ -52,7 +52,6 @@ const std::vector<Strain::InfectionStatus> Strain::m_transition_vector{ SUSCEPTI
 boost::dynamic_bitset<> Strain::temp_barcode(Parameters::g_barcode_length);
 boost::dynamic_bitset<> Strain::temp_identity_barcode(Parameters::g_ibd_length);
 boost::dynamic_bitset<> Strain::temp_crossovers(Parameters::g_num_loci);
-std::vector<unsigned long long> temp_block_range_ints_a(Parameters::g_num_loci);
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // STRAIN - UTILS
@@ -213,12 +212,12 @@ boost::dynamic_bitset<> Strain::replicate_by_bit(boost::dynamic_bitset<> x, unsi
 }
 
 // Turns our ibd barcode into a vector of the ints making it up
-std::vector<unsigned long> Strain::ibd_barcode_to_integer_vector(boost::dynamic_bitset<> x)
+std::vector<unsigned int> Strain::ibd_barcode_to_integer_vector(boost::dynamic_bitset<> x)
 {
   
-  unsigned long mask = 1;
-  unsigned long result = 0;
-  std::vector<unsigned long> vec(Parameters::g_num_loci);
+  unsigned int mask = 1;
+  unsigned int result = 0;
+  std::vector<unsigned int> vec(Parameters::g_num_loci);
   
   for(unsigned int j = 0; j < Parameters::g_num_loci; j++)
   {
@@ -258,12 +257,12 @@ unsigned int Strain::ibd_distance_of_bitset_a_and_x(boost::dynamic_bitset<> a,
 {
   
   unsigned int distance = 0;
-  boost::to_block_range(a, Strain::temp_block_range_ints_a);
+  std::vector<unsigned int> vec(Parameters::g_num_loci);
   
   while (start != end) // while it hasn't reach the end
   {
-    boost::to_block_range(a ^ *start ,temp_block_range_ints_a.begin());
-    for(auto c : temp_block_range_ints_a){
+    vec = Strain::ibd_barcode_to_integer_vector(a ^ *start);
+    for(auto c : vec){
       if(!c) distance++;
     }
     ++start; // and iterate to the next element
@@ -295,7 +294,7 @@ double Strain::distance_of_bitset_a_and_vec_x(boost::dynamic_bitset<> a,
 double Strain::distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl)
 {
   
-  unsigned long distance = 0;
+  unsigned int distance = 0;
   
   for(unsigned int i = 1; i < (x.size()); i++)
   {
@@ -361,7 +360,7 @@ SEXP test_recombinant_with_ibd(SEXP barcode_1,
 // [[Rcpp::export]]
 SEXP test_generate_next_ibd(unsigned int bl, unsigned int nl,
                                unsigned int ib, Rcpp::NumericVector pc,
-                               unsigned long long id
+                               unsigned int id
 )
 {
   Parameters::g_barcode_length = bl;
@@ -393,7 +392,7 @@ Rcpp::List test_ibd_conversion(SEXP barcode, unsigned int bl,
   Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
   
   boost::dynamic_bitset<> barcode_a = sexp_to_bitset(barcode, bl);
-  std::vector<unsigned long> res(Strain::ibd_barcode_to_integer_vector(barcode_a));
+  std::vector<unsigned int> res(Strain::ibd_barcode_to_integer_vector(barcode_a));
   return(Rcpp::List::create(Rcpp::Named("vec") = res));
 }
 

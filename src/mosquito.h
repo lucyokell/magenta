@@ -19,9 +19,7 @@
 #include <bitset>
 #include <random>
 #include <cassert> // for error checking
-#include "probability.h"
 #include "strain.h"
-#include "parameters.h"
 
 class Person;
 

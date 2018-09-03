@@ -140,7 +140,7 @@ public:
   double g_cU;
   
   // barcode parameters
-  static unsigned long long g_identity_id;
+  static unsigned int g_identity_id;
   static unsigned int g_num_loci;
   static unsigned int g_ibd_length;
   static unsigned int g_barcode_length;
