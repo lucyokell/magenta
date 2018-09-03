@@ -106,6 +106,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// population_get_genetics_ibd_df_n
+Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List paramList);
+RcppExport SEXP _MAGENTA_population_get_genetics_ibd_df_n(SEXP paramListSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type paramList(paramListSEXP);
+    rcpp_result_gen = Rcpp::wrap(population_get_genetics_ibd_df_n(paramList));
+    return rcpp_result_gen;
+END_RCPP
+}
+// population_get_genetics_df_n
+Rcpp::List population_get_genetics_df_n(Rcpp::List paramList);
+RcppExport SEXP _MAGENTA_population_get_genetics_df_n(SEXP paramListSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type paramList(paramListSEXP);
+    rcpp_result_gen = Rcpp::wrap(population_get_genetics_df_n(paramList));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_bitset_serialisation
 SEXP test_bitset_serialisation(SEXP x, unsigned int n);
 RcppExport SEXP _MAGENTA_test_bitset_serialisation(SEXP xSEXP, SEXP nSEXP) {
@@ -128,6 +150,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_MAGENTA_test_recombinant_with_ibd", (DL_FUNC) &_MAGENTA_test_recombinant_with_ibd, 6},
     {"_MAGENTA_test_generate_next_ibd", (DL_FUNC) &_MAGENTA_test_generate_next_ibd, 5},
     {"_MAGENTA_test_ibd_conversion", (DL_FUNC) &_MAGENTA_test_ibd_conversion, 4},
+    {"_MAGENTA_population_get_genetics_ibd_df_n", (DL_FUNC) &_MAGENTA_population_get_genetics_ibd_df_n, 1},
+    {"_MAGENTA_population_get_genetics_df_n", (DL_FUNC) &_MAGENTA_population_get_genetics_df_n, 1},
     {"_MAGENTA_test_bitset_serialisation", (DL_FUNC) &_MAGENTA_test_bitset_serialisation, 2},
     {NULL, NULL, 0}
 };

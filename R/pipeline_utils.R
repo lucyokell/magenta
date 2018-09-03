@@ -90,6 +90,32 @@ spl_grab <- function(country, admin, year_range) {
               "mosquitoFOI" = mosquitoFOI))
 }
 
+
+#' Spatial matrix grab
+#' 
+#' Grabs spatial incidence and mosquitoFOI matrix from database
+#' 
+#' @param matrix
+#' @param years
+
+spl_matrix_check <- function(matrix, years) {
+  
+  if(is.matrix(matrix)){
+    if(dim(matrix)[1] != years){
+      matrix <- rbind(matrix(rep(matrix[1,],years - dim(matrix)[1]),ncol=dim(matrix)[2],byrow=TRUE),matrix)
+    }
+  }
+  
+  if(is.vector(matrix)) {
+    if(length(matrix) != years){
+      matrix <- c(rep(matrix[1],years - length(matrix)),matrix)
+    }
+    matrix <- as.matrix(matrix)
+  }
+  
+  return(matrix)
+}
+
 #' Intervention grab
 #' 
 #' Grabs ITN, IRS  ft from database
@@ -248,11 +274,14 @@ mu_fv_create <- function(eqInit,
 #' List for simulation housekeeping vars, e.g. quiet prints,
 #' 
 #' @param quiet
+#' @param cluster
 #' 
 
-housekeeping_list_create <- function(quiet = TRUE) {
+housekeeping_list_create <- function(quiet = TRUE,
+                                     cluster = FALSE) {
   
-l <- list("quiet_print" = quiet)
+l <- list("quiet_print" = quiet,
+          "cluster" = cluster)
 
 return(l)
   

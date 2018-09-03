@@ -48,6 +48,24 @@ test_ibd_conversion <- function(barcode, bl, nl, ib) {
     .Call('_MAGENTA_test_ibd_conversion', PACKAGE = 'MAGENTA', barcode, bl, nl, ib)
 }
 
+#' Returns the population's parasite genetics for ibd style summarised by pibd for given sample size and state
+#'
+#' @param paramList paramList containing statePtr, sample_size, and sample_states
+#' @return list of population information
+#' @export
+population_get_genetics_ibd_df_n <- function(paramList) {
+    .Call('_MAGENTA_population_get_genetics_ibd_df_n', PACKAGE = 'MAGENTA', paramList)
+}
+
+#' Returns the population's parasite genetics summarised by coi for given sample size and state
+#'
+#' @param paramList paramList containing statePtr, sample_size, and sample_states
+#' @return list of population information
+#' @export
+population_get_genetics_df_n <- function(paramList) {
+    .Call('_MAGENTA_population_get_genetics_df_n', PACKAGE = 'MAGENTA', paramList)
+}
+
 test_bitset_serialisation <- function(x, n) {
     .Call('_MAGENTA_test_bitset_serialisation', PACKAGE = 'MAGENTA', x, n)
 }

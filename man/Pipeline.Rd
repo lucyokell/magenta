@@ -9,14 +9,16 @@ Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   N = 1e+05, years = 20, update_length = 365, country = NULL,
   admin = NULL, use_historic_interventions = FALSE, spatial_type = NULL,
   redis_host = "fi--dideclusthn.dide.ic.ac.uk", spatial_uuid = NULL,
-  spatial_incidence_vector = NULL, spatial_mosquitoFOI_vector = NULL,
+  spatial_incidence_matrix = NULL, spatial_mosquitoFOI_matrix = NULL,
   num_loci = 24, ibd_length = 1, plaf = rep(0.5, num_loci),
   prob_crossover = rep(0.5, num_loci), num_het_brackets = 5,
   num_age_brackets = 20, geometric_age_brackets = TRUE, max_age = 100,
   use_odin = FALSE, mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
-  human_only_full_save = FALSE, update_save = FALSE,
-  human_update_save = FALSE, summary_saves_only = FALSE,
-  set_up_only = FALSE, saved_state_path = NULL, seed = runif(1, 1, 10000),
+  human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
+  update_save = FALSE, human_update_save = FALSE,
+  summary_saves_only = FALSE, set_up_only = FALSE,
+  saved_state_path = NULL, seed = as.integer(runif(1, 1, 1e+09)),
+  sample_size = Inf, sample_states = 0:5, sample_reps = 1,
   housekeeping_list = housekeeping_list_create())
 }
 \arguments{
@@ -51,9 +53,9 @@ where your redis server is running.}
 string is passed to this argument. This character should be the same for each parallel task within
 the same job.}
 
-\item{spatial_incidence_vector}{Spatial incidence for humans, i.e. importation vector}
+\item{spatial_incidence_matrix}{Spatial incidence for humans, i.e. importation vector}
 
-\item{spatial_mosquitoFOI_vector}{Spatial mosquio FOI, i.e. importation to mosquitoes vector}
+\item{spatial_mosquitoFOI_matrix}{Spatial mosquio FOI, i.e. importation to mosquitoes vector}
 
 \item{num_loci}{Number of loci. Default = 24}
 

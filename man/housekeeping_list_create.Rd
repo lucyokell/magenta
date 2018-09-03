@@ -4,10 +4,10 @@
 \alias{housekeeping_list_create}
 \title{Create housekeeping parameter list}
 \usage{
-housekeeping_list_create(quiet = TRUE)
+housekeeping_list_create(quiet = TRUE, cluster = FALSE)
 }
 \arguments{
-\item{quiet}{}
+\item{cluster}{}
 }
 \description{
 List for simulation housekeeping vars, e.g. quiet prints,

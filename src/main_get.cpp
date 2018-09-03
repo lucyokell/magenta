@@ -257,11 +257,11 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     unsigned int scourge_size = universe_ptr->scourge.size();
   
     std::vector<int> Mosquito_Infection_States(scourge_size);
-    std::vector<unsigned short int> Mosquito_Day_of_next_blood_meal(scourge_size);	
+    std::vector<int> Mosquito_Day_of_next_blood_meal(scourge_size);	
     std::vector<bool> Mosquito_Off_Season(scourge_size);	
-    std::vector<unsigned short int> Mosquito_Day_of_death(scourge_size);
-    std::vector<unsigned short int> Mosquito_Number_of_ruptured_oocysts (scourge_size);
-    std::vector<std::vector<unsigned short int> > Mosquito_Oocyst_rupture_time_vectors(scourge_size);
+    std::vector<int> Mosquito_Day_of_death(scourge_size);
+    std::vector<int> Mosquito_Number_of_ruptured_oocysts (scourge_size);
+    std::vector<std::vector<int> > Mosquito_Oocyst_rupture_time_vectors(scourge_size);
     std::vector<std::vector<std::vector<bool> > > Mosquito_Oocyst_barcode_male_vectors(scourge_size);
     std::vector<std::vector<std::vector<bool> > > Mosquito_Oocyst_barcode_female_vectors(scourge_size);
     
@@ -290,7 +290,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
       Mosquito_Off_Season[element] = universe_ptr->scourge[element].get_m_mosquito_off_season();
       
       // Ruptured oocyst Numbers 
-      Mosquito_Number_of_ruptured_oocysts[element] = static_cast<unsigned short int>(universe_ptr->scourge[element].get_m_ruptured_oocyst_count());
+      Mosquito_Number_of_ruptured_oocysts[element] = static_cast<int>(universe_ptr->scourge[element].get_m_ruptured_oocyst_count());
 
       // Pending Infection time vector
       Mosquito_Oocyst_rupture_time_vectors[element] = universe_ptr->scourge[element].get_m_oocyst_rupture_time_vector();

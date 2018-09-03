@@ -4,6 +4,8 @@
 //
 //  Created: OJ Watson on 06/12/2015
 //
+//  NOT ACCURATE 
+//
 //  Distributed under the MIT software licence
 //
 //  Further details (if any) of this set of functions can be found in the corresponding header file.
@@ -168,9 +170,9 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
   
   std::vector<int> Mosquito_Infection_States = Rcpp::as<vector<int> >(scourge_List["Mosquito_Infection_States"]);
   std::vector<bool> Mosquito_Off_Season = Rcpp::as<vector<bool> >(scourge_List["Mosquito_Off_Season"]);
-  std::vector<unsigned short int> Mosquito_Day_of_next_blood_meal = Rcpp::as<vector<unsigned short int> >(scourge_List["Mosquito_Day_of_next_blood_meal"]);
-  std::vector<unsigned short int> Mosquito_Day_of_death = Rcpp::as<vector<unsigned short int> >(scourge_List["Mosquito_Day_of_death"]);
-  std::vector<unsigned short int> Mosquito_Number_of_ruptured_oocysts = Rcpp::as<vector<unsigned short int> >(scourge_List["Mosquito_Number_of_ruptured_oocysts"]);
+  std::vector<unsigned int> Mosquito_Day_of_next_blood_meal = Rcpp::as<vector<unsigned int> >(scourge_List["Mosquito_Day_of_next_blood_meal"]);
+  std::vector<unsigned int> Mosquito_Day_of_death = Rcpp::as<vector<unsigned int> >(scourge_List["Mosquito_Day_of_death"]);
+  std::vector<unsigned int> Mosquito_Number_of_ruptured_oocysts = Rcpp::as<vector<unsigned int> >(scourge_List["Mosquito_Number_of_ruptured_oocysts"]);
   
   Rcpp::List Mosquito_Oocyst_rupture_time_vectors = scourge_List["Mosquito_Oocyst_rupture_time_vectors"];
   Rcpp::List Mosquito_Oocyst_barcode_male_vectors = scourge_List["Mosquito_Oocyst_barcode_male_vectors"];
@@ -325,7 +327,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     }
     
     // Set vectors;
-    scourge[n].set_m_oocyst_rupture_time_vector(Rcpp::as<std::vector<unsigned short int> >(Mosquito_Oocyst_rupture_time_vectors[n]));
+    scourge[n].set_m_oocyst_rupture_time_vector(Rcpp::as<std::vector<int> >(Mosquito_Oocyst_rupture_time_vectors[n]));
     scourge[n].set_m_oocyst_barcode_male_vector_from_vector_of_vector_bool(Rcpp::as<std::vector<std::vector<bool> > >(Mosquito_Oocyst_barcode_male_vectors[n]));
     scourge[n].set_m_oocyst_barcode_female_vector_from_vector_of_vector_bool(Rcpp::as<std::vector<std::vector<bool> > >(Mosquito_Oocyst_barcode_female_vectors[n]));
     

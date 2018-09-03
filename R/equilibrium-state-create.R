@@ -449,11 +449,13 @@ generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
 #'   Default = rep(0.5, barcode_length)
 #' @param prob_crossover Vector of probabilities for crossover events for the 
 #'   barcode. Default = rep(0.5, barcode_length)
+#' @param starting_ibd Starting ibd. Default = 0
 #' 
 barcode_parms_create <- function(num_loci = 24,
                                  ibd_length = 1,
                                  plaf = rep(0.5, 24),
-                                 prob_crossover = rep(0.5,24)) {
+                                 prob_crossover = rep(0.5,24),
+                                 starting_ibd = 0) {
   
   
   # are we doing ibd or not
@@ -465,6 +467,7 @@ barcode_parms_create <- function(num_loci = 24,
   
   res <- list("num_loci" = num_loci,
               "ibd_length" = ibd_length,
+              "starting_ibd" = starting_ibd,
               "plaf" = plaf,
               "prob_crossover" = prob_crossover,
               "barcode_type" = barcode_type)

@@ -199,6 +199,10 @@ int rexpint1(double lambda) {
 // sample without replacement from vector
 std::vector<int> sample_without_replacement(std::vector<int> &v, int c) {
     
+    if(static_cast<unsigned int>(c) > v.size()) {
+      return(v);
+    } else {
+    
     // Create return vector
     std::vector<int> samples( c );
     
@@ -220,11 +224,12 @@ std::vector<int> sample_without_replacement(std::vector<int> &v, int c) {
         }
         else
         {
-            samples[m] = t;
+            samples[m] = v[t];
             t++; m++;
         }
     }
     return(samples);
+    }
 }
 
 //------------------------------------------------

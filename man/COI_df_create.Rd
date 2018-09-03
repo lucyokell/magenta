@@ -5,7 +5,8 @@
 \title{Create COI dataframe}
 \usage{
 COI_df_create(sim_save, groupvars = c("Age_Bin", "State"), barcodes = FALSE,
-  mpl = Model_Param_List_Create(), ibd = 0, nl = 24)
+  mpl = Model_Param_List_Create(), ibd = 0, nl = 24, n = Inf,
+  sample_group = c("T", "D", "A", "U"), reps = 1)
 }
 \arguments{
 \item{sim_save}{Output of a simulation save}

@@ -52,6 +52,7 @@ const std::vector<Strain::InfectionStatus> Strain::m_transition_vector{ SUSCEPTI
 boost::dynamic_bitset<> Strain::temp_barcode(Parameters::g_barcode_length);
 boost::dynamic_bitset<> Strain::temp_identity_barcode(Parameters::g_ibd_length);
 boost::dynamic_bitset<> Strain::temp_crossovers(Parameters::g_num_loci);
+std::vector<unsigned long long> temp_block_range_ints_a(Parameters::g_num_loci);
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // STRAIN - UTILS
@@ -232,6 +233,92 @@ std::vector<unsigned long> Strain::ibd_barcode_to_integer_vector(boost::dynamic_
   }
   // return barcode
   return(vec);
+}
+
+// distances between one bitset and a vector range of bitsets
+unsigned int Strain::distance_of_bitset_a_and_x(boost::dynamic_bitset<> a, 
+                                 std::vector<boost::dynamic_bitset<> >::const_iterator start, 
+                                 std::vector<boost::dynamic_bitset<> >::const_iterator end)
+{
+  
+  unsigned int distance = 0;
+  while (start != end) // while it hasn't reach the end
+  {
+    distance = distance + ((~(a ^ *start)).count());
+    ++start; // and iterate to the next element
+  }
+  // return barcode
+  return(distance);
+}
+
+// distances between one bitset and a vector range of bitsets
+unsigned int Strain::ibd_distance_of_bitset_a_and_x(boost::dynamic_bitset<> a, 
+                                                std::vector<boost::dynamic_bitset<> >::const_iterator start, 
+                                                std::vector<boost::dynamic_bitset<> >::const_iterator end)
+{
+  
+  unsigned int distance = 0;
+  boost::to_block_range(a, Strain::temp_block_range_ints_a);
+  
+  while (start != end) // while it hasn't reach the end
+  {
+    boost::to_block_range(a ^ *start ,temp_block_range_ints_a.begin());
+    for(auto c : temp_block_range_ints_a){
+      if(!c) distance++;
+    }
+    ++start; // and iterate to the next element
+  }
+  // return barcode
+  return(distance);
+}
+
+// distances between one bitset and a vector of vectors of bitsets
+double Strain::distance_of_bitset_a_and_vec_x(boost::dynamic_bitset<> a, 
+                                                std::vector<std::vector< boost::dynamic_bitset<> > >::const_iterator start, 
+                                                std::vector<std::vector< boost::dynamic_bitset<> > >::const_iterator end)
+{
+  
+  double distance = 0.0;
+  while (start != end) // while it hasn't reach the end
+  {
+    distance = distance + (
+      (Strain::distance_of_bitset_a_and_x(a, (*start).begin(), (*start).end())) / 
+      ( (*start).end() - (*start).begin() )
+    );
+    ++start; // and iterate to the next element
+  }
+  // return barcode
+  return(distance);
+}
+
+// mean distance between all bitsets within a vector of bitsets
+double Strain::distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl)
+{
+  
+  unsigned long distance = 0;
+  
+  for(unsigned int i = 1; i < (x.size()); i++)
+  {
+    distance = distance + Strain::distance_of_bitset_a_and_x(x[i-1], x.begin()+i, x.end());
+  }
+  
+  // return distance mean, i.e. divided by the length of the barcode and the nC2 combinations that were calculated
+  return(distance / (bl * (x.size() * (x.size() - 1) * 0.5) ) );
+}
+
+// mean distance between all bitsets within a vector of bitsets
+double Strain::ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl)
+{
+  
+  unsigned int distance = 0;
+  
+  for(unsigned int i = 1; i < (x.size()); i++)
+  {
+    distance = distance + Strain::ibd_distance_of_bitset_a_and_x(x[i-1], x.begin()+i, x.end());
+  }
+  
+  // return distance mean, i.e. divided by the num of loci and the nC2 combinations that were calculated
+  return(distance / (Parameters::g_num_loci * (x.size() * (x.size() - 1) * 0.5) ) );
 }
 
 // TESTS -----------------------------------------------------------------------

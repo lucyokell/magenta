@@ -22,8 +22,7 @@
 #include "parameters.h"
 #include "util.h"
 
-
-
+template <class T>
 class Strain {
   
 public:
@@ -40,15 +39,10 @@ public:
 
   // Infection transition options. 
   const static std::vector<InfectionStatus> m_transition_vector;
-
-  // temporary barcodes for all purposes
-  static boost::dynamic_bitset<> temp_barcode;
-  static boost::dynamic_bitset<> temp_identity_barcode;
-  static boost::dynamic_bitset<> temp_crossovers;
   
 private:
   
-  boost::dynamic_bitset<> m_barcode;									// barcode sequence
+  boost::dynamic_bitset<T> m_barcode;									// barcode sequence
   InfectionStatus m_strain_infection_status;					// infection status associated with a strain
   int m_day_of_strain_infection_status_change;				// day that strain would move infection status
   int m_day_of_acquisition;                           // day that the strain was acquired by an individual/mosquito
@@ -84,7 +78,7 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Get barcode
-  boost::dynamic_bitset<> get_m_barcode() { return(m_barcode); }
+  boost::dynamic_bitset<T> get_m_barcode() { return(m_barcode); }
   
   // Get strain infection status
   InfectionStatus get_m_strain_infection_status() { return(m_strain_infection_status); }
@@ -130,7 +124,7 @@ public:
   // Generate a random identity barcode, i.e. where the barcode represents num_loci * ibd_length
   static boost::dynamic_bitset<> generate_random_identity_barcode();
 
-  // Generate the next identity barcode, i.e. if it was 0101 it will now be 111, if num_loci = 2
+  // Generate the next identity barcode, i.e. if it was 0101 it will now be 1111, if num_loci = 2
   static boost::dynamic_bitset<> generate_next_ibd_barcode();
   
   // Generate a random recombinant barcode given two barcodes
@@ -145,6 +139,29 @@ public:
   // Turns our ibd barcode into a vector of the ints making it up
   static std::vector<unsigned long> ibd_barcode_to_integer_vector(boost::dynamic_bitset<> x);
   
+  // distances between one bitset and a vector range 
+  static unsigned int distance_of_bitset_a_and_x(boost::dynamic_bitset<> a, 
+                                                  std::vector<boost::dynamic_bitset<> >::const_iterator start, 
+                                                  std::vector<boost::dynamic_bitset<> >::const_iterator end);
+  
+  // distances between one bitset and a vector range of bitsets
+  static unsigned int ibd_distance_of_bitset_a_and_x(boost::dynamic_bitset<> a, 
+                                                      std::vector<boost::dynamic_bitset<> >::const_iterator start, 
+                                                      std::vector<boost::dynamic_bitset<> >::const_iterator end);
+  
+  // distances between one bitset and a vector of vectors of bitsets
+  static double distance_of_bitset_a_and_vec_x(boost::dynamic_bitset<> a, 
+                                                std::vector<std::vector< boost::dynamic_bitset<> > >::const_iterator start, 
+                                                std::vector<std::vector< boost::dynamic_bitset<> > >::const_iterator end);
+  
+  // mean distance between all bitsets within a vector of bitsets
+  static double distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl);
+
+  // mean ibd distance between all bitsets within a vector of bitsets
+  static double ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl);
+  
 };
+
+#include "Strain.inl"
 
 #endif

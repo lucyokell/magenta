@@ -20,8 +20,8 @@
 #' @param spatial_uuid Default = NULL. If spatial is provided, then this will error unless a character
 #' string is passed to this argument. This character should be the same for each parallel task within
 #' the same job. 
-#' @param spatial_incidence_vector Spatial incidence for humans, i.e. importation vector
-#' @param spatial_mosquitoFOI_vector Spatial mosquio FOI, i.e. importation to mosquitoes vector
+#' @param spatial_incidence_matrix Spatial incidence for humans, i.e. importation vector
+#' @param spatial_mosquitoFOI_matrix Spatial mosquio FOI, i.e. importation to mosquitoes vector
 #' @param fv_vec Numeric for how fv_vec changes as calculated from odin model
 #' @param mu_vec Numeric for hor mu_vec changes as calculated from odin model
 #' @param use_historic_interventions Boolean as to whether the historic interventions are incorporated.
@@ -72,21 +72,22 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                      N=100000, years = 20,update_length = 365, 
                      country = NULL, admin = NULL, use_historic_interventions = FALSE,
                      spatial_type = NULL, redis_host = "fi--dideclusthn.dide.ic.ac.uk",spatial_uuid = NULL,
-                     spatial_incidence_vector = NULL,spatial_mosquitoFOI_vector = NULL,
-                     num_loci = 24,ibd_length = 1, plaf = rep(0.5,num_loci),prob_crossover = rep(0.5, num_loci),
+                     spatial_incidence_matrix = NULL,spatial_mosquitoFOI_matrix = NULL,
+                     num_loci = 24,ibd_length = 1, plaf = rep(0.5,num_loci),prob_crossover = rep(0.5, num_loci),starting_ibd=0.0,
                      num_het_brackets = 5, num_age_brackets = 20, 
                      geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, mu_vec=NULL, fv_vec=NULL,
-                     full_save = FALSE, human_only_full_save = FALSE, 
+                     full_save = FALSE, human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
                      update_save = FALSE, human_update_save = FALSE,
                      summary_saves_only = FALSE, set_up_only = FALSE,
-                     saved_state_path = NULL,seed=runif(1,1,10000),
+                     saved_state_path = NULL,seed=as.integer(runif(1,1,1000000000)),
+                     sample_size = Inf, sample_states = 0:5, sample_reps = 1,
                      housekeeping_list = housekeeping_list_create()){
   
   
   ## if no seed is specified then save the seed
   set.seed(seed)
   message(paste0("Seed set to ",seed))
-  message("New Capter");
+  message("New Chapter");
   # ---
   ## If we don't have a saved state then we initialise first
   # ---
@@ -119,7 +120,8 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     barcode_parms <- barcode_parms_create(num_loci = num_loci,
                                           ibd_length = ibd_length,
                                           plaf = plaf,
-                                          prob_crossover = prob_crossover)
+                                          prob_crossover = prob_crossover,
+                                          starting_ibd = starting_ibd)
     
     ## pass to spatial
     # spatial checks
@@ -136,9 +138,11 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     }
     
     # make spatial list
+    spatial_incidence_matrix <- spl_matrix_check(spatial_incidence_matrix, years)
+    spatial_mosquitoFOI_matrix <- spl_matrix_check(spatial_mosquitoFOI_matrix, years)
     spatial_list <- spl_create(spatial_type = spatial_type,
-                               human_importation_rate_vector = spatial_incidence_vector[1,],
-                               mosquito_imporation_rate_vector = spatial_mosquitoFOI_vector[1,],
+                               human_importation_rate_vector = spatial_incidence_matrix[1,],
+                               mosquito_imporation_rate_vector = spatial_mosquitoFOI_matrix[1,],
                                cotransmission_freq_vector = ztrgeomintp(10000, 10, survival_percentage),
                                oocyst_freq_vector = ztrnbinom(10000, mean=oocyst_mean, size=oocyst_shape))
     
@@ -247,6 +251,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   }
   
   out <- mu_fv_create(eqInit = eqInit, ft = ft, itn_cov = itn_cov, irs_cov = irs_cov, years = years)
+  if(length(ft) == 1) ft <- rep(ft, years)
   
   # If we have specified a yearly save we iterate through the total time in chunks saving the loggers at each stage
   if(update_save)
@@ -255,6 +260,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     # set up results list 
     res <- list()
     length(res) <- round((years*365)/update_length)
+    times <- rep(0,length(res)-1)
     
     # and set up annual checks for variables that change discretely
     year <- 1
@@ -262,24 +268,25 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     
     # messaging
     message("Starting Stochastic Simulation for ", years, " years")
-    if(housekeeping_list$quiet_print) {
-      p <- progress::progress_bar$new(total = length(res)-1)
-    }
+    p <- progress::progress_bar$new(total = length(res))
+    p_print <- progress_logging(housekeeping_list, res, p, initial = TRUE)
+
     ## START MAIN SIMULATION LOOP
     if(length(res) > 1){
       for(i in 1:(length(res)-1)){
         
-        if(housekeeping_list$quiet_print) {
-          p$tick()
-        }
+        # messaging
+        p_print <- progress_logging(housekeeping_list, res, p, i, 
+                                    initial = FALSE, p_print = p_print)
+        times[i] <- Sys.time()
         
         ## annual updates
-        if ((floor(((i-1*update_length)+1) / 365) + 1) == year) {
+        if ((floor((((update_length * (i-1))+1)/365))) == year) {
           year <- year + 1
-          ft <- ft[year]
+          ft_now <- ft[year]
           spatial_list <- spl_create(spatial_type = spatial_type,
-                                     human_importation_rate_vector = spatial_incidence_vector[year,],
-                                     mosquito_imporation_rate_vector = spatial_mosquitoFOI_vector[year,],
+                                     human_importation_rate_vector = spatial_incidence_matrix[year,],
+                                     mosquito_imporation_rate_vector = spatial_mosquitoFOI_matrix[year,],
                                      cotransmission_freq_vector = sample(2,10000,replace = TRUE, prob = c(0.82,0.18)),
                                      oocyst_freq_vector = sample(5,10000,replace = TRUE, prob = c(0.5,0.3,0.1,0.075,0.025)))
         }
@@ -297,19 +304,29 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         # what are saving, does it include the humans
         if(human_update_save) 
         {
-          pl3 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-          sim.save <- Simulation_R(pl3, seed = seed)
           
           # do we just want the summary data frame 
           if(summary_saves_only){
+            
+            df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
+                                 sample_states = sample_states, ibd = barcode_parms$barcode_type)
+            
             if(i%%12 == 0 && i >= (length(res)-180)){
-              res[[i]] <- COI_df_create(sim.save,barcodes=TRUE,nl=num_loci, ibd = barcode_parms$barcode_type, mpl = mpl)
+              res[[i]] <- COI_df_create2(df, barcodes=TRUE, nl=num_loci, ibd = barcode_parms$barcode_type,
+                                        n = sample_size, reps = sample_reps)
             } else {
-              res[[i]] <- COI_df_create(sim.save,nl=num_loci, ibd = barcode_parms$barcode_type, mpl = mpl)
+              res[[i]] <- COI_df_create2(df, barcodes=FALSE, nl=num_loci, ibd = barcode_parms$barcode_type,
+                                         n = sample_size, reps = sample_reps)
             }
             
             # or do we want the full human popualation
           } else {
+            
+            # then grab the population
+            pl3 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+            sim.save <- Simulation_R(pl3, seed = seed)
+            
+            # and then store what's needed
             Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
             Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
             res[[i]] <- Humans
@@ -364,7 +381,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     sim.out <- Simulation_R(pl2, seed = seed)
     
     ## If we have specified a full save then we grab that and save it or just the human bits of interest
-    if(full_save || human_only_full_save)
+    if(full_save || human_only_full_save || human_only_full_summary_save)
     {
       
       ## Now let's save the simulation in full
@@ -377,6 +394,11 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
         Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
         res[[length(res)]] <- Humans
+      } 
+      else if(human_only_full_summary_save)
+      {
+          res[[length(res)]] <- COI_df_create(sim.save,barcodes=TRUE,nl=num_loci, ibd = barcode_parms$barcode_type, mpl = mpl,
+                                              n = sample_size, sample_group = sample_group, reps = sample_reps)
       } 
       else
       {
@@ -435,6 +457,11 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
       
     }
     
+  }
+  
+  # append times
+  if(update_save){
+  attr(res,"times") <- times
   }
   
   # Save the seed as an attribute adn return the result

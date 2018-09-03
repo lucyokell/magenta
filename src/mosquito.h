@@ -49,15 +49,15 @@ private:
   // EVENT VARIABLES 
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-  std::vector<unsigned short int> m_oocyst_rupture_time_vector;	// First oocyst in mosquito at position 0 etc vector to store pending sporozoite times, i.e. day of biting + 10
+  std::vector<int> m_oocyst_rupture_time_vector;	// First oocyst in mosquito at position 0 etc vector to store pending sporozoite times, i.e. day of biting + 10
   std::vector<boost::dynamic_bitset<> > m_oocyst_barcode_male_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from male
   std::vector<boost::dynamic_bitset<> > m_oocyst_barcode_female_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from female
   std::vector<boost::dynamic_bitset<> > m_generated_sporozoites_vector; // Sporozites that have already been simulated for this mosquito
-  unsigned short int m_generated_sporozoite_count = 0;						// Count of spz generated. 
+  int m_generated_sporozoite_count = 0;						// Count of spz generated. 
   
-  unsigned short int m_day_of_death = 0;						// Mosquito's time of death
-  unsigned short int m_day_of_next_blood_meal = 0;			// Mosquito's day of next blood meal, i.e. day of current blood meal + 3
-  unsigned short int m_day_of_next_event = 0;					// Mosquito's closest event day
+  int m_day_of_death = 0;						// Mosquito's time of death
+  int m_day_of_next_blood_meal = 0;			// Mosquito's day of next blood meal, i.e. day of current blood meal + 3
+  int m_day_of_next_event = 0;					// Mosquito's closest event day
   
   uint8_t m_oocyst_realisation_empty_catch = 0;	// Variable that allows a check for empty queues when dealing with more than one infection realisation on a day
   uint8_t m_ruptured_oocyst_count = 0;			// counter for number of burst oocysts so that the related paretnal barcodes are allocated to the correct vector position
@@ -112,7 +112,7 @@ public:
   boost::dynamic_bitset<> get_m_generated_sporozoites_vector(int x) { return(m_generated_sporozoites_vector[x]); }
   
   // Get Mosquito's oocyst rupture time vector
-  std::vector<unsigned short int> get_m_oocyst_rupture_time_vector() { return(m_oocyst_rupture_time_vector); }
+  std::vector<int> get_m_oocyst_rupture_time_vector() { return(m_oocyst_rupture_time_vector); }
   
   // Get Mosquito's oocyst male barcode vector
   std::vector<boost::dynamic_bitset<>> get_m_oocyst_barcode_male_vector() { return(m_oocyst_barcode_male_vector); }
@@ -175,7 +175,7 @@ public:
   void set_m_oocyst_barcode_female_vector(std::vector<boost::dynamic_bitset<>> x) { m_oocyst_barcode_female_vector = x;}
   
   // Set mosquito's oocyst rupture time vector
-  void set_m_oocyst_rupture_time_vector(std::vector<unsigned short int> x)  
+  void set_m_oocyst_rupture_time_vector(std::vector<int> x)  
   { 
     for (unsigned int i = 0; i < x.size(); i++) 
     {

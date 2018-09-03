@@ -1,4 +1,3 @@
-#include <Rcpp.h>
 #include "util.h"
 
 SEXP bitset_to_sexp(boost::dynamic_bitset<> x) {
@@ -42,7 +41,8 @@ std::string enum_spatial_convert(Parameters::g_spatial_type_enum v) {
   
 }
 
-
+// Tests
+// ------------------------------
 // [[Rcpp::export]]
 SEXP test_bitset_serialisation(SEXP x, unsigned int n) {
   boost::dynamic_bitset<> y = sexp_to_bitset(x, n);

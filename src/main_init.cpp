@@ -16,19 +16,12 @@
 
 //#include <RcppArmadillo.h>
 #include <iostream>
-#include "parameters.h"
-#include "probability.h"
 #include "person.h"
-#include <cassert> // for error checking
-
 #include <chrono>
 #include <functional>
-#include <numeric>  
-#include <algorithm>
-#include "util.h"
 
-using namespace std;
-using namespace Rcpp;
+// using namespace std;
+// using namespace Rcpp;
 
 // Create universe structure for all important variables
 struct Universe {
@@ -85,21 +78,37 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(barcode_parms["prob_crossover"]);
   parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_parms["barcode_type"]));
   
-  Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
-  Strain::temp_identity_barcode = boost::dynamic_bitset<>(Parameters::g_ibd_length);
-  Strain::temp_crossovers = boost::dynamic_bitset<>(Parameters::g_num_loci);
-
+  // create our temp barcodes here
+  Strain::temp_identity_barcode = boost::dynamic_bitset<>(parameters.g_ibd_length);
+  Strain::temp_crossovers = boost::dynamic_bitset<>(parameters.g_num_loci);
+  Strain::temp_block_range_ints_a = std::vector<unsigned long long>(parameters.g_num_loci);
+  Strain::temp_block_range_ints_b = std::vector<unsigned long long>(parameters.g_num_loci);
+  
+  switch (parameters.g_ibd_length){
+  case 8:
+    Strain::temp_barcode<unsigned char> = boost::dynamic_bitset<unsigned char>(parameters.g_barcode_length);
+  case 16: 
+    Strain::temp_barcode<unsigned short> = boost::dynamic_bitset<unsigned short>(parameters.g_barcode_length);
+  case 32:
+    Strain::temp_barcode<unsigned long> = boost::dynamic_bitset<unsigned long>(parameters.g_barcode_length);
+  case 64:
+    Strain::temp_barcode<unsigned long long> = boost::dynamic_bitset<unsigned long long>(parameters.g_barcode_length);
+  default:
+    Rcpp::stop("Unrecognised ibd_length");
+  break;
+  }
+  
   // Grab seasonality and spatial
   parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(Rcpp::as<unsigned int>(spatial_list["spatial_type"]));
   parameters.g_theta = Rcpp::as<vector<double> >(eqSS["theta"]);
   
   rcpp_out(parameters.g_h_quiet_print, "Running model of " + enum_spatial_convert(parameters.g_spatial_type) + " spatial type.\n");
-
+  
   // Mosquito steady state values at a population level
   double Sv = Rcpp::as<double>(eqSS["Sv"]);
   double Ev = Rcpp::as<double>(eqSS["Ev"]);
   double Iv = Rcpp::as<double>(eqSS["Iv"]);
-   
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: INITIALISATION
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -128,27 +137,19 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // END: INITIALISATION
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // START: R -> C++ CONVERSIONS
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  Rcpp::NumericMatrix Smat(Rcpp::as<NumericMatrix>(eqSS["Smat"]));
-  Rcpp::NumericMatrix Dmat(Rcpp::as<NumericMatrix>(eqSS["Dmat"]));
-  Rcpp::NumericMatrix Amat(Rcpp::as<NumericMatrix>(eqSS["Amat"]));
-  Rcpp::NumericMatrix Umat(Rcpp::as<NumericMatrix>(eqSS["Umat"]));
-  Rcpp::NumericMatrix Tmat(Rcpp::as<NumericMatrix>(eqSS["Tmat"]));
-  Rcpp::NumericMatrix Pmat(Rcpp::as<NumericMatrix>(eqSS["Pmat"]));
-  Rcpp::NumericMatrix IBmat(Rcpp::as<NumericMatrix>(eqSS["IBmat"]));
-  Rcpp::NumericMatrix ICAmat(Rcpp::as<NumericMatrix>(eqSS["ICAmat"]));
-  Rcpp::NumericMatrix ICMmat(Rcpp::as<NumericMatrix>(eqSS["ICMmat"]));
-  Rcpp::NumericMatrix IDmat(Rcpp::as<NumericMatrix>(eqSS["IDmat"]));
+  Rcpp::NumericMatrix Smat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Smat"]));
+  Rcpp::NumericMatrix Dmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Dmat"]));
+  Rcpp::NumericMatrix Amat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Amat"]));
+  Rcpp::NumericMatrix Umat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Umat"]));
+  Rcpp::NumericMatrix Tmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Tmat"]));
+  Rcpp::NumericMatrix Pmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Pmat"]));
+  Rcpp::NumericMatrix IBmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["IBmat"]));
+  Rcpp::NumericMatrix ICAmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["ICAmat"]));
+  Rcpp::NumericMatrix ICMmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["ICMmat"]));
+  Rcpp::NumericMatrix IDmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["IDmat"]));
   vector<double> age_brackets = Rcpp::as<vector<double> >(eqSS["age_brackets"]);
   vector<double> het_brackets = Rcpp::as<vector<double> >(eqSS["het_brackets"]);
   double ICM_Init = Rcpp::as<double>(eqSS["MaternalImmunity"]);
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // END: R -> C++ CONVERSIONS
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  rcpp_out(parameters.g_h_quiet_print, "Matrix unpacking working!\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: HUMAN INITIALISATION FROM EQUILIBRIUM
@@ -171,6 +172,32 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   std::vector<int> temp_infection_time_realisation_vector; temp_infection_time_realisation_vector.reserve(100);         
   std::vector<Person::InfectionStatus> temp_infection_state_realisation_vector; temp_infection_state_realisation_vector.reserve(100); 
   std::vector<boost::dynamic_bitset<> > temp_infection_barcode_realisation_vector; temp_infection_barcode_realisation_vector.reserve(100);   
+  
+  // starting ibd
+  double infection_sum = 0.0;
+  for(unsigned int a_i = 0; a_i < age_brackets.size(); a_i++){
+    for(unsigned int h_i = 0; h_i < het_brackets.size(); h_i++){
+      infection_sum += Dmat(a_i,h_i) + Amat(a_i,h_i) + Tmat(a_i,h_i) + Umat(a_i,h_i); 
+    }  
+  }
+  unsigned int expected_infections = static_cast<unsigned int>(parameters.g_N*infection_sum);
+  rcpp_out(parameters.g_h_quiet_print, "expected = " + std::to_string(expected_infections));
+  double starting_ibd = Rcpp::as<double>(barcode_parms["starting_ibd"]);
+  std::vector<boost::dynamic_bitset<> > predrawn_barcodes(expected_infections);
+  std::vector<double> ibd_sample_prob(expected_infections, 0.0);
+  rcpp_out(parameters.g_h_quiet_print, "Pre - predrawn!\n");
+  double ibd_sample_prob_sum = 0.0;
+  if(starting_ibd > 0.0001) {
+    for(unsigned int ei = 0; ei < expected_infections; ei++){
+      predrawn_barcodes[ei] = (Strain::generate_next_barcode());
+      if(!ei){
+        ibd_sample_prob[ei] = (starting_ibd);
+      } else {
+        ibd_sample_prob[ei] = ((1-starting_ibd)/expected_infections);
+      }
+      ibd_sample_prob_sum += ibd_sample_prob[ei];
+    }
+  }
   
   for (unsigned int n=0; n < parameters.g_N; n++) 
   {
@@ -233,7 +260,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     }
     else
     {
-    population[n].set_m_ICM(ICM_Init * exp(-population[n].get_m_person_age() / parameters.g_dCM));
+      population[n].set_m_ICM(ICM_Init * exp(-population[n].get_m_person_age() / parameters.g_dCM));
     }
     population[n].set_m_ID(IDmat(age_bracket_in, het_bracket_in));
     
@@ -264,14 +291,19 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
         for (int s = 0; s < population[n].get_m_number_of_strains(); s++)
         {
           
-          Strain::temp_barcode = Strain::generate_next_barcode();
+          if(starting_ibd > 0.0001) {
+            Strain::temp_barcode = predrawn_barcodes[sample1(ibd_sample_prob, ibd_sample_prob_sum)];
+          } else {
+            Strain::temp_barcode = Strain::generate_next_barcode();
+          }
+          
           
           temp_strains.push_back( 
             Strain(
               Strain::temp_barcode,
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
-              0,
-              -13
+                                         0,
+                                         -13
             )
           );
         }
@@ -281,15 +313,18 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       {
         for (int s = 0; s < population[n].get_m_number_of_strains(); s++)
         {
-          
-          Strain::temp_barcode = Strain::generate_next_barcode();
+          if(starting_ibd > 0.0001) {
+            Strain::temp_barcode = predrawn_barcodes[sample1(ibd_sample_prob, ibd_sample_prob_sum)];
+          } else {
+            Strain::temp_barcode = Strain::generate_next_barcode();
+          }
           
           temp_strains.push_back(
             Strain(
               Strain::temp_barcode,
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
-              population[n].get_m_day_of_InfectionStatus_change(),
-              -13
+                                         population[n].get_m_day_of_InfectionStatus_change(),
+                                         -13
             )
           );
         }
@@ -338,7 +373,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   std::vector<double> mosquito_status_eq{ Sv, Ev, Iv };
   double mosquito_status_eq_sum = mosquito_status_eq[0] + mosquito_status_eq[1] + mosquito_status_eq[2];
   int parent_source = 0;
-  std::vector<unsigned short int> pending_oocyst_time{ 0 };
+  std::vector<int> pending_oocyst_time{ 0 };
   std::vector<boost::dynamic_bitset<> > pending_oocyst_barcode_male{ Strain::temp_barcode };
   std::vector<boost::dynamic_bitset<> > pending_oocyst_barcode_female{ Strain::temp_barcode };
   
@@ -389,7 +424,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
         scourge[n].set_m_oocyst_barcode_male_vector(population[infected_human_count[parent_source]].get_m_person_strain_x(temp_choice).get_m_barcode());
         scourge[n].set_m_oocyst_barcode_female_vector(population[infected_human_count[parent_source]].get_m_person_strain_x(temp_choice).get_m_barcode());
       }
-
+      
       // exported barcodes vector add barcode
       if(parameters.g_spatial_type == Parameters::METAPOPULATION)
       {
@@ -403,7 +438,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       // Set the oocyst rupture count to 1
       scourge[n].set_m_ruptured_oocyst_count(1);
       scourge[n].m_mosquito_infected = true;
-
+      
     }
     
     // Deal with if the mosquito is exposed
@@ -412,22 +447,22 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     {
       // Pick a random human for the source of the strain
       parent_source = runiform_int_1(0, infected_human_count.size() - 1);
-
+      
       // If human has only one strain then assign the first strain
       if (population[infected_human_count[parent_source]].get_m_number_of_strains() == 1)
       {
-        pending_oocyst_time[0] = static_cast<unsigned short int>(runiform_int_1(parameters.g_current_time, static_cast<int>(parameters.g_delay_mos)-7));
+        pending_oocyst_time[0] = runiform_int_1(parameters.g_current_time, static_cast<int>(parameters.g_delay_mos)-7);
         pending_oocyst_barcode_male[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode();
         pending_oocyst_barcode_female[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode();
         scourge[n].set_m_oocyst_rupture_time_vector(pending_oocyst_time);
         scourge[n].set_m_oocyst_barcode_male_vector(pending_oocyst_barcode_male);
         scourge[n].set_m_oocyst_barcode_female_vector(pending_oocyst_barcode_female);
-
+        
       }
       // If human has more than one strain then pick random strain for both male and female mosquito barcode
       else
       {
-
+        
         pending_oocyst_time[0] = runiform_int_1(parameters.g_current_time, static_cast<int>(parameters.g_delay_mos)) + 1;
         pending_oocyst_barcode_male[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode();
         pending_oocyst_barcode_female[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode();
@@ -437,7 +472,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       }
       
     }
-
+    
     // schedule mosquito's next day of event
     scourge[n].schedule_m_day_of_next_event();
     
@@ -449,7 +484,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   
   rcpp_out(parameters.g_h_quiet_print, "Mosquito initilisation working\n");
   
-
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // BEGIN: LOGGING AND RETURN
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -474,7 +509,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     }
     
   }
-
+  
   
   
   // Final infection states
@@ -491,32 +526,32 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // loop through population and grab ages and immunities for error checking
   for (unsigned int element = 0; element < parameters.g_N ; element++) 
   {
-
-      // Match infection state and schedule associated next state change
-      switch (population[element].get_m_infection_state())
-      {
-      case Person::SUSCEPTIBLE:
-        status_eq[0]++;
-        break;
-      case Person::DISEASED:
-        status_eq[1]++;
-        break;
-      case Person::ASYMPTOMATIC:
-        status_eq[2]++;
-        break;
-      case Person::SUBPATENT:
-        status_eq[3]++;
-        break;
-      case Person::TREATED:
-        status_eq[4]++;
-        break;
-      case Person::PROPHYLAXIS:
-        status_eq[5]++;
-        break;
-      default:
-        assert(NULL && "Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
+    
+    // Match infection state and schedule associated next state change
+    switch (population[element].get_m_infection_state())
+    {
+    case Person::SUSCEPTIBLE:
+      status_eq[0]++;
       break;
-      }
+    case Person::DISEASED:
+      status_eq[1]++;
+      break;
+    case Person::ASYMPTOMATIC:
+      status_eq[2]++;
+      break;
+    case Person::SUBPATENT:
+      status_eq[3]++;
+      break;
+    case Person::TREATED:
+      status_eq[4]++;
+      break;
+    case Person::PROPHYLAXIS:
+      status_eq[5]++;
+      break;
+    default:
+      assert(NULL && "Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
+    break;
+    }
     
     // Ages and immunity 
     // TODO: Figure out the best way of standardising this logging 
@@ -544,8 +579,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // Create Rcpp loggers list
   Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
                                           Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
-                                          Rcpp::Named("InfectionStates")=Infection_States, Rcpp::Named("Ages")=Ages, 
-                                          Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID);
+                                                                                                                                Rcpp::Named("InfectionStates")=Infection_States, Rcpp::Named("Ages")=Ages, 
+                                                                                                                                Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID);
   
   
   // Create universe ptr for memory-continuiation
@@ -556,13 +591,13 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   // If spatial also required then export the barcodes
   if(parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
-  return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers, 
-                            Rcpp::Named("Exported_Barcodes")=Exported_Barcodes_Booleans,
-                            Rcpp::Named("Exported_Oocysts")=Exported_Oocysts_Booleans);
+    return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers, 
+                              Rcpp::Named("Exported_Barcodes")=Exported_Barcodes_Booleans,
+                              Rcpp::Named("Exported_Oocysts")=Exported_Oocysts_Booleans);
   } 
   else
   {
-  return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers);
+    return Rcpp::List::create(Rcpp::Named("Ptr") = universe_ptr, Rcpp::Named("Loggers")=Loggers);
   }
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // fini

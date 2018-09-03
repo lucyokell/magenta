@@ -155,6 +155,9 @@ public:
   // GETTERS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
+  // Get person's ID
+  int get_m_person_ID() { return(m_person_ID); }
+  
   // Get person's age
   int get_m_person_age() { return(m_person_age); }
   
@@ -174,7 +177,7 @@ public:
   int get_m_day_of_next_strain_state_change() { return(m_day_of_next_strain_state_change); }
   
   // Get person's number of realised infectons
-  int get_m_number_of_realised_infections() { return(m_number_of_realised_infections); }
+  unsigned int get_m_number_of_realised_infections() { return(m_number_of_realised_infections); }
   
   // Get person's specific strain
   Strain get_m_person_strain_x(int x) { return(m_active_strains[x]); }
@@ -301,7 +304,7 @@ public:
   void set_m_number_of_strains(int x) { m_number_of_strains = x; }
   
   // Set person's number of realised infectons
-  void set_m_number_of_realised_infections(int x) { m_number_of_realised_infections = x; }
+  void set_m_number_of_realised_infections(unsigned int x) { m_number_of_realised_infections = x; }
   
   // Set person's IB
   void set_m_IB(double x) { m_IB = x; }

@@ -4,11 +4,11 @@
 \alias{summary_data_frames_from_sims}
 \title{Create summary prev and genetic dataframes}
 \usage{
-summary_data_frames_from_sims(old_res, update_length = 30, years,
-  ibd = FALSE)
+summary_data_frames_from_sims(res_list, update_length = 30, years = 30,
+  age_breaks = list(1:4, 5:6, 7:9), ibd = FALSE)
 }
 \arguments{
-\item{old_res}{list of simulation outputs}
+\item{res_list}{list of simulation outputs}
 
 \item{update_length}{Days between sim saves in simulation. Default = 30}
 

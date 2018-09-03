@@ -227,7 +227,7 @@ void Person::set_m_day_of_next_event() {
     }
     
     // Catch if there are no pending infections first, i.e. if the number of realized infections is the same as the length of the infection realisation vector
-    if (m_infection_time_realisation_vector.size() > m_number_of_realised_infections)
+    if (m_infection_time_realisation_vector.size() > static_cast<unsigned int>(m_number_of_realised_infections))
     {
       if (m_day_of_next_event > m_infection_time_realisation_vector[m_number_of_realised_infections] && m_infection_time_realisation_vector[m_number_of_realised_infections] != 0) {
         m_day_of_next_event = m_infection_time_realisation_vector[m_number_of_realised_infections];
@@ -740,7 +740,7 @@ void Person::event_handle(const Parameters &parameters) {
     
     // Realise infection if time to do so
     // First check if there are any pending infections
-    if (m_infection_time_realisation_vector.size() > m_number_of_realised_infections)
+    if (m_infection_time_realisation_vector.size() > static_cast<unsigned int>(m_number_of_realised_infections))
     {
       // Is the next pending infection for today
       if (m_infection_time_realisation_vector[m_number_of_realised_infections] == m_day_of_next_event)
@@ -764,8 +764,16 @@ void Person::event_handle(const Parameters &parameters) {
         }
         
         // schedule next state change
-        schedule_m_day_of_InfectionStatus_change(parameters); 
-        m_temp_int = m_day_of_InfectionStatus_change;
+        // Draw a potential time for this new resultant infection to change state
+        // Reason it is a potential time is that if you are  in state A for example, 
+        // and currently you would move to U in 100 days, it is not right that this additonal
+        // infection could produce a change to U sooner, however, greater than does. 
+        m_temp_int = draw_m_day_of_InfectionStatus_change(parameters);
+        if (m_temp_int > m_day_of_InfectionStatus_change) {
+          m_day_of_InfectionStatus_change = m_temp_int;
+        } else {
+          m_temp_int = m_day_of_InfectionStatus_change;
+        }
         
         // Reset this catch variable which ensiures multiple infections on the same day can be realised
         m_infection_realisation_empty_catch = 1;
@@ -817,7 +825,7 @@ void Person::event_handle(const Parameters &parameters) {
           }
           
           // Little conditional loop to assess if there are pending infections still for today and if not to change the catch
-          if (m_infection_time_realisation_vector.size() > m_number_of_realised_infections)
+          if (m_infection_time_realisation_vector.size() > static_cast<unsigned int>(m_number_of_realised_infections))
           {
             if (m_infection_time_realisation_vector[m_number_of_realised_infections] != parameters.g_current_time)
             {
@@ -929,7 +937,7 @@ int Person::log_daily_incidence(const Parameters &parameters) {
   if (m_infection_state == SUSCEPTIBLE || m_infection_state == ASYMPTOMATIC || m_infection_state == SUBPATENT)
   {
     // Do they have any infections pending
-    if (m_infection_time_realisation_vector.size() > m_number_of_realised_infections)
+    if (m_infection_time_realisation_vector.size() > static_cast<unsigned int>(m_number_of_realised_infections))
     {
       // Is that infection pending for tomorrow (thuis we assume that this function is always called at the end of a day before the next day starts)
       if (m_infection_time_realisation_vector[m_number_of_realised_infections] == parameters.g_current_time + 1)
