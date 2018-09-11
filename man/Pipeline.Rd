@@ -17,9 +17,10 @@ Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
   human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
   update_save = FALSE, human_update_save = FALSE,
-  summary_saves_only = FALSE, set_up_only = FALSE,
-  saved_state_path = NULL, seed = as.integer(runif(1, 1, 1e+09)),
-  sample_size = Inf, sample_states = 0:5, sample_reps = 1,
+  genetics_df_without_summarising = FALSE, summary_saves_only = FALSE,
+  set_up_only = FALSE, mean_only = TRUE, saved_state_path = NULL,
+  seed = as.integer(runif(1, 1, 1e+09)), sample_size = Inf,
+  sample_states = 0:5, sample_reps = 1,
   housekeeping_list = housekeeping_list_create())
 }
 \arguments{

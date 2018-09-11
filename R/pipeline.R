@@ -77,8 +77,8 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                      num_het_brackets = 5, num_age_brackets = 20, 
                      geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, mu_vec=NULL, fv_vec=NULL,
                      full_save = FALSE, human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
-                     update_save = FALSE, human_update_save = FALSE,
-                     summary_saves_only = FALSE, set_up_only = FALSE,
+                     update_save = FALSE, human_update_save = FALSE, genetics_df_without_summarising = FALSE,
+                     summary_saves_only = FALSE, set_up_only = FALSE, mean_only = TRUE,
                      saved_state_path = NULL,seed=as.integer(runif(1,1,1000000000)),
                      sample_size = Inf, sample_states = 0:5, sample_reps = 1,
                      housekeeping_list = housekeeping_list_create()){
@@ -269,7 +269,8 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     
     # messaging
     message("Starting Stochastic Simulation for ", years, " years")
-    p <- progress::progress_bar$new(total = length(res))
+    p <- progress::progress_bar$new( format = paste0(" Running: [:bar] :percent eta: :eta"),
+                                     total = length(res))
     p_print <- progress_logging(housekeeping_list, res, p, initial = TRUE)
 
     ## START MAIN SIMULATION LOOP
@@ -279,6 +280,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         # messaging
         p_print <- progress_logging(housekeeping_list, res, p, i, 
                                     initial = FALSE, p_print = p_print)
+
         times[i] <- Sys.time()
         
         ## annual updates
@@ -309,17 +311,28 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
           # do we just want the summary data frame 
           if(summary_saves_only){
             
-            df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
+            if(length(sample_size)>1){
+            df <- pop_strains_df(sim.out$Ptr, sample_size = 0, 
                                  sample_states = sample_states, ibd = barcode_parms$barcode_type)
+            } else {
+              df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
+                                   sample_states = sample_states, ibd = barcode_parms$barcode_type)
+              
+            }
+            
+            if(genetics_df_without_summarising) {
+              res[[i]] <- df
+            } else {
             
             if(i%%12 == 0 && i >= (length(res)-180)){
               res[[i]] <- COI_df_create2(df, barcodes=TRUE, nl=num_loci, ibd = barcode_parms$barcode_type,
-                                        n = sample_size, reps = sample_reps)
+                                        n = sample_size, reps = sample_reps, mean_only = mean_only)
             } else {
               res[[i]] <- COI_df_create2(df, barcodes=FALSE, nl=num_loci, ibd = barcode_parms$barcode_type,
-                                         n = sample_size, reps = sample_reps)
+                                         n = sample_size, reps = sample_reps, mean_only = mean_only)
             }
-            
+            res[[i]]$Prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
+            }
             # or do we want the full human popualation
           } else {
             
@@ -395,11 +408,6 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
         Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
         res[[length(res)]] <- Humans
-      } 
-      else if(human_only_full_summary_save)
-      {
-          res[[length(res)]] <- COI_df_create(sim.save,barcodes=TRUE,nl=num_loci, ibd = barcode_parms$barcode_type, mpl = mpl,
-                                              n = sample_size, sample_group = sample_group, reps = sample_reps)
       } 
       else
       {

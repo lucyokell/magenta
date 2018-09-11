@@ -139,20 +139,50 @@ summarySE <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State"
 #'
 #' @param data Dataframe to be summarised
 #' @param measurevar Character for measure variable
+#' @param groupvars What are we summarise by
+#' @param mean_only Are we just calculating the mean. Default = TRUE
 #' 
-#' 
-summarySE_mean_only <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State")) {
+summarySE_mean_only <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State"),mean_only=TRUE) {
   
-  
+  if(!mean_only) {
+    return(summarySE(data, measurevar,groupvars))
+  } else {
   var <-  dplyr::sym(measurevar)
   
   res <- dplyr::group_by_at(data,groupvars) %>% 
-    dplyr::summarise(N=length(!!var),
+    dplyr::summarise(N=sum(!is.na(!!var)),
                      mean=mean(!!var,na.rm=TRUE))
-    
   
   return(as.data.frame(res))
+  }
 }
+
+#---
+#' Create summary statistics df
+#'
+#' @param data Dataframe to be summarised
+#' @param measurevar Character for measure variable
+#' @param groupvars What are we summarise by
+#' @param mean_only Are we just calculating the mean. Default = TRUE
+#' 
+summarySE_mean_only_max_mean <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State"),mean_only=TRUE, max = 6) {
+  
+  if(nrow(data) != 0) {
+  data[measurevar][data[measurevar]>max] <- max
+  }
+  if(!mean_only) {
+    return(summarySE(data, measurevar,groupvars))
+  } else {
+    var <-  dplyr::sym(measurevar)
+    
+    res <- dplyr::group_by_at(data,groupvars) %>% 
+      dplyr::summarise(N=length(!!var),
+                       mean=mean(!!var,na.rm=TRUE))
+    
+    return(as.data.frame(res))
+  }
+}
+
 
 
 ztrgeomintp <- function(n, mean, p){
@@ -195,7 +225,7 @@ progress_logging <- function(housekeeping_list, res, progress_bar,
         p_print <- 2
         message(paste0("||:|"),appendLF = FALSE)
       } else {
-        progress_bar$tick()
+        #progress_bar$tick()
       }
     }
   } else {
@@ -215,7 +245,7 @@ progress_logging <- function(housekeeping_list, res, progress_bar,
     }
     
     if (!housekeeping_list$cluster) {
-      progress_bar$tick()
+      #progress_bar$tick()
     }
   }
   
@@ -418,6 +448,17 @@ bitsToInt<-function(x, endian = "little") {
   }
 }
 
+# Convert integer to binary for a given n
+binary <- function(x, n = 24) {
+  i <- 0
+  string <- numeric(n)
+  while(x > 0) {
+    string[n - i] <- x %% 2
+    x <- x %/% 2
+    i <- i + 1 
+  }
+  string 
+}
 
 #' Function to generate ggplot colours
 #'

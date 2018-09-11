@@ -79,6 +79,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_parms["barcode_type"]));
   
   // create our temp barcodes here
+  Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
   Strain::temp_identity_barcode = boost::dynamic_bitset<>(parameters.g_ibd_length);
   Strain::temp_crossovers = boost::dynamic_bitset<>(parameters.g_num_loci);
   
@@ -182,6 +183,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
       ibd_sample_prob_sum += ibd_sample_prob[ei];
     }
   }
+  rcpp_out(parameters.g_h_quiet_print, "Post - predrawn!\n");
   
   for (unsigned int n=0; n < parameters.g_N; n++) 
   {
