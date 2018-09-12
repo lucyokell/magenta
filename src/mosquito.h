@@ -162,6 +162,9 @@ public:
   // Function to quickly check if mosquito is infected
   bool check_infection() {  return((m_mosquito_infection_state == INFECTED) ? true : false); }
   
+  // Function to quickly check if mosquito carries resistant sporozoites
+  bool check_resistance();
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SEMI - SETTERS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

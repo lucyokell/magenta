@@ -16,6 +16,12 @@ Person::Person(const Parameters &parameters) :
     m_infection_time_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));			// First pending infection time in position 0 to handle multiple infections times that have not been realised yet
     m_infection_state_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));			// First pending infection state in position 0 to handle multiple infections states that have not been realised yet
     m_infection_barcode_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));		// First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
+ 
+ // if doing nmf then set this here
+  if(parameters.g_nmf_flag){
+    set_m_day_of_nmf(parameters);
+  } 
+ 
   }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -92,6 +98,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
     // as it might occur that there are fewer strains than realised infections that could have led to gametocytogenic infections (if they had not been cleared)
     for (int n = 0; n < m_gametocytogenic_infections; n++)
     {
+      
       // Match infection state and schedule associated next state change
       switch (m_active_strains[m_gametocytogenic_strains[n]].get_m_strain_infection_status())
       {
@@ -119,6 +126,12 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
         assert(NULL && "Strain infection status not D, A, U or T");
       break;
       }
+      
+      // if there are resistance elements then we nneed to create our modifier
+      if(parameters.g_resistance_flag){
+        m_active_strain_contribution.back() *= m_active_strains[m_gametocytogenic_strains[n]].relative_contribution(parameters);
+      }
+      
     }
     m_contribution_counter = 1;
     m_contribution_sum = std::accumulate(m_active_strain_contribution.begin(), m_active_strain_contribution.end(), 1.0);
@@ -136,6 +149,32 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
     return(std::vector<boost::dynamic_bitset<>> { m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode(), 
            m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode() });
   }
+}
+
+// Work out if late parasitological failure happened
+bool Person::late_paristological_failure_boolean(const Parameters &parameters){
+  
+  // the drug by default will be the first one (we add one to what we pass on below)
+  int drug_choice = 0;
+  
+  // set up our post treatment vector
+  m_post_treatment_strains.clear();
+  m_post_treatment_strains.reserve(m_number_of_strains);
+  
+  // are we doing mft, and if so what drug did they get this time
+  if(parameters.g_mft_flag) {
+    drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+  }
+  
+  //loop through the final m_numbers_of_last_passed as these have to be the relevant treatment strains
+  for(int ts = 0; ts < m_number_of_strains ; ts++){
+    if(m_active_strains[ts].late_paristological_failure_boolean(parameters, drug_choice + 1)){
+      m_post_treatment_strains.emplace_back(m_active_strains[ts]);
+    }
+  }
+  
+  return(m_post_treatment_strains.size());
+
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -175,6 +214,18 @@ double Person::set_m_age_dependent_biting_rate(double rho, double a0) {
   
 }
 
+// Set day of next nmf event
+void Person::set_m_day_of_nmf(const Parameters &parameters){
+  
+  while(parameters.g_nmf_age_brackets[m_nmf_age_band+1] < m_person_age){
+    m_nmf_age_band++;
+  }
+  
+  // Exppnential waiting time plus current day and 1 so not the same day
+  m_day_of_nmf = rexpint1(parameters.g_mean_nmf_frequency[m_nmf_age_band]) + parameters.g_current_time + 1;
+  
+};
+
 // Set day of next strain state change
 void Person::set_m_day_of_next_strain_state_change()
 {
@@ -212,7 +263,7 @@ void Person::set_m_day_of_next_strain_state_change()
 void Person::set_m_day_of_next_event() {
   
   // First if catches if person is completely susceptible, i.e. not with a pending infection as this is the initialisation criteria
-  if (m_infection_time_realisation_vector.empty() && m_day_of_strain_clearance == 0 && m_day_of_InfectionStatus_change == 0) {
+  if (m_infection_time_realisation_vector.empty() && m_day_of_strain_clearance == 0 && m_day_of_InfectionStatus_change == 0 && m_day_of_nmf == 0) {
     m_day_of_next_event = m_day_of_death;
   }
   
@@ -220,6 +271,11 @@ void Person::set_m_day_of_next_event() {
   {
     // Start next event as death
     m_day_of_next_event = m_day_of_death;
+    
+    // Compare against nmf
+    if (m_day_of_next_event > m_day_of_nmf && m_day_of_nmf != 0) {
+      m_day_of_next_event = m_day_of_nmf;
+    }
     
     // Compare against strain state change
     if (m_day_of_next_event > m_day_of_next_strain_state_change && m_day_of_next_strain_state_change != 0) {
@@ -567,6 +623,11 @@ void Person::die(const Parameters &parameters)
   // Schedule death
   schedule_m_day_of_death(parameters);
   
+  // Schedule nmf
+  if(parameters.g_nmf_flag){
+    set_m_day_of_nmf(parameters);
+  }
+  
   // Set new day of next event
   set_m_day_of_next_event();
 }
@@ -589,6 +650,70 @@ void Person::recover(const Parameters &parameters)
   
 }
 
+// Late parasitological failure
+void Person::late_paristological_failure(const Parameters &parameters) {
+  
+  // change their state to asymptomatic and then draw their state change day
+  m_infection_state = ASYMPTOMATIC;
+  schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change  
+  
+  // clear the active strains
+  m_active_strains = m_post_treatment_strains;
+  m_number_of_strains = m_post_treatment_strains.size();
+  
+  //loop through the final m_numbers_of_last_passed as these have to be the relevant treatment strains and set to asymptomatic
+  for(int ts = 0; ts < m_number_of_strains ; ts++){
+    
+    // Set strains to asymptomatic
+    m_active_strains[ts].set_m_strain_infection_status(Strain::ASYMPTOMATIC);
+    
+    // Draw a potential time for this strain to move out of this state
+    m_temp_int = draw_m_day_of_InfectionStatus_change(parameters);
+    
+    // If it's larger than the drawn human's state change day then set it equal to
+    if (m_temp_int > m_day_of_InfectionStatus_change) {
+      m_temp_int = m_day_of_InfectionStatus_change;
+    }
+    m_active_strains[ts].set_m_day_of_strain_infection_status_change(m_temp_int);
+  }
+}
+
+// Seek treatment for nmf
+void Person::seek_nmf_treatment(const Parameters &parameters){
+
+  // are they tested - if not we assume they are just given drugs in this situation
+  if(rbernoulli1(parameters.g_prob_of_testing_nmf)) {
+    // are they detected
+    if(rbernoulli1(q_fun(parameters))){
+      
+      // then trigger treatment
+      m_infection_state = TREATED;
+      schedule_m_day_of_InfectionStatus_change(parameters);
+      
+      // Clear all pending infection vectors 
+      m_infection_time_realisation_vector.clear();
+      m_infection_state_realisation_vector.clear();
+      m_infection_barcode_realisation_vector.clear();
+    }
+  } else {
+
+    // then trigger treatment
+    m_infection_state = TREATED;
+    schedule_m_day_of_InfectionStatus_change(parameters);
+    
+    // Clear all pending infection vectors 
+    m_infection_time_realisation_vector.clear();
+    m_infection_state_realisation_vector.clear();
+    m_infection_barcode_realisation_vector.clear();
+    
+  }
+  
+  // set the new nmf day
+  set_m_day_of_nmf(parameters);
+  set_m_day_of_next_event();
+    
+}
+
 // Event handle, i.e. if any of person's death, state change, strain clearance or state change realisation days are today, respond accordingly
 void Person::event_handle(const Parameters &parameters) {
   
@@ -598,6 +723,11 @@ void Person::event_handle(const Parameters &parameters) {
   }
   else
   {
+    
+    // Handle nmf event if time to do so. If does this will update the day of infection status change 
+    if (m_day_of_nmf == m_day_of_next_event) {
+     seek_nmf_treatment(parameters);
+    }
      // All other events could happen theoretically on the same day though so within same else block
 
     // Change Infection Status due to recoveries etc if time to do so
@@ -617,10 +747,16 @@ void Person::event_handle(const Parameters &parameters) {
         recover(parameters); // fully recover to susceptible
         break;
       case TREATED:
-        m_infection_state = PROPHYLAXIS;
-        m_day_last_treated = parameters.g_current_time;
-        schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
-        all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+        if(late_paristological_failure_boolean(parameters)){
+          late_paristological_failure(parameters);
+          m_treatment_outcome = LPF;
+        } else {
+          m_treatment_outcome = SUCCESFULLY_TREATED;
+          m_infection_state = PROPHYLAXIS;
+          m_day_last_treated = parameters.g_current_time;
+          schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+          all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+        }
         break;
       case PROPHYLAXIS:
         recover(parameters); // fully recover to susceptible
@@ -644,7 +780,7 @@ void Person::event_handle(const Parameters &parameters) {
           if (m_active_strains[n].get_m_day_of_strain_infection_status_change() == parameters.g_current_time)
           {
             // We might end up looping through all the strains when a new treated strain is given to a human which has the same strain state change
-            // day as a previous strain - in this case just pass over the treated strain as ultimatel
+            // day as a previous strain - in this case just pass over the treated strain
             if (m_active_strains[n].get_m_strain_infection_status() != Strain::TREATED)
             {
               switch (m_active_strains[n].get_m_strain_infection_status())
@@ -745,7 +881,7 @@ void Person::event_handle(const Parameters &parameters) {
       // Is the next pending infection for today
       if (m_infection_time_realisation_vector[m_number_of_realised_infections] == m_day_of_next_event)
       {
-        
+      
         // Assign infection state
         
         // If you are diseased already and the next infection would make you asymptomatic then remain diseased
@@ -872,6 +1008,9 @@ double Person::update(Parameters &parameters)
     parameters.g_total_mums++;
   }
   
+  // reset this now so we know who has gone to be treated
+  m_treatment_outcome = NOT_TREATED;
+  
   // Handle any events that are happening today
   if (m_day_of_next_event == parameters.g_current_time || m_person_age >= parameters.g_max_age) {
     event_handle(parameters);
@@ -885,6 +1024,7 @@ double Person::update(Parameters &parameters)
   m_active_strain_contribution.clear();
   m_gametocytogenic_infections = 0;
   m_gametocytogenic_strains.clear();
+ 
   
   // Throw if the next event date is still today
   assert(m_day_of_next_event != parameters.g_current_time &&

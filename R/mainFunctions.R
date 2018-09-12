@@ -9,10 +9,15 @@
 #' @param eqSS Output of \code{Equilibrium_Steady_State_Create}
 #' @param barcode_parms List of barcode/genetic parameters
 #' @param spatial_list Spatial parmeters to come in
+#' @param housekeeping_list
+#' @param drug_list
+#' @param nmf_list
+#' 
 #' @export
 
 Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms, 
-                                              spatial_list, housekeeping_list)
+                                              spatial_list, housekeeping_list,
+                                              drug_list, nmf_list)
 {
   
   ## CHECKS ##
@@ -39,7 +44,9 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms,
   # Create paramlist
   paramList <- list(N = N, eqSS = eqSS, barcode_parms = barcode_parms, 
                     spatial_list = spatial_list,
-                    housekeeping_list = housekeeping_list)
+                    housekeeping_list = housekeeping_list,
+                    drug_list = drug_list,
+                    nmf_list = nmf_list)
   
   return(paramList)
   
@@ -191,17 +198,17 @@ Simulation_R <- function(paramList, seed)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==5)
+    if(length(paramList)==7)
     {
-      stopifnot(identical(names(paramList), c("N","eqSS","barcode_parms","spatial_list", "housekeeping_list")))  
+      stopifnot(identical(names(paramList), c("N","eqSS","barcode_parms","spatial_list", "housekeeping_list", "drug_list", "nmf_list")))  
     }
     # if it is length one it may be an unpacked list in which case unpack and check
     # this might happen in the future when a list of paramLists is fed directly to this
     # fucntion in a cluster way
-    else if(length(paramList)==5)
+    else if(length(paramList)==7)
     {
       paramList <- paramList[[1]]
-      stopifnot(identical(names(paramList), c("N", "eqSS", "barcode_parms","spatial_list", "housekeeping_list")))  
+      stopifnot(identical(names(paramList), c("N", "eqSS", "barcode_parms","spatial_list", "housekeeping_list", "drug_list", "nmf_list")))  
     } 
     else 
     {

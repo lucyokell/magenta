@@ -39,6 +39,14 @@ public:
     NUMBER_OF_STATES = 6
   };
   
+  enum TreatmentOutcome
+  {
+    NOT_TREATED,  // 0
+    SUCCESFULLY_TREATED,   // 1
+    LPF, // 2
+    NUMBER_OF_TO_STATES = 3
+  };
+  
   // Infection transition options. 
   const static std::vector<InfectionStatus> m_transition_vector;
   
@@ -50,8 +58,10 @@ private:
   
   int m_person_ID;            // member variable ID - fine to be public as constant
   int m_person_age;           // Person's age
+  unsigned int m_nmf_age_band = 0;      // what age bandare they in for nmf
   InfectionStatus m_infection_state;    // Infection Status enum
   InfectionStatus m_temp_infection_state;    // Infection Status temp enum
+  TreatmentOutcome m_treatment_outcome = NOT_TREATED;
   
   // Person's age dependent biting rate (psi) - See Griffin 2010 S1 for this specific origin
   double m_age_dependent_biting_rate;
@@ -82,6 +92,7 @@ private:
   
   // Vector of strains
   std::vector<Strain> m_active_strains;
+  std::vector<Strain> m_post_treatment_strains;
   
   // Temporary strain to be deleted
   int m_temp_strain_to_be_deleted;
@@ -130,6 +141,7 @@ private:
   bool m_more_than_one_strain_to_change_today_bool = false;                   // bool that declares whether there are more than one strain changing states today
   int m_day_last_treated = 0;                                                 // Day last treated
   int m_temp_strain_to_next_change = 0;                                       // temp variable so we know what strain is changing next
+  int m_day_of_nmf = std::numeric_limits<int>::max();                         // Day of nmf
   
   int m_temp_int = 0;                                                         // Temp integer for individual. This rather than a static int or new declaration so that it's thread safe and only one construct (?)
   
@@ -162,6 +174,9 @@ public:
   
   // Get person's infection status
   InfectionStatus get_m_infection_state() { return(m_infection_state); }
+  
+  // Get person's treatment outcome
+  TreatmentOutcome get_m_treatment_outcome() { return(m_treatment_outcome); }
   
   // Get person's age-dependent immunity
   double get_m_age_dependent_biting_rate() { return(m_age_dependent_biting_rate); }
@@ -251,8 +266,17 @@ public:
   // Work out if reciprocal infection happened
   bool reciprocal_infection_boolean(const Parameters &parameters);
   
+  // Work out if late parasitological failure happened
+  bool late_paristological_failure_boolean(const Parameters &parameters);
+  
   // Work out if reciprocal infection happened
   std::vector<boost::dynamic_bitset<>> sample_two_barcodes(const Parameters &parameters);
+  
+  // Work out chance of detecting malaria, q
+  double q_fun(const Parameters &parms) {
+    double fd =  1 - ((1-parms.g_fD0) / (1 + pow((m_person_age/parms.g_aD),parms.g_gD)));
+    return(parms.g_d1 + ((1-parms.g_d1) / (1 + pow((m_ID/parms.g_ID0),parms.g_kD)*fd)));
+  }
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SETTERS
@@ -266,6 +290,9 @@ public:
   
   // Set person's infection state
   void set_m_infection_state(InfectionStatus x) { m_infection_state = x; }
+  
+  // Set person's treatment outcome
+  void set_m_treatment_outcome(TreatmentOutcome x) { m_treatment_outcome = x; }
   
   // Set person's individual biting rate
   void set_m_individual_biting_rate(double x) { m_individual_biting_rate = x; };
@@ -287,6 +314,9 @@ public:
   
   // Set person's transition probabilities
   void set_m_transition_probabilities(double pD, double pT, double pA) { m_transition_probabilities = { pD, pT, pA }; }
+  
+  // Set day of next strain state change
+  void set_m_day_of_nmf(const Parameters &parameters);
   
   // Set day of next strain state change
   void set_m_day_of_next_strain_state_change();
@@ -440,7 +470,13 @@ public:
   void all_strain_clearance();
   
   // Recover to being susceptible, i.e. clearing all infections and strains and associated timings
-  void recover(const Parameters &parameter);
+  void recover(const Parameters &parameters);
+  
+  // Late parasitological failure
+  void late_paristological_failure(const Parameters &parameters); 
+  
+  // Seek treatment for nmf
+  void seek_nmf_treatment(const Parameters &parameters);
   
   // Kill person, i.e. reset age to 0, infections to 0, state to susceptible, immunities reset etc
   void die(const Parameters &parameters);

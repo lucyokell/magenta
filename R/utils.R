@@ -225,7 +225,7 @@ progress_logging <- function(housekeeping_list, res, progress_bar,
         p_print <- 2
         message(paste0("||:|"),appendLF = FALSE)
       } else {
-        #progress_bar$tick()
+        progress_bar$tick()
       }
     }
   } else {
@@ -245,7 +245,7 @@ progress_logging <- function(housekeeping_list, res, progress_bar,
     }
     
     if (!housekeeping_list$cluster) {
-      #progress_bar$tick()
+      progress_bar$tick()
     }
   }
   

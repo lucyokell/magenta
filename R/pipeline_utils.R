@@ -287,3 +287,66 @@ return(l)
   
 }
 
+
+#' Create drug list
+#' 
+#' List for simulating drug usage for resistance/mft variables
+#' 
+#' @param resistance_flag
+#' @param number_of_resistance_loci
+#' @param resistance_costs
+#' @param prob_of_lpf
+#' @param mft_flag
+#' @param number_of_drugs
+#' @param partner_drug_ratios
+#' 
+#' 
+
+drug_list_create <- function(resistance_flag = FALSE,
+                             number_of_resistance_loci = 3,
+                             resistance_costs = rep(0.99, 3),
+                             prob_of_lpf = rep(0.75, 3),
+                             mft_flag = FALSE,
+                             number_of_drugs = 2,
+                             partner_drug_ratios = c(0.5, 0.5)) {
+  
+  resistance_costs <- matrix(c(rep(1,length(resistance_costs)),resistance_costs), nrow=2, byrow=TRUE)
+  prob_of_lpf <- matrix(c(rep(1,length(prob_of_lpf)),prob_of_lpf), nrow=2, byrow=TRUE)
+  
+  l <- list("g_resistance_flag" = resistance_flag,
+            "g_number_of_resistance_loci" = number_of_resistance_loci,
+            "g_cost_of_resistance" = resistance_costs,
+            "g_prob_of_lpf" = prob_of_lpf,
+            "g_mft_flag" = mft_flag,
+            "g_number_of_drugs" = number_of_drugs,
+            "g_partner_drug_ratios" = partner_drug_ratios)
+  
+  return(l)
+  
+}
+
+
+#' Create nmf list
+#' 
+#' List for simulating non malarial fever
+#' 
+#' @param nmf_flag
+#' @param mean_nmf_frequency
+#' @param nmf_age_brackets
+#' @param prob_of_testing_nmf
+#' 
+#' 
+
+nmf_list_create <- function(nmf_flag = FALSE,
+                            mean_nmf_frequency = c(247.63,232.63,235.94,259.79,298.94,360.32,389.13,446.76,521.43,525.94,475.26,425.41,397.17,361.03),
+                            nmf_age_brackets = c(-0.1, 365.0, 730.0, 1095.0, 1460.0, 1825.0, 2555.0, 3285.0, 4015.0, 4745.0, 5475.0, 7300.0, 9125.0, 10950.0, 36850.0),
+                            prob_of_testing_nmf = 0.5){
+  
+  l <- list("g_nmf_flag" = nmf_flag,
+            "g_mean_nmf_frequency" = mean_nmf_frequency,
+            "g_nmf_age_brackets" = nmf_age_brackets,
+            "g_prob_of_testing_nmf" = prob_of_testing_nmf)
+  
+  return(l)
+  
+}

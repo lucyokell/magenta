@@ -54,6 +54,34 @@ boost::dynamic_bitset<> Strain::temp_identity_barcode(Parameters::g_ibd_length);
 boost::dynamic_bitset<> Strain::temp_crossovers(Parameters::g_num_loci);
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// MEMBER FUNCTIONS
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Work out the strain's relative onward contribution given the fitness costs in the parameters object
+double Strain::relative_contribution(const Parameters &parameters){
+  
+  double contribution = 1.0;
+  
+  for(unsigned int i = 0; i < parameters.g_number_of_resistance_loci ; i++){
+    contribution *= parameters.g_cost_of_resistance[i][m_barcode[i]];
+  }
+  
+  return(contribution);
+}
+
+// Work out if the strain caused late parasitological failure
+bool Strain::late_paristological_failure_boolean(const Parameters &parameters, int drug_choice){
+  
+  double prob_of_no_failure = 1.0 * parameters.g_prob_of_lpf[0][m_barcode[0]] * parameters.g_prob_of_lpf[drug_choice][m_barcode[drug_choice]];
+  
+  if(prob_of_no_failure == 1.0) { 
+    return(false);
+  } else {
+    return(rbernoulli1(1 - prob_of_no_failure));
+  }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // STRAIN - UTILS
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

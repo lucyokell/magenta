@@ -19,6 +19,37 @@ std::vector<boost::dynamic_bitset<> > gam_sampled(2);
 int m_oocyst_pick = 0;
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// CHECKERS
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Function to quickly check if mosquito carries resistant sporozoites
+bool Mosquito::check_resistance(){
+  
+  // check the spz already we know about
+  for(auto b : m_generated_sporozoites_vector){
+    if(b.any()) {
+      return(true);
+    }
+  }
+  
+  // check the females
+  for(unsigned int f(0) ; f < m_ruptured_oocyst_count ; f++){
+    if(m_oocyst_barcode_female_vector[f].any()) {
+      return(true);
+    }
+  }
+  
+  // check the males
+  for(unsigned int m(0) ; m < m_ruptured_oocyst_count ; m++){
+    if(m_oocyst_barcode_male_vector[m].any()) {
+      return(true);
+    }
+  }
+  
+  return(false);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ALLOCATIONS
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

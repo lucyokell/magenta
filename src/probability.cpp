@@ -47,7 +47,7 @@ int runiform_int_1(int a, int b) {
 
 //------------------------------------------------
 // sample from given probability vector (that sums to pSum)
-int sample1(std::vector<double> &p, double pSum) {
+int sample1(const std::vector<double> &p, double pSum) {
     double rand = pSum*R::unif_rand();
     double z = 0;
     for (int i = 0; i<int(p.size()); i++) {

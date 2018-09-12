@@ -113,6 +113,23 @@ Parameters::Parameters() {
   // housekeeping parameters
   g_h_quiet_print = false;
   
+  // barcode drug related parameters
+  g_resistance_flag = false;
+  g_number_of_resistance_loci = 0;
+  g_cost_of_resistance = { {1.0, 0.0} };
+  g_prob_of_lpf = { {1.0,0.0} }; // late parasitological failure
+  
+  // drug related parameters
+  g_mft_flag = false;
+  g_number_of_drugs = 0;
+  g_partner_drug_ratios = {0.0};
+  
+  // non malaria fever parameters
+  g_nmf_flag = false;
+  g_mean_nmf_frequency = {247.63,232.63,235.94,259.79,298.94,360.32,389.13,446.76,521.43,525.94,475.26,425.41,397.17,361.03}; // probability that a non malarial fever happens
+  g_nmf_age_brackets = {-0.1, 365.0, 730.0, 1095.0, 1460.0, 1825.0, 2555.0, 3285.0, 4015.0, 4745.0, 5475.0, 7300.0, 9125.0, 10950.0, 36850.0}; 
+  g_prob_of_testing_nmf = 0.5;
+    
 }  
 
 // barcode global static params

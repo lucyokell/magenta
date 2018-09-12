@@ -19,6 +19,7 @@
 #include "person.h"
 #include <chrono>
 #include <functional>
+#include "util.h"
 
 // using namespace std;
 // using namespace Rcpp;
@@ -62,7 +63,9 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   Rcpp::List eqSS = paramList["eqSS"];
   Rcpp::List barcode_parms  = paramList["barcode_parms"];
   Rcpp::List spatial_list  = paramList["spatial_list"];
-  Rcpp::List housekeeping_list  = paramList["housekeeping_list"];
+  Rcpp::List housekeeping_list = paramList["housekeeping_list"];
+  Rcpp::List drug_list = paramList["drug_list"];
+  Rcpp::List nmf_list = paramList["nmf_list"];
   
   // Un pack housekeeping parms
   parameters.g_h_quiet_print = Rcpp::as<bool>(housekeeping_list["quiet_print"]);
@@ -77,6 +80,26 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   parameters.g_plaf = Rcpp::as<std::vector<double> >(barcode_parms["plaf"]);
   parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(barcode_parms["prob_crossover"]);
   parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_parms["barcode_type"]));
+  
+  // Un pack drug parameters
+  // barcode drug related parameters
+  parameters.g_resistance_flag = Rcpp::as<bool>(drug_list["g_resistance_flag"]);
+  parameters.g_number_of_resistance_loci= Rcpp::as<unsigned int>(drug_list["g_number_of_resistance_loci"]);
+  Rcpp::NumericMatrix costmat(Rcpp::as<Rcpp::NumericMatrix>(drug_list["g_cost_of_resistance"]));
+  parameters.g_cost_of_resistance = rcpp_matrix_doubles_to_vec_of_vec(costmat);
+  Rcpp::NumericMatrix problpfmat(Rcpp::as<Rcpp::NumericMatrix>(drug_list["g_prob_of_lpf"]));
+  parameters.g_prob_of_lpf = rcpp_matrix_doubles_to_vec_of_vec(problpfmat);
+  
+  // drug related parameters
+  parameters.g_mft_flag = Rcpp::as<bool>(drug_list["g_mft_flag"]);
+  parameters.g_number_of_drugs = Rcpp::as<unsigned int>(drug_list["g_number_of_drugs"]);
+  parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["g_partner_drug_ratios"]);
+  
+  // non malaria fever parameters
+  parameters.g_nmf_flag = Rcpp::as<bool>(nmf_list["g_nmf_flag"]); // are we doing nmf work
+  parameters.g_mean_nmf_frequency = Rcpp::as<std::vector<double> >(nmf_list["g_mean_nmf_frequency"]);
+  parameters.g_nmf_age_brackets = Rcpp::as<std::vector<double> >(nmf_list["g_nmf_age_brackets"]);
+  parameters.g_prob_of_testing_nmf = Rcpp::as<bool>(nmf_list["g_prob_of_testing_nmf"]);
   
   // create our temp barcodes here
   Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);

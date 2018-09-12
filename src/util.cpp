@@ -28,6 +28,19 @@ void rcpp_out(bool quiet, std::string message){
   
 }
 
+std::vector<std::vector<double> > rcpp_matrix_doubles_to_vec_of_vec(Rcpp::NumericMatrix &mat){
+  
+  int nc = mat.ncol() ;
+  std::vector< std::vector<double> > vec( nc ) ;
+  for( int i=0; i<nc; i++){
+    Rcpp::NumericMatrix::Column col = mat(Rcpp::_, i) ;
+    vec[i].assign( col.begin() , col.end() ) ;
+  }
+ 
+ return(vec);
+  
+}
+
 std::string enum_spatial_convert(Parameters::g_spatial_type_enum v) {
   
   switch (v)

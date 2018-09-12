@@ -153,6 +153,22 @@ public:
   };
   static g_barcode_type_enum g_barcode_type;
   
+  // barcode drug related parameters
+  bool g_resistance_flag;
+  unsigned int g_number_of_resistance_loci;
+  std::vector<std::vector<double> > g_cost_of_resistance;
+  std::vector<std::vector<double> > g_prob_of_lpf; // late parasitological failure
+  
+  // drug related parameters
+  bool g_mft_flag;
+  unsigned int g_number_of_drugs;
+  std::vector<double> g_partner_drug_ratios;
+  
+  // non malaria fever parameters
+  bool g_nmf_flag; // are we doing nmf work
+  std::vector<double> g_mean_nmf_frequency; // mean number of days between nmf events
+  std::vector<double> g_nmf_age_brackets; // probability that a non malarial fever happens
+  double g_prob_of_testing_nmf;
   
   // Housekeeping parameters
   bool g_h_quiet_print;

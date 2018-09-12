@@ -51,7 +51,7 @@ int runiform_int_1(int a, int b);
     
 //------------------------------------------------
 // sample from given probability vector (that sums to pSum)
-int sample1(std::vector<double> &p, double pSum = 1);
+int sample1(const std::vector<double> &p, double pSum = 1);
 
 //------------------------------------------------
 // sample given sorted random vector, cumsum vector, and n to sammple

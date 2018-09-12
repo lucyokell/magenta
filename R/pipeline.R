@@ -81,7 +81,9 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                      summary_saves_only = FALSE, set_up_only = FALSE, mean_only = TRUE,
                      saved_state_path = NULL,seed=as.integer(runif(1,1,1000000000)),
                      sample_size = Inf, sample_states = 0:5, sample_reps = 1,
-                     housekeeping_list = housekeeping_list_create()){
+                     housekeeping_list = housekeeping_list_create(),
+                     drug_list = drug_list_create(),
+                     nmf_list = nmf_list_create()){
   
   
   ## if no seed is specified then save the seed
@@ -150,7 +152,9 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     pl <- Param_List_Simulation_Init_Create(N=N,eqSS=eqSS,
                                             barcode_parms = barcode_parms,
                                             spatial_list = spatial_list,
-                                            housekeeping_list = housekeeping_list)
+                                            housekeeping_list = housekeeping_list,
+                                            drug_list = drug_list,
+                                            nmf_list = nmf_list)
     
   } 
   else 
@@ -321,7 +325,10 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
             }
             
             if(genetics_df_without_summarising) {
-              res[[i]] <- df
+              res[[i]] <- list()
+              res[[i]]$df <- df
+              res[[i]]$succesfull_treatments <- sim.out$Loggers$Successful_Treatments
+              res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Unsuccesful_Treatments_LPF
             } else {
             
             if(i%%12 == 0 && i >= (length(res)-180)){

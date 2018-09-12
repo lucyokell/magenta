@@ -146,6 +146,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   int temp_biting_frequency_vector_iterator = 0;
   
   // status eq for logging and other logging variables
+  double succesful_treatments = 0;
+  double unsuccesful_treatments_lpf = 0;
   std::vector<double> status_eq = { 0,0,0,0,0,0 };
   std::vector<double> mosq_status_eq = { 0,0,0,0,0,0 };
   unsigned int log_counter = 0;
@@ -463,6 +465,14 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
           total_incidence++;
         }
         
+        // log treatment outcomes
+        if(element.get_m_treatment_outcome() == Person::SUCCESFULLY_TREATED){
+          succesful_treatments++;
+        } 
+        if (element.get_m_treatment_outcome() == Person::LPF){
+          unsuccesful_treatments_lpf++;
+        }
+        
       }
       
       for (auto &element : u_ptr->scourge)
@@ -560,6 +570,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
                                           Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
                                           Rcpp::Named("Incidence")=total_incidence/log_counter,
                                           Rcpp::Named("Incidence_05")=total_incidence_05/log_counter, 
+                                          Rcpp::Named("Successful_Treatments")=succesful_treatments/log_counter,
+                                          Rcpp::Named("Unsuccesful_Treatments_LPF")=unsuccesful_treatments_lpf/log_counter,
                                           Rcpp::Named("InfectionStates")=Infection_States, 
                                           Rcpp::Named("Ages")=Ages, 
                                           Rcpp::Named("IB")=IB, 
