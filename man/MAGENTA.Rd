@@ -4,7 +4,6 @@
 \name{MAGENTA}
 \alias{MAGENTA}
 \alias{MAGENTA-package}
-\alias{MAGENTA-package}
 \title{MAGENTA: Individual-based simulation model of malaria epidemiology and genomics.}
 \description{
 MAGENTA is an individual-based simulation model of malaria epidemiology and genomics. 

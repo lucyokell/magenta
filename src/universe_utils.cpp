@@ -62,16 +62,15 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List paramList) {
   std::vector<double> pibd(pop_size, 0);
   std::vector<double> pibd_within(pop_size, 0);
   std::vector<unsigned int> ages(pop_size, 0);
-  std::vector<unsigned int> last_treatment(pop_size, 0);
   std::vector<unsigned int> states(pop_size, 0);
-  std::vector<std::vector<SEXP> > barcodes(pop_size);
   std::vector<std::vector<unsigned int> > barcode_states(pop_size);
   std::vector<std::vector<boost::dynamic_bitset<> > > bitsets(pop_size);
   std::vector<std::vector<boost::dynamic_bitset<> > > bitsets_d(pop_size);
   
-  
+
   // temps
   double q_i;
+  unsigned int total_barcodes = 0;
   unsigned int el_i;
   std::vector<Strain> strains_i;
   std::vector<boost::dynamic_bitset<> > bitsets_i;
@@ -86,7 +85,6 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List paramList) {
     // simple assignments first
     ages[el] = u_ptr->population[el_i].get_m_person_age();
     states[el] = static_cast<unsigned int>(u_ptr->population[el_i].get_m_infection_state());
-    last_treatment[el] = u_ptr->parameters.g_current_time - u_ptr->population[el_i].get_m_day_last_treated();
     
     // what's their disease detectability
     q_i = q_fun(u_ptr->parameters, ages[el], u_ptr->population[el_i].get_m_ID());
@@ -102,26 +100,23 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List paramList) {
     
     // reserve space
     bitsets_i.reserve(strains_i.size());
-    barcodes[el].reserve(strains_i.size());
     barcode_states_i.reserve(strains_i.size());
-    
 
     
     // and then their barcode bitsets for all D and those detected in A
     for(auto s : strains_i) {
       if(s.get_m_strain_infection_status() == Strain::DISEASED || s.get_m_strain_infection_status() == Strain::TREATED) {
         bitsets_i.emplace_back(s.get_m_barcode());
-        barcodes[el].emplace_back(bitset_to_sexp(bitsets_i.back()));
         bitsets_d_i.emplace_back(s.get_m_barcode());
         barcode_states_i.emplace_back(static_cast<unsigned int>(s.get_m_strain_infection_status()));
       } 
       if(s.get_m_strain_infection_status() == Strain::ASYMPTOMATIC){
         if(rbernoulli1(q_i)) {
           bitsets_i.emplace_back(s.get_m_barcode());
-          barcodes[el].emplace_back(bitset_to_sexp(bitsets_i.back()));
           barcode_states_i.emplace_back(static_cast<unsigned int>(s.get_m_strain_infection_status()));
         }  
       }
+      total_barcodes++;
     }
     
     // store these for later
@@ -176,6 +171,8 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List paramList) {
     pibd_d[c] /= (contacts_d[c] * u_ptr->parameters.g_num_loci);
   }
   
+  Rcpp::RawMatrix barcodes = vector_of_bitset_vectors_to_raw_matrix(bitsets, u_ptr->parameters.g_barcode_length);
+  
   return(Rcpp::List::create(
       Rcpp::Named("pibd_within") = pibd_within,
       Rcpp::Named("pibd_within_d") = pibd_within_d, 
@@ -185,7 +182,6 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List paramList) {
       Rcpp::Named("state")=states,
       Rcpp::Named("barcodes")=barcodes,
       Rcpp::Named("barcode_states")=barcode_states));
-  
   
 }
 
@@ -227,14 +223,13 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List paramList) {
   }
   pop_size = pop_sample.size();
   
-  std::vector<unsigned int> coi(pop_size, 0);
-  std::vector<unsigned int> coi_detected_micro(pop_size, 0);
-  std::vector<unsigned int> moi(pop_size, 0);
-  std::vector<unsigned int> ages(pop_size, 0);
-  std::vector<unsigned int> last_treatment(pop_size, 0);
-  std::vector<unsigned int> states(pop_size, 0);
-  std::vector<std::vector<SEXP> > barcodes(pop_size);
-  std::vector<std::vector<unsigned int> > barcode_states(pop_size);
+  std::vector< int> coi(pop_size, 0);
+  std::vector< int> coi_detected_micro(pop_size, 0);
+  std::vector< int> moi(pop_size, 0);
+  std::vector< int> ages(pop_size, 0);
+  std::vector< int> states(pop_size, 0);
+  std::vector<std::vector< boost::dynamic_bitset<> > > bitsets(pop_size);
+  std::vector<std::vector< int> > barcode_states(pop_size);
   
   // temps
   double q_i;
@@ -242,85 +237,73 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List paramList) {
   std::vector<Strain> strains_i;
   std::vector<boost::dynamic_bitset<> > bitsets_u_i;
   std::vector<boost::dynamic_bitset<> > bitsets_not_u_i;
-  std::vector<SEXP> barcodes_i;
-  std::vector<unsigned int> barcode_states_i;
+  std::vector< int> barcode_states_i;
   
-  rcpp_out(u_ptr->parameters.g_h_quiet_print, "preloop. pop_size = " + std::to_string(pop_size));
   
   for (unsigned int el = 0; el < pop_size; el++) {
     
     // who are we sampling
     i = pop_sample[el];
-    rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_1: " + std::to_string(el) + " " + std::to_string(i));
     
     // simple assignments first
     ages[el] = u_ptr->population[i].get_m_person_age();
-    states[el] = static_cast<unsigned int>(u_ptr->population[i].get_m_infection_state());
-    last_treatment[el] = u_ptr->parameters.g_current_time - u_ptr->population[i].get_m_day_last_treated();
-    
-    //rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_2: " + std::to_string(el) + " " + std::to_string(i));
+    states[el] = static_cast< int>(u_ptr->population[i].get_m_infection_state());
     
     // clear temps
-    barcodes_i.clear();
     barcode_states_i.clear();
     bitsets_u_i.clear();
     bitsets_not_u_i.clear();
     strains_i.clear();
     
-    //rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_3: " + std::to_string(el) + " " + std::to_string(i));
-    
     // reserve space
     strains_i = u_ptr->population[i].get_m_active_strains();
     bitsets_u_i.reserve(strains_i.size());
-    barcodes_i.reserve(strains_i.size());
     bitsets_not_u_i.reserve(strains_i.size());
     barcode_states_i.reserve(strains_i.size());
     
-    rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_4: " + std::to_string(el) + " " + std::to_string(i));
     
-    //rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_5: " + std::to_string(el) + " " + std::to_string(i));
-    
-    
-    //rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_6: " + std::to_string(el) + " " + std::to_string(i));
-    
-    // for coi let's first get the barcodes for the non U state 
-    for(unsigned int bu = 0; bu < strains_i.size(); bu++) {
-      if(strains_i[bu].get_m_strain_infection_status() != Strain::SUBPATENT) {
-        bitsets_not_u_i.emplace_back(strains_i[bu].get_m_barcode()); 
-        barcode_states_i.emplace_back(static_cast<unsigned int> (strains_i[bu].get_m_strain_infection_status()));
-        barcodes_i.emplace_back(bitset_to_sexp(bitsets_not_u_i.back())); 
+    // for coi let's first get the barcodes for the non U and U states 
+    for(auto b : strains_i) {
+      if(b.get_m_strain_infection_status() != Strain::SUBPATENT) {
+        bitsets_not_u_i.emplace_back(b.get_m_barcode()); 
       } 
-      bitsets_u_i.emplace_back(strains_i[bu].get_m_barcode()); 
+      bitsets_u_i.emplace_back(b.get_m_barcode()); 
+      barcode_states_i.emplace_back(static_cast< int> (b.get_m_strain_infection_status()));
     }
-    barcodes[el] = barcodes_i;
     barcode_states[el] = barcode_states_i;
-    
-    //rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_7: " + std::to_string(el) + " " + std::to_string(i));
+    bitsets[el] = bitsets_u_i;
     
     // and then the unique size
-    q_i = q_fun(u_ptr->parameters, ages[el], u_ptr->population[i].get_m_ID());
-    std::sort(bitsets_not_u_i.begin(), bitsets_not_u_i.end());
-    coi_detected_micro[el] = ceil(q_i * (std::unique(bitsets_not_u_i.begin(), bitsets_not_u_i.end()) - bitsets_not_u_i.begin()));
-    
-    //rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_8: " + std::to_string(el) + " " + std::to_string(i));
-    
-    // similar for all
-    std::sort(bitsets_u_i.begin(), bitsets_u_i.end());
-    coi[el] = std::unique(bitsets_u_i.begin(), bitsets_u_i.end()) - bitsets_u_i.begin();
-    
-    rcpp_out(u_ptr->parameters.g_h_quiet_print, "uu_9: " + std::to_string(el) + " " + std::to_string(i));
-    
+    if(strains_i.size()){
+      
+      q_i = q_fun(u_ptr->parameters, ages[el], u_ptr->population[i].get_m_ID());
+      std::sort(bitsets_not_u_i.begin(), bitsets_not_u_i.end());
+      coi_detected_micro[el] = ceil(q_i * (std::unique(bitsets_not_u_i.begin(), bitsets_not_u_i.end()) - bitsets_not_u_i.begin()));
+      
+      // similar for all
+      std::sort(bitsets_u_i.begin(), bitsets_u_i.end());
+      coi[el] = std::unique(bitsets_u_i.begin(), bitsets_u_i.end()) - bitsets_u_i.begin();
+      
+    } else {
+      
+      coi_detected_micro[el] = 0;
+      coi[el] = 0;
+      
+    }
   }
   
-  rcpp_out(u_ptr->parameters.g_h_quiet_print, "postloop");
+  Rcpp::RawMatrix barcodes = vector_of_bitset_vectors_to_raw_matrix(bitsets, u_ptr->parameters.g_barcode_length);
   
-  return(Rcpp::List::create(
-      Rcpp::Named("coi") = coi,
-      Rcpp::Named("coi_detected_micro") = coi_detected_micro, 
-      Rcpp::Named("age")= ages, 
-      Rcpp::Named("state")=states,
-      Rcpp::Named("last_treatment") = last_treatment, 
-      Rcpp::Named("barcodes")=barcodes,
-      Rcpp::Named("barcode_states")=barcode_states));
+  Rcpp::List res_list = Rcpp::List::create(
+    Rcpp::Named("coi", coi),
+    Rcpp::Named("coi_detected_micro",coi_detected_micro), 
+    Rcpp::Named("age",ages), 
+    Rcpp::Named("state",states),
+    Rcpp::Named("barcodes",barcodes),
+    Rcpp::Named("barcode_states",barcode_states));
+  
+  rcpp_out(u_ptr->parameters.g_h_quiet_print, "post list creation");
+  
+  return(res_list);
   
 }

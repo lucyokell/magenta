@@ -141,7 +141,7 @@ initial(ICM[,,]) <- init_ICM[i,j,k]
 dim(ICM) <- c(na,nh,num_int)
 
 deriv(ICM[1, 1:nh, 1:num_int]) <- -1/dCM*ICM[i,j,k] + (init_ICM[i,j,k]-ICM[i,j,k])/x_I[i]
-deriv(ICM[2:na, 1:nh, 1:num_int]) <- -1/dCM*ICM[i,j,k] - (ICM[i,j,k]-ICM[i,j,k])/x_I[i]
+deriv(ICM[2:na, 1:nh, 1:num_int]) <- -1/dCM*ICM[i,j,k] - (ICM[i,j,k]-ICM[i-1,j,k])/x_I[i]
 
 # ICA - exposure driven immunity
 init_ICA[,,] <- user()
@@ -298,7 +298,7 @@ incv <- delay(lag_incv, delayMos)
 
 # Number of mosquitoes born (depends on PL, number of larvae), or is constant outside of seasonality
 #betaa <- 0.5*PL/dPL
-betaa <- mv0 * mu * theta2
+betaa <- mv0 * mu0 * theta2
 
 deriv(Sv) <- -ince - mu*Sv + betaa
 # deriv(Ev) <- ince - incv - mu*Ev
@@ -333,6 +333,7 @@ gammaL <- user() # eff. of den. dep. on late stage relative to early stage
 
 # fitted entomological parameters:
 mv0 <- user() # initial mosquito density
+mu0 <- user() # baseline mosquito death rate
 tau1 <- user() # duration of host-seeking behaviour
 tau2 <- user() # duration of resting behaviour
 p10 <- user() # prob of surviving 1 feeding cycle
@@ -343,8 +344,8 @@ beta_larval0 <- user() # maximum number of eggs per oviposition per mosq
 eov <- beta_larval0/mu*(exp(mu/fv)-1)
 beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
-lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu*dLL*(1+dPL*muPL))) 
-K0 <- 2*mv0*dLL*mu*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0*dLL*(1+dPL*muPL))) 
+K0 <- 2*mv0*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
 KL <- K0*theta2  
@@ -479,9 +480,9 @@ p1 <- wbar*p10/(1-zbar*p10)
 Q <- 1-(1-Q0)/wbar # updated anthropophagy given interventions
 av <- fv*Q # biting rate on humans
 dim(av_mosq) <- num_int
-av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
+av_mosq[1:num_int] <- av*w[i] # rate at which mosquitoes bite each int. cat.
 dim(av_human) <- num_int
-av_human[1:num_int] <- av*yy[i]/wh # biting rate on humans in each int. cat.
+av_human[1:num_int] <- av*yy[i] # biting rate on humans in each int. cat.
 
 ##------------------------------------------------------------------------------
 ###################
@@ -501,6 +502,10 @@ output(Pout) <- sum(P[,,])
 # population densities for each age category
 den[] <- user()
 dim(den) <- na
+
+dim(density) <- na
+output(density[1:na]) <- den[i]
+
 # index of the age vector above 59 months
 age59 <- user()
 # index of the age vector above 5 years
@@ -528,6 +533,13 @@ clin_inc0to5[1:age05,,] <- clin_inc[i,j,k]
 output(inc05) <- sum(clin_inc0to5)/sum(den[1:age05])
 output(inc) <- sum(clin_inc[,,])
 
+dim(outEIR) <- na
+outEIR[] <- sum(EIR[i,,])
+dim(eir_sum) <- na
+eir_sum[1:na] <- outEIR[i]/den[i]
+output(outEIR2) <- sum(eir_sum[])
+output(outEIRall) <- sum(EIR[,,1])
+
 # Param checking outputs
 output(mu) <- mu
 output(fv) <- fv
@@ -544,4 +556,6 @@ output(r_IRS) <- r_IRS
 output(s_IRS) <- s_IRS
 dim(cov_now) <- 4
 output(cov_now[1:4]) <- cov[i]
+dim(av_now) <- 4
+output(av_now[1:4]) <- av_human[i]
 output(K0) <- K0

@@ -16,7 +16,8 @@ Results
 plots
 *.rds
 ^.*\.rds$
-^scripts/
+scripts
 src-i386
 src-x64
 ^.*\.zip$
+

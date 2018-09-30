@@ -5,7 +5,7 @@
 \title{Create summary prev and genetic dataframes}
 \usage{
 summary_data_frames_from_sims(res_list, update_length = 30, years = 35,
-  age_breaks = list(1:4, 5:6, 7:9), ibd = FALSE)
+  age_breaks = list(1, 2, 3), ibd = FALSE)
 }
 \arguments{
 \item{res_list}{list of simulation outputs}

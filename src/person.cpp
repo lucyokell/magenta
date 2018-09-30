@@ -365,6 +365,13 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     // if it is the first sporozoite then it is always taken. For successive sporozoites, we probabilistically decide based on their immunity
     if(cotransmission == 0 || rbernoulli1(m_biting_success_rate)) {
       
+      if(!cotransmission){
+        m_cotransmission_realisation_vector.emplace_back(false);
+      } else {
+        m_cotransmission_realisation_vector.back() = true;
+        m_cotransmission_realisation_vector.emplace_back(true);
+      }
+      
       // Push the resultant state of infection
       m_infection_state_realisation_vector.emplace_back(m_temp_infection_state);
       

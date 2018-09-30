@@ -4,8 +4,8 @@
 \alias{barcode_parms_create}
 \title{Barcode parameter list creation}
 \usage{
-barcode_parms_create(num_loci = 24, ibd_length = 1, plaf = rep(0.5, 24),
-  prob_crossover = rep(0.5, 24), starting_ibd = 0)
+barcode_parms_create(num_loci = 24, ibd_length = 1, plaf = rep(0.5,
+  24), prob_crossover = rep(0.5, 24), starting_ibd = 0)
 }
 \arguments{
 \item{num_loci}{Number of loci. Default = 24}

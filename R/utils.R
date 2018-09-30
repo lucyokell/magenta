@@ -225,7 +225,7 @@ progress_logging <- function(housekeeping_list, res, progress_bar,
         p_print <- 2
         message(paste0("||:|"),appendLF = FALSE)
       } else {
-        #progress_bar$tick()
+        progress_bar$tick()
       }
     }
   } else {
@@ -245,7 +245,7 @@ progress_logging <- function(housekeeping_list, res, progress_bar,
     }
     
     if (!housekeeping_list$cluster) {
-      #progress_bar$tick()
+      progress_bar$tick()
     }
   }
   
@@ -438,15 +438,14 @@ NULL
 
 #' Function to convert vector of bools representing up to a 32 bit number into the corresponding integer
 #'
-#' @param x Vector of logicals
-#' @param endian What endian is the vector. Default = "little".
-bitsToInt<-function(x, endian = "little") {
-  if(endian == "little"){
-    packBits(rev(c(rep(FALSE, 32-length(x)%%32), as.logical(rev(x)))), "integer")
+#' @param x Vector of raw/logicals
+#' @param big_endian Is big_endian. Default = FALSE
+bitsToInt <- function(x, big_endian = FALSE) {
+  if(big_endian) {
+    sum(2^(which(rev(as.logical(x)))-1))
   } else {
-    packBits(rev(c(rep(FALSE, 32-length(x)%%32), as.logical(x))), "integer")
+      sum(2^(which((as.logical(x)))-1))}
   }
-}
 
 # Convert integer to binary for a given n
 binary <- function(x, n = 24) {

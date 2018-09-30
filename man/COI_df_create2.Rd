@@ -4,8 +4,9 @@
 \alias{COI_df_create2}
 \title{Create COI dataframe}
 \usage{
-COI_df_create2(df, groupvars = c("age_bin", "clinical"), barcodes = FALSE,
-  ibd = 0, nl = 24, n = Inf, reps = 1, mean_only = TRUE)
+COI_df_create2(df, groupvars = c("age_bin", "clinical"),
+  breaks = c(-0.001, 5, 15, 100.1), barcodes = FALSE, ibd = 0,
+  nl = 24, n = Inf, reps = 1, mean_only = TRUE)
 }
 \arguments{
 \item{groupvars}{Grouping vars for summarySE. Default = c("Age_Bin","State")}

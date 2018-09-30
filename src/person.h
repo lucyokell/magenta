@@ -134,6 +134,7 @@ private:
   int m_temp_int = 0;                                                         // Temp integer for individual. This rather than a static int or new declaration so that it's thread safe and only one construct (?)
   
   std::vector<int> m_infection_time_realisation_vector{};         // First pending infection time in position 0 to handle multiple infections times that have not been realised yet
+  std::vector<bool> m_cotransmission_realisation_vector{};
   std::vector<InfectionStatus> m_infection_state_realisation_vector{};  // First pending infection state in position 0 to handle multiple infections states that have not been realised yet
   std::vector<boost::dynamic_bitset<>> m_infection_barcode_realisation_vector{};    // First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
   
@@ -234,6 +235,9 @@ public:
   
   // Get person's infection time realisation vector
   std::vector<int> get_m_infection_time_realisation_vector() { return (m_infection_time_realisation_vector); }
+  
+  // Get person's cotransmission vector
+  std::vector<bool> get_m_cotransmission_realisation_vector() { return(m_cotransmission_realisation_vector); }
   
   // Get person's infection state realisation vector
   std::vector<InfectionStatus> get_m_infection_state_realisation_vector() { return (m_infection_state_realisation_vector); }

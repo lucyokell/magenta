@@ -4,8 +4,8 @@
 \alias{Param_List_Simulation_Update_Create}
 \title{Parameter List creation for MAGENTA simulation updating}
 \usage{
-Param_List_Simulation_Update_Create(years = 1, ft = 0.4, mu_vec = NULL,
-  fv_vec = NULL, statePtr, spatial_list)
+Param_List_Simulation_Update_Create(years = 1, ft = 0.4,
+  mu_vec = NULL, fv_vec = NULL, statePtr, spatial_list)
 }
 \arguments{
 \item{years}{Length of simulation. Default = 1}
