@@ -14,7 +14,7 @@
 
 #ifndef PERSON_H
 #define PERSON_H
-  
+
 #include "mosquito.h"
 #include <vector>
 #include <queue>
