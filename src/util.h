@@ -9,7 +9,15 @@
 #include <boost/dynamic_bitset.hpp>
 #include "parameters.h"
 
-SEXP bitset_to_sexp(boost::dynamic_bitset<> x);
+SEXP bitset_to_sexp(boost::dynamic_bitset<> x, unsigned int n);
+
+SEXP bitset_vector_to_sexp(std::vector<boost::dynamic_bitset<> > x, unsigned int n);
+
+Rcpp::RawVector bitset_vector_to_rawvector(std::vector<boost::dynamic_bitset<> > x, unsigned int n);
+
+Rcpp::RawMatrix bitset_vector_to_raw_matrix(std::vector<boost::dynamic_bitset<> > x, unsigned int n);
+
+Rcpp::RawMatrix vector_of_bitset_vectors_to_raw_matrix(std::vector<std::vector<boost::dynamic_bitset<> > > x, unsigned int n);
 
 boost::dynamic_bitset<> sexp_to_bitset(SEXP x, unsigned int n);
 

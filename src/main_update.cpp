@@ -522,7 +522,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
     for(unsigned int temp_status_iterator = 0; temp_status_iterator < u_ptr->parameters.g_spatial_total_exported_barcodes ; temp_status_iterator++)
     {
-      Exported_Barcodes[temp_status_iterator] = bitset_to_sexp(u_ptr->parameters.g_spatial_exported_barcodes[temp_status_iterator]);
+      Exported_Barcodes[temp_status_iterator] = bitset_to_sexp(u_ptr->parameters.g_spatial_exported_barcodes[temp_status_iterator], u_ptr->parameters.g_barcode_length);
     }
     
   }

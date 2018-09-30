@@ -508,13 +508,13 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     // export barocdes
     for(unsigned int temp_status_iterator = 0; temp_status_iterator < parameters.g_spatial_total_exported_barcodes ; temp_status_iterator++)
     {
-      Exported_Barcodes_Booleans[temp_status_iterator] = bitset_to_sexp(parameters.g_spatial_exported_barcodes[temp_status_iterator]);
+      Exported_Barcodes_Booleans[temp_status_iterator] = bitset_to_sexp(parameters.g_spatial_exported_barcodes[temp_status_iterator], parameters.g_barcode_length);
     }
     
     // export oocysts
     for(unsigned int temp_status_iterator = 0; temp_status_iterator < parameters.g_spatial_total_exported_oocysts ; temp_status_iterator++)
     {
-      Exported_Oocysts_Booleans[temp_status_iterator] = bitset_to_sexp(parameters.g_spatial_exported_oocysts[temp_status_iterator]);
+      Exported_Oocysts_Booleans[temp_status_iterator] = bitset_to_sexp(parameters.g_spatial_exported_oocysts[temp_status_iterator], parameters.g_barcode_length);
     }
     
   }

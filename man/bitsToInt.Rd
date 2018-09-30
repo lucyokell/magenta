@@ -4,12 +4,12 @@
 \alias{bitsToInt}
 \title{Function to convert vector of bools representing up to a 32 bit number into the corresponding integer}
 \usage{
-bitsToInt(x, endian = "little")
+bitsToInt(x, big_endian = FALSE)
 }
 \arguments{
-\item{x}{Vector of logicals}
+\item{x}{Vector of raw/logicals}
 
-\item{endian}{What endian is the vector. Default = "little".}
+\item{big_endian}{Is big_endian. Default = FALSE}
 }
 \description{
 Function to convert vector of bools representing up to a 32 bit number into the corresponding integer

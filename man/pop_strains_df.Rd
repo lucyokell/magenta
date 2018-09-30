@@ -6,7 +6,8 @@
 the universe ptr. This data.frame is then passed to \code{COI_df_create}.}
 \usage{
 pop_strains_df(statePtr, sample_size = 0, sample_states = 0:5,
-  ibd = FALSE)
+  ibd = FALSE, seed, genetics_df_without_summarising = FALSE,
+  nl = 24, big_mat_test = TRUE)
 }
 \arguments{
 \item{statePtr}{statePtr}

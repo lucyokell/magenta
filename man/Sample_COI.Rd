@@ -4,8 +4,8 @@
 \alias{Sample_COI}
 \title{Sample x times from saved simulation and produce age COI data}
 \usage{
-Sample_COI(sim.save, ID, sample_size, age_densities, age_breaks = seq(0, 90 *
-  365, 2 * 365), reps)
+Sample_COI(sim.save, ID, sample_size, age_densities, age_breaks = seq(0,
+  90 * 365, 2 * 365), reps)
 }
 \arguments{
 \item{sim.save}{Saved output of simulation}

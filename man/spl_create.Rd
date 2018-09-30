@@ -6,8 +6,9 @@
 \usage{
 spl_create(spatial_type = 0, human_importation_rate_vector = NULL,
   mosquito_imporation_rate_vector = NULL,
-  cotransmission_freq_vector = rep(1, 10000), oocyst_freq_vector = rep(1,
-  10000), num_human_infs = 0, num_mos_infs = 0)
+  cotransmission_freq_vector = rep(1, 10000),
+  oocyst_freq_vector = rep(1, 10000), num_human_infs = 0,
+  num_mos_infs = 0)
 }
 \description{
 \code{spl_create} creates the user required spatial 

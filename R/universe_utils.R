@@ -8,26 +8,40 @@
 #' @param sample_states sample_states
 #' @param ibd ibd boolean.
 #' 
-pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, ibd = FALSE){
+pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, ibd = FALSE, seed, genetics_df_without_summarising = FALSE, nl = 24, big_mat_test = TRUE){
   
   paramList <- list("statePtr" = statePtr,
                     "sample_size" = sample_size,
                     "sample_states" = sample_states)
-  
+  #message("pop_strains\n")
   if(!ibd){
     
     # Get the info
-    list <- population_get_genetics_df_n(paramList)
-    df <- as.data.frame.list(list[1:5])
-    df$nums <- list$barcodes
-    df$barcode_states <- list$barcode_states
+    set.seed(seed)
+    list <-  population_get_genetics_df_n(paramList)
+    df <- as.data.frame.list(list[1:4])
+  
   } else {
     
     # Get the info
+    set.seed(seed)
     list <- population_get_genetics_ibd_df_n(paramList)
     df <- as.data.frame.list(list[1:6])
-    df$nums <- list$barcodes
-    df$barcode_states <- list$barcode_states
+    
+  }
+  
+  breaks <- cumsum(unlist(lapply(list$barcode_states,length)))
+  seqs <- unlist(lapply(list$barcode_states,length))
+  df$nums <- list$barcode_states
+  df$barcode_states <- list$barcode_states
+  if(seqs[1] > 0){
+  df$nums[[1]] <- list$barcodes[1:breaks[1],, drop=FALSE]
+  }
+  
+  for(i in 2:(length(breaks))) { 
+    if(seqs[i] > 0){
+    df$nums[[i]] <- list$barcodes[(breaks[i-1]+1):breaks[i],,drop=FALSE]
+    }
   }
   
   return(df)
@@ -43,19 +57,18 @@ pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, ibd 
 #' @param groupvars Grouping vars for summarySE. Default = c("Age_Bin","State")
 #' @param barcodes Boolean whether to return tabled barcodes. Default = FALSE
 #' 
-COI_df_create2 <- function(df, groupvars = c("age_bin","clinical"),
+COI_df_create2 <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0.001,5,15,100.1),
                            barcodes=FALSE, ibd = 0, nl = 24, n = Inf, reps = 1,
                            mean_only = TRUE){
   
   
   # handle df for either genetic type first
   infection_state <- c("S","D","A","U","T","P")
-  df$last_treatment[df$last_treatment == 0] <- 0.001
   df$age_bin = cut(df$age/365,breaks = c(-0.001,5,15,100.1))
-  df$last_treatment_binned = cut(df$last_treatment,breaks = c(0,28,90,365,Inf))
   df$state <- df$clinical <- infection_state[df$state + 1]
   df$clinical[df$clinical %in% c("D", "T")] <- "Clinical"
   df$clinical[df$clinical %in% c("A", "U")] <- "Asymptomatic"
+  df$bs <- unlist(lapply(df$barcode_states,length))
   
   nrow_df <- nrow(df)
   # if doing samples
@@ -107,7 +120,8 @@ COI_df_create2 <- function(df, groupvars = c("age_bin","clinical"),
         chosen <- ranges[[i]]
       }
       
-      # create overall clonality
+      # create overall clonality by first converting our nums to integers for quick tabulation
+      df$nums[df$bs>0]  <- lapply(df$nums[df$bs>0],function(x) apply(x,1,bitsToInt))
       clonality <- table(table(unlist(df$nums[chosen])))
       barcodes_tab <- sort(table(unlist(df$nums[chosen])),decreasing=TRUE)
       

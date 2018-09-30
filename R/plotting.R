@@ -90,7 +90,7 @@ Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd
     intout <- lapply(out,function(x){
       if(length(x)>0){
         lapply(x,function(y){
-          return(bitsToInt(y,endian = "big"))
+          return(bitsToInt(y))
         })
       } else {
         return(NA)
@@ -220,11 +220,11 @@ COI_age_plot_sample_x <- function(Sample_COI_out,x,span=0.6,ylimmax=NULL,xlimmax
 #' @param ibd Were we collecting info on IBD
 #' 
 summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 35,
-                                          age_breaks = list(1:4,5:6,7:9),
+                                          age_breaks = list(1,2,3),
                                           ibd = FALSE){
   
-  age_breaks_all <- c("(0,1]","(1,2]","(2,3]","(3,5]","(5,10]","(10,20]","(20,40]","(40,60]","(60,100]")
-  
+  age_breaks_all <- c("(-0.001,5]","(5,15]","(15,100]")
+  states_all <- c("Clinical","Asymptomatic")
   # set up list for final saves as these need to be replaced by COIs
   reps <- length(res_list)
   
@@ -240,15 +240,18 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 3
   time_vec <- sort(rep(positions,length(res_list)))
   
   # summary function
-  mean_a_at_states_and_ages_in_c <- function(res_list,a,states=c("D","T","A","U"),ages=NULL,c,i){
-    if(is.null(ages)) {
+  mean_a_at_states_and_ages_in_c <- function(res_list,a,states=c("Asymptomatic","Clinical"),ages=NULL,c,i){
+    if(is.null(ages) || is.na(ages)) {
       ages <- age_breaks_all
     } else {
       ages <- age_breaks_all[ages]
     }
+    if(is.null(states) || is.na(states)) {
+      states <- states_all
+    } 
     lapply(res_list, function(x) {
-      infs <- c(x[[positions[i]]][[c]]$state %in% states)
-      age_pos <- c(x[[positions[i]]][[c]]$age_bin %in% ages)
+      infs <- c(x[[positions[i]]][[c]]$clinical %in% states)
+        age_pos <- c(x[[positions[i]]][[c]]$age_bin %in% ages)
       return(sum(x[[positions[i]]][[c]]$N[infs & age_pos]*x[[positions[i]]][[c]][[a]][infs & age_pos],na.rm=TRUE)/sum(x[[positions[i]]][[c]]$N[infs & age_pos],na.rm=TRUE))
     }) %>% unlist
   }
@@ -257,7 +260,7 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 3
     i = 1:(full_time_length); 
     lapply(i,function(y){
     lapply(res_list, function(x) {
-      infs <- c(x[[positions[y]]][[1]]$state %in% c("D","T","A","U"))
+      infs <- c(x[[positions[y]]][[1]]$clinical %in% c("Asymptomatic","Clinical"))
       return(sum(x[[positions[y]]][[1]]$N[infs],na.rm=TRUE)/sum(x[[positions[y]]][[1]]$N,na.rm=TRUE))
     }) %>% unlist
   }) %>% unlist
@@ -272,18 +275,20 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 3
     }) %>% unlist
   }
   
-  mean_over_time <- function(res_list, a, states=c("D","T","A","U"),age_breaks=NULL,c,full_time_length){
+  mean_over_time <- function(res_list, a, states=c("Asymptomatic","Clinical"),age_breaks=NULL,c,full_time_length){
     i = 1:full_time_length; 
-    if(is.null(age_breaks)){
+    if(is.null(age_breaks) || is.na(age_breaks)){
       return(unlist(lapply(i,function(y){mean_a_at_states_and_ages_in_c(res_list,a = a,c=c, i = y)})))
     } else {
       return(lapply(age_breaks, function(x){
         unlist(lapply(i,function(y){
-          mean_a_at_states_and_ages_in_c(res_list,a = a, c=c, ages=x, i = y)
+          mean_a_at_states_and_ages_in_c(res_list,a = a, c=c,states=states, ages=x, i = y)
           }))
         }))
     }
   }
+  
+  
   
   list_res <- list()
   
@@ -295,18 +300,18 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 3
     
     list_res$meancoi <- mean_over_time(res_list, a="mean",c="summary_coi",full_time_length=full_time_length)
     list_res$meancoi_ages <- mean_over_time(res_list, a="mean",c="summary_coi",full_time_length=full_time_length,age_breaks=age_breaks)
-    list_res$meancoi_Clinical <- mean_over_time(res_list, a="mean",c="summary_coi",full_time_length=full_time_length,states=c("D","T"))
-    list_res$meancoi_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_coi",full_time_length=full_time_length,states=c("A"))
+    list_res$meancoi_Clinical <- mean_over_time(res_list, a="mean",c="summary_coi",full_time_length=full_time_length,states=c("Clinical"))
+    list_res$meancoi_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_coi",full_time_length=full_time_length,states=c("Asymptomatic"))
     
-    list_res$mean_unique <- mean_over_time(res_list, a="unique",c="summary_polygenom",full_time_length=full_time_length)
-    list_res$mean_unique_ages <- mean_over_time(res_list, a="unique",c="summary_polygenom",full_time_length=full_time_length,age_breaks=age_breaks)
-    list_res$mean_unique_Clinical <- mean_over_time(res_list, a="unique",c="summary_polygenom",full_time_length=full_time_length,states=c("D","T"))
-    list_res$mean_unique_Asymptomatic <- mean_over_time(res_list, a="unique",c="summary_polygenom",full_time_length=full_time_length,states=c("A"))
+    list_res$mean_unique <- mean_over_time(res_list, a="mean",c="summary_unique",full_time_length=full_time_length,states = NA,age_breaks = NA) %>% unlist
+    list_res$mean_unique_ages <- mean_over_time(res_list, a="mean",c="summary_unique",full_time_length=full_time_length,age_breaks=age_breaks,states=NA)
+    list_res$mean_unique_Clinical <- mean_over_time(res_list, a="mean",c="summary_unique",full_time_length=full_time_length,states=c("Clinical"),age_breaks=NA) %>% unlist
+    list_res$mean_unique_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_unique",full_time_length=full_time_length,states=c("Asymptomatic"),age_breaks=NA) %>% unlist
     
     list_res$mean_polygenomic <- mean_over_time(res_list, a="mean",c="summary_polygenom",full_time_length=full_time_length)
     list_res$mean_polygenomic_ages <- mean_over_time(res_list, a="mean",c="summary_polygenom",full_time_length=full_time_length,age_breaks=age_breaks)
-    list_res$mean_polygenomic_Clinical <- mean_over_time(res_list, a="mean",c="summary_polygenom",full_time_length=full_time_length,states=c("D","T"))
-    list_res$mean_polygenomic_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_polygenom",full_time_length=full_time_length,states=c("A"))
+    list_res$mean_polygenomic_Clinical <- mean_over_time(res_list, a="mean",c="summary_polygenom",full_time_length=full_time_length,states=c("Clinical"))
+    list_res$mean_polygenomic_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_polygenom",full_time_length=full_time_length,states=c("Asymptomatic"))
     
     list_res$mean_prev <- mean_prev(res_list,full_time_length=full_time_length)
     
@@ -337,17 +342,18 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 3
     
     rept <- rep(1:length(res_list),length(full_time))
     
-    list_res$mean_prev <- mean_prev_ibd(res_list,full_time_length=full_time_length)
-    list_res$mean_ibd <- mean_over_time(res_list, a="mean",c="summary_ibd",full_time_length=full_time_length)
-    list_res$mean_ibd_ages <- mean_over_time(res_list, a="mean",c="summary_ibd",full_time_length=full_time_length,age_breaks=age_breaks)
-    list_res$mean_ibd_Clinical <- mean_over_time(res_list, a="mean",c="summary_ibd",full_time_length=full_time_length,states=c("D","T"))
-    list_res$mean_ibd_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_ibd",full_time_length=full_time_length,states=c("A"))
+    list_res$mean_prev <- mean_prev(res_list,full_time_length=full_time_length)
+   
+    list_res$mean_ibd <- mean_over_time(res_list, a="mean",c="summary_ibd",full_time_length=full_time_length,states = NA,age_breaks = NA) %>% unlist
+    list_res$mean_ibd_ages <- mean_over_time(res_list, a="mean",c="summary_ibd",full_time_length=full_time_length,age_breaks=age_breaks,states=NA)
+    list_res$mean_ibd_Clinical <- mean_over_time(res_list, a="mean",c="summary_ibd",full_time_length=full_time_length,states=c("Clinical"),age_breaks=NA) %>% unlist
+    list_res$mean_ibd_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_ibd",full_time_length=full_time_length,states=c("Asymptomatic"),age_breaks=NA) %>% unlist
     
-    list_res$mean_within <- mean_over_time(res_list, a="mean",c="summary_within_ibd",full_time_length=full_time_length)
-    list_res$mean_within_ages <- mean_over_time(res_list, a="mean",c="summary_within_ibd",full_time_length=full_time_length,age_breaks=age_breaks)
-    list_res$mean_within_Clinical <- mean_over_time(res_list, a="mean",c="summary_within_ibd",full_time_length=full_time_length,states=c("D","T"))
-    list_res$mean_within_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_within_ibd",full_time_length=full_time_length,states=c("A"))
-    
+    list_res$mean_within <- mean_over_time(res_list, a="mean",c="summary_within_ibd",full_time_length=full_time_length,states = NA,age_breaks = NA) %>% unlist
+    list_res$mean_within_ages <- mean_over_time(res_list, a="mean",c="summary_within_ibd",full_time_length=full_time_length,age_breaks=age_breaks,states=NA)
+    list_res$mean_within_Clinical <- mean_over_time(res_list, a="mean",c="summary_within_ibd",full_time_length=full_time_length,states=c("Clinical"),age_breaks=NA) %>% unlist
+    list_res$mean_within_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_within_ibd",full_time_length=full_time_length,states=c("Asymptomatic"),age_breaks=NA) %>% unlist
+  
     df <- as.data.frame.list(list_res)
     df$rep <- rept
     df$time <- time_vec

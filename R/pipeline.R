@@ -89,7 +89,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   ## if no seed is specified then save the seed
   set.seed(seed)
   message(paste0("Seed set to ",seed))
-  message("New Chapter");
+  message("New Chapter Come On Maybs Today");
   # ---
   ## If we don't have a saved state then we initialise first
   # ---
@@ -311,18 +311,23 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         # what are saving, does it include the humans
         if(human_update_save) 
         {
-          
           # do we just want the summary data frame 
           if(summary_saves_only){
             
             if(length(sample_size)>1){
             df <- pop_strains_df(sim.out$Ptr, sample_size = 0, 
-                                 sample_states = sample_states, ibd = barcode_parms$barcode_type)
+                                 sample_states = sample_states, ibd = barcode_parms$barcode_type,
+                                 seed = seed,genetics_df_without_summarising = genetics_df_without_summarising, 
+                                 nl = num_loci)
             } else {
               df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
-                                   sample_states = sample_states, ibd = barcode_parms$barcode_type)
+                                   sample_states = sample_states, ibd = barcode_parms$barcode_type,
+                                   seed = seed, genetics_df_without_summarising = genetics_df_without_summarising,
+                                   nl = num_loci)
               
             }
+            
+           # message("pop_strains done")
             
             if(genetics_df_without_summarising) {
               res[[i]] <- list()

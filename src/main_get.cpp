@@ -109,6 +109,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   std::vector<std::vector<int> > Strain_infection_state_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Strain_day_of_infection_state_change_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Strain_day_of_acquisition_vectors(universe_ptr->parameters.g_N);
+  std::vector<std::vector<bool> > Strain_cotransmission(universe_ptr->parameters.g_N);
   
   std::vector<std::vector<unsigned int> > recent_barcode_integers(universe_ptr->parameters.g_N);
   
@@ -116,6 +117,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   
   // Temporary necessities for casting vectors for pending states
   std::vector<Person::InfectionStatus> temp_infection_state_realisation_vector{};
+  std::vector<bool> temp_cotransmission_vector{};
   unsigned int temp_status_iterator = 0;
   
   // Temporary necessities for pending barcodes
@@ -185,12 +187,14 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Infection_barcode_realisation_vectors[element].reserve(temp_infection_barcode_realisation_vector.size());
     
     temp_infection_state_realisation_vector = universe_ptr->population[element].get_m_infection_state_realisation_vector();
+    temp_cotransmission_vector = universe_ptr->population[element].get_m_cotransmission_realisation_vector();
 
     Infection_state_realisation_vectors[element].reserve(temp_infection_state_realisation_vector.size());
 
     for(temp_status_iterator = 0 ; temp_status_iterator < static_cast<unsigned int>(temp_infection_state_realisation_vector.size()) ; )
     {
       Infection_state_realisation_vectors[element].emplace_back(temp_infection_state_realisation_vector[temp_status_iterator]);
+      Strain_cotransmission[element].emplace_back(temp_cotransmission_vector[temp_status_iterator]);
 
       for(temp_barcode_iterator = 0; temp_barcode_iterator < universe_ptr->parameters.g_barcode_length ; temp_barcode_iterator++ )
       {
@@ -372,6 +376,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
     Rcpp::Named("Strain_day_of_infection_state_change_vectors")=Strain_day_of_infection_state_change_vectors,
     Rcpp::Named("Strain_day_of_acquisition_vectors")=Strain_day_of_acquisition_vectors,
     Rcpp::Named("Strain_barcode_vectors")=Strain_barcode_vectors,
+    Rcpp::Named("Strain_cotransmission")=Strain_cotransmission,
     Rcpp::Named("Recent_identity_vectors")=recent_barcode_integers
   );
   

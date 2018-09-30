@@ -220,7 +220,8 @@ mu_fv_create <- function(eqInit,
                          itn_cov = itn_cov,
                          irs_cov = irs_cov,
                          int_times = NULL,
-                         years = years) {
+                         years = years,
+                         full = FALSE) {
   
   if (identical(irs_cov, 0) && identical(itn_cov, 0)) {
     out <- data.frame("mu"=rep(0.132, length(seq_len(years*365)+1)),
@@ -261,7 +262,10 @@ mu_fv_create <- function(eqInit,
   tt <- seq(0,years*365,1)
   mod_run <- model$run(tt)
   out <- model$transform_variables(mod_run)
+  
+  if(!full){
   out <- data.frame("mu"=out$mu,"fv"=out$fv)
+  }
   
   }
   
