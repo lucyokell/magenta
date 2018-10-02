@@ -8,7 +8,17 @@ intervention_grab(country, admin, year_range, final_itn_cov = NULL,
   final_irs_cov = NULL, final_ft = NULL)
 }
 \arguments{
-\item{final_ft}{}
+\item{country}{Country string}
+
+\item{admin}{Admin string}
+
+\item{year_range}{Year range}
+
+\item{final_itn_cov}{Final ITN coverage}
+
+\item{final_irs_cov}{Final IRS coverage}
+
+\item{final_ft}{Final treatment coverage}
 }
 \description{
 Grabs ITN, IRS  ft from database

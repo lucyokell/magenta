@@ -9,9 +9,12 @@
 #' @param eqSS Output of \code{Equilibrium_Steady_State_Create}
 #' @param barcode_parms List of barcode/genetic parameters
 #' @param spatial_list Spatial parmeters to come in
-#' @param housekeeping_list
-#' @param drug_list
-#' @param nmf_list
+#' @param housekeeping_list Housekeeping parameter list 
+#'   from \code{housekeeping_list_create}
+#' @param drug_list Drug parameter list 
+#'   from \code{drug_list_create}
+#' @param nmf_list Non malarial fever parameter list 
+#'   from \code{nmf_list_create}
 #' 
 #' @export
 
@@ -67,12 +70,13 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms,
 #' will result in rep(1/3,floor(years*365))
 #' @param statePtr Pointer for current model state as return by \code{Simulation_R}$Ptr
 #' @param spatial_list Spatial list
+#' @param drug_list Drug list
 #' 
 #' @export
 
 Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
                                                 mu_vec = NULL, fv_vec = NULL,
-                                                statePtr, spatial_list)
+                                                statePtr, spatial_list, drug_list)
 {
   
   ## CHECKS ##
@@ -102,7 +106,8 @@ Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
   paramList <- list(years = years, ft = ft, mu_vec = mu_vec,
                     fv_vec = fv_vec,
                     statePtr = statePtr, 
-                    spatial_list = spatial_list)
+                    spatial_list = spatial_list,
+                    drug_list = drug_list)
   
   return(paramList)
   
@@ -233,10 +238,10 @@ Simulation_R <- function(paramList, seed)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(paramList))
-    if(length(paramList)==6)
+    if(length(paramList)==7)
     {
       stopifnot(identical(names(paramList), 
-                          c("years","ft","mu_vec","fv_vec","statePtr", "spatial_list")))  
+                          c("years","ft","mu_vec","fv_vec","statePtr", "spatial_list", "drug_list")))  
     }
     else 
     {

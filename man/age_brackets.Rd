@@ -7,6 +7,13 @@
 age_brackets(max_age = 100, num_age_brackets = 20,
   geometric_age_brackets = TRUE)
 }
+\arguments{
+\item{max_age}{Maximum age in years}
+
+\item{num_age_brackets}{Number of age brackets}
+
+\item{geometric_age_brackets}{Boolean for geometric brackets}
+}
 \description{
 Makes age brackets given, number of brackets, max age, and spacing
 }

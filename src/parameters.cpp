@@ -116,13 +116,15 @@ Parameters::Parameters() {
   // barcode drug related parameters
   g_resistance_flag = false;
   g_number_of_resistance_loci = 0;
-  g_cost_of_resistance = { {1.0, 0.0} };
+  g_cost_of_resistance = {1.0};
   g_prob_of_lpf = { {1.0,0.0} }; // late parasitological failure
   
   // drug related parameters
   g_mft_flag = false;
+  g_drug_choice = 0;
   g_number_of_drugs = 0;
   g_partner_drug_ratios = {0.0};
+  g_dur_SPC = 10;
   
   // non malaria fever parameters
   g_nmf_flag = false;

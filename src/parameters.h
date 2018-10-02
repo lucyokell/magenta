@@ -156,13 +156,15 @@ public:
   // barcode drug related parameters
   bool g_resistance_flag;
   unsigned int g_number_of_resistance_loci;
-  std::vector<std::vector<double> > g_cost_of_resistance;
+  std::vector<double> g_cost_of_resistance;
   std::vector<std::vector<double> > g_prob_of_lpf; // late parasitological failure
   
   // drug related parameters
   bool g_mft_flag;
+  int g_drug_choice;
   unsigned int g_number_of_drugs;
   std::vector<double> g_partner_drug_ratios;
+  double g_dur_SPC;
   
   // non malaria fever parameters
   bool g_nmf_flag; // are we doing nmf work

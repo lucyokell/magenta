@@ -82,7 +82,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                      saved_state_path = NULL,seed=as.integer(runif(1,1,1000000000)),
                      sample_size = Inf, sample_states = 0:5, sample_reps = 1,
                      housekeeping_list = housekeeping_list_create(),
-                     drug_list = drug_list_create(),
+                     drug_list = drug_list_create(),only_allele_freqs = TRUE,
                      nmf_list = nmf_list_create()){
   
   
@@ -90,6 +90,17 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   set.seed(seed)
   message(paste0("Seed set to ",seed))
   message("New Chapter Come On Maybs Today");
+  
+  # convert allele frequencies
+  pop_alf <- function(nums,nl=num_loci){ 
+    if(class(nums %>% unlist)=="raw") {colMeans(matrix(as.numeric(do.call(rbind,nums)),ncol=nl))} else {rep(NA,nl)}
+  }
+  
+  # convert to lineages frequencies
+  lineages <- function(nums,nl=num_loci){ 
+    if(class(nums %>% unlist)=="raw") {table(factor(apply(matrix(as.numeric(do.call(rbind,nums)),ncol=nl),1,bitsToInt),levels=0:((2^nl)-1)))} else {rep(NA,2^nl)}
+  }
+  
   # ---
   ## If we don't have a saved state then we initialise first
   # ---
@@ -269,6 +280,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     
     # and set up annual checks for variables that change discretely
     year <- 1
+    next_drug_cycle <- drug_list$g_temporal_cycling
     ft_now <- ft[year]
     
     # messaging
@@ -297,12 +309,15 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                      cotransmission_freq_vector = sample(2,10000,replace = TRUE, prob = c(0.82,0.18)),
                                      oocyst_freq_vector = sample(5,10000,replace = TRUE, prob = c(0.5,0.3,0.1,0.075,0.025)))
         }
+
         
+        # prepare simulation for update
         pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, 
                                                    ft = ft_now,
                                                    mu_vec = out$mu[1:update_length + ((i-1)*update_length)],
                                                    fv_vec = out$fv[1:update_length + ((i-1)*update_length)], 
                                                    spatial_list = spatial_list,
+                                                   drug_list = drug_list,
                                                    statePtr = sim.out$Ptr)
         
         # carry out simulation
@@ -317,23 +332,30 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
             if(length(sample_size)>1){
             df <- pop_strains_df(sim.out$Ptr, sample_size = 0, 
                                  sample_states = sample_states, ibd = barcode_parms$barcode_type,
-                                 seed = seed,genetics_df_without_summarising = genetics_df_without_summarising, 
+                                 seed = seed,
                                  nl = num_loci)
             } else {
               df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
                                    sample_states = sample_states, ibd = barcode_parms$barcode_type,
-                                   seed = seed, genetics_df_without_summarising = genetics_df_without_summarising,
+                                   seed = seed, 
                                    nl = num_loci)
               
             }
             
-           # message("pop_strains done")
-            
             if(genetics_df_without_summarising) {
               res[[i]] <- list()
-              res[[i]]$df <- df
-              res[[i]]$succesfull_treatments <- sim.out$Loggers$Successful_Treatments
-              res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Unsuccesful_Treatments_LPF
+              if(only_allele_freqs){
+                res[[i]]$af <- pop_alf(df$nums[unlist(lapply(df$barcode_states,length))>0]) %>% unlist
+                res[[i]]$lineage <- lineages(df$nums[unlist(lapply(df$barcode_states,length))>0]) %>% unlist
+                res[[i]]$pcr_prev <- sum(c(lapply(df$barcode_states,length) %>% unlist)>0)
+              } else {
+                res[[i]]$df <- df
+              }
+              res[[i]]$succesfull_treatments <- sim.out$Loggers$Treatments$Successful_Treatments
+              res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Treatments$Unsuccesful_Treatments_LPF
+              res[[i]]$not_treated <- sim.out$Loggers$Treatments$Not_Treated
+              res[[i]]$treatment_failure <-  res[[i]]$unsuccesful_treatments_lpf / (res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments) 
+              
             } else {
             
             if(i%%12 == 0 && i >= (length(res)-180)){
@@ -396,6 +418,9 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
           
         }
         
+        ## drug resistance updates
+        drug_list <- drug_list_update(drug_list, year, res[[i]]$treatment_failure)
+        
       }
     }
     ## final run
@@ -403,6 +428,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                                mu_vec = out$mu[1:update_length + ((i)*update_length)],
                                                fv_vec = out$fv[1:update_length + ((i)*update_length)],
                                                spatial_list = spatial_list,
+                                               drug_list = drug_list,
                                                statePtr = sim.out$Ptr)
     sim.out <- Simulation_R(pl2, seed = seed)
     
@@ -443,6 +469,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                                mu_vec = out$mu,
                                                fv_vec = out$fv,
                                                spatial_list = spatial_list,
+                                               drug_list = drug_list,
                                                statePtr = sim.out$Ptr)
     
     

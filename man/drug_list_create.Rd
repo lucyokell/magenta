@@ -4,13 +4,34 @@
 \alias{drug_list_create}
 \title{Create drug list}
 \usage{
-drug_list_create(resistance_flag = FALSE, number_of_resistance_loci = 3,
-  resistance_costs = rep(0.99, 3), prob_of_lpf = rep(0.75, 3),
-  mft_flag = FALSE, number_of_drugs = 2, partner_drug_ratios = c(0.5,
+drug_list_create(resistance_flag = FALSE,
+  number_of_resistance_loci = 3, resistance_costs = c(1, rep(0.99, 3),
+  rep(0.98, 3), 0.97), prob_of_lpf = c(c(1, 0.97, 0.8, 0.55, 1, 0.97,
+  0.8, 0.55), c(1, 0.97, 1, 0.97, 0.8, 0.55, 0.8, 0.55)),
+  mft_flag = FALSE, temporal_cycling = -1, sequential_cycling = -1,
+  number_of_drugs = 2, drug_choice = 0, partner_drug_ratios = c(0.5,
   0.5))
 }
 \arguments{
-\item{partner_drug_ratios}{}
+\item{resistance_flag}{Boolean are we simulating resistance}
+
+\item{number_of_resistance_loci}{Numeric for number of res. loci}
+
+\item{resistance_costs}{Numeric vector for costs of res. Should be 2^res.loci}
+
+\item{prob_of_lpf}{Numeric vector for lpf, Should be 2^res.loci * num_drugs}
+
+\item{mft_flag}{Boolean are we doing mft}
+
+\item{temporal_cycling}{Numeric for when in years a drug switch occurs}
+
+\item{sequential_cycling}{Numeric for what perc. treatment failure before switch}
+
+\item{number_of_drugs}{Numeric for number of drugs used}
+
+\item{drug_choice}{What's the default drug choice to begin. Default = 0}
+
+\item{partner_drug_ratios}{Numeric vector for ratio of first line drugs used}
 }
 \description{
 List for simulating drug usage for resistance/mft variables

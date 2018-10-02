@@ -500,6 +500,15 @@ clonality_from_barcode_list <- function(barcode_list){
   
 }
 
+cou_from_barcode_list <- function(barcode_list){
+  
+  tbl <- table(unlist(lapply(barcode_list,unique)))
+  samp_size <- sum(tbl)
+  z <- sum((tbl/samp_size)^2)
+  return((z - (1/samp_size))/(1-(1/samp_size)))
+  
+}
+
 convert_ibd_barcode <- function(b, nl){
   
   ib <- length(b)/nl

@@ -41,10 +41,11 @@ public:
   
   enum TreatmentOutcome
   {
-    NOT_TREATED,  // 0
+    NOT_CLINICAL,  // 0
     SUCCESFULLY_TREATED,   // 1
     LPF, // 2
-    NUMBER_OF_TO_STATES = 3
+    NOT_TREATED, // 3
+    NUMBER_OF_TO_STATES = 4
   };
   
   // Infection transition options. 
@@ -62,6 +63,7 @@ private:
   InfectionStatus m_infection_state;    // Infection Status enum
   InfectionStatus m_temp_infection_state;    // Infection Status temp enum
   TreatmentOutcome m_treatment_outcome = NOT_TREATED;
+  bool m_slow_parasite_clearance_bool = false; // Flag for whether they are currently SPC
   
   // Person's age dependent biting rate (psi) - See Griffin 2010 S1 for this specific origin
   double m_age_dependent_biting_rate;
@@ -92,6 +94,7 @@ private:
   
   // Vector of strains
   std::vector<Strain> m_active_strains;
+  std::vector<Strain> m_resistant_strains;
   std::vector<Strain> m_post_treatment_strains;
   
   // Temporary strain to be deleted
@@ -476,8 +479,14 @@ public:
   // Recover to being susceptible, i.e. clearing all infections and strains and associated timings
   void recover(const Parameters &parameters);
   
+  // Treatment outcomes
+  void treatment_outcome(const Parameters &parameters);
+  
   // Late parasitological failure
   void late_paristological_failure(const Parameters &parameters); 
+  
+  // Slow parasite clearance
+  void slow_treatment_clearance(const Parameters &parameters);
   
   // Seek treatment for nmf
   void seek_nmf_treatment(const Parameters &parameters);

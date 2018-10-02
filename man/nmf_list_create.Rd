@@ -4,14 +4,22 @@
 \alias{nmf_list_create}
 \title{Create nmf list}
 \usage{
-nmf_list_create(nmf_flag = FALSE, mean_nmf_frequency = c(247.63, 232.63,
-  235.94, 259.79, 298.94, 360.32, 389.13, 446.76, 521.43, 525.94, 475.26,
-  425.41, 397.17, 361.03), nmf_age_brackets = c(-0.1, 365, 730, 1095, 1460,
-  1825, 2555, 3285, 4015, 4745, 5475, 7300, 9125, 10950, 36850),
-  prob_of_testing_nmf = 0.5)
+nmf_list_create(nmf_flag = FALSE, mean_nmf_frequency = c(148.578,
+  139.578, 141.564, 155.874, 179.364, 216.192, 233.478, 268.056, 312.858,
+  315.564, 285.156, 255.246, 238.302, 216.618),
+  nmf_age_brackets = c(-0.1, 365, 730, 1095, 1460, 1825, 2555, 3285,
+  4015, 4745, 5475, 7300, 9125, 10950, 36850), prob_of_testing_nmf = 0.5)
 }
 \arguments{
-\item{prob_of_testing_nmf}{}
+\item{nmf_flag}{Boolean are we doing non malarial fevers}
+
+\item{mean_nmf_frequency}{Vector for mean number of days between fevers for
+the age bracket considered}
+
+\item{nmf_age_brackets}{Vector for age brackets}
+
+\item{prob_of_testing_nmf}{Numeric for probability that a NMF is tested by 
+RDT before being treated with antimalarials.}
 }
 \description{
 List for simulating non malarial fever

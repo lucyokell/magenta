@@ -6,6 +6,11 @@
 \usage{
 spl_matrix_check(matrix, years)
 }
+\arguments{
+\item{matrix}{Spatial matrix for 2000 to 2017}
+
+\item{years}{Years desired}
+}
 \description{
 Grabs spatial incidence and mosquitoFOI matrix from database
 }

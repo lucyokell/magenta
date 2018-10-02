@@ -16,7 +16,14 @@ Param_List_Simulation_Init_Create(N = 10000, eqSS, barcode_parms,
 
 \item{spatial_list}{Spatial parmeters to come in}
 
-\item{nmf_list}{}
+\item{housekeeping_list}{Housekeeping parameter list 
+from \code{housekeeping_list_create}}
+
+\item{drug_list}{Drug parameter list 
+from \code{drug_list_create}}
+
+\item{nmf_list}{Non malarial fever parameter list 
+from \code{nmf_list_create}}
 }
 \description{
 \code{Param_List_Simulation_Init_Create} creates suitable parameter list for

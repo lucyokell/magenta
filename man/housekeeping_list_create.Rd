@@ -7,7 +7,9 @@
 housekeeping_list_create(quiet = TRUE, cluster = FALSE)
 }
 \arguments{
-\item{cluster}{}
+\item{quiet}{Boolean for quiet simulation}
+
+\item{cluster}{Boolean for simulation being on cluster}
 }
 \description{
 List for simulation housekeeping vars, e.g. quiet prints,

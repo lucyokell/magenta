@@ -5,7 +5,7 @@
 \title{Parameter List creation for MAGENTA simulation updating}
 \usage{
 Param_List_Simulation_Update_Create(years = 1, ft = 0.4,
-  mu_vec = NULL, fv_vec = NULL, statePtr, spatial_list)
+  mu_vec = NULL, fv_vec = NULL, statePtr, spatial_list, drug_list)
 }
 \arguments{
 \item{years}{Length of simulation. Default = 1}
@@ -21,6 +21,8 @@ will result in rep(1/3,floor(years*365))}
 \item{statePtr}{Pointer for current model state as return by \code{Simulation_R}$Ptr}
 
 \item{spatial_list}{Spatial list}
+
+\item{drug_list}{Drug list}
 }
 \description{
 \code{Param_List_Simulation_Update_Create} creates suitable parameter list for

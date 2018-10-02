@@ -70,8 +70,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   u_ptr->parameters.g_years = Rcpp::as<double>(paramList["years"]);
   u_ptr->parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
   Rcpp::List spatial_list = paramList["spatial_list"];
+  Rcpp::List drug_list = paramList["drug_list"];
   
-  // Spatial initialisation
+  // Spatial updates
   if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
     
@@ -102,6 +103,12 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     u_ptr->parameters.g_percentage_imported_mosquito_infections = Rcpp::as<double>(spatial_list["imported_oocyst_events"]);
     u_ptr->parameters.g_spatial_total_imported_human_infections = u_ptr->parameters.g_percentage_imported_human_infections * u_ptr->parameters.g_total_human_infections;
     u_ptr->parameters.g_spatial_total_imported_mosquito_infections = u_ptr->parameters.g_percentage_imported_mosquito_infections * u_ptr->parameters.g_total_mosquito_infections;
+  }
+  
+  // Resistance updates
+  if (u_ptr->parameters.g_resistance_flag) {
+    u_ptr->parameters.g_drug_choice = Rcpp::as<int>(drug_list["g_drug_choice"]);
+    u_ptr->parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["g_partner_drug_ratios"]);
   }
   
   u_ptr->parameters.g_cotransmission_frequencies = Rcpp::as<std::vector<int> >(spatial_list["cotransmission_freq_vector"]);
@@ -146,8 +153,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   int temp_biting_frequency_vector_iterator = 0;
   
   // status eq for logging and other logging variables
-  double succesful_treatments = 0;
-  double unsuccesful_treatments_lpf = 0;
+  unsigned int succesful_treatments = 0;
+  unsigned int unsuccesful_treatments_lpf = 0;
+  unsigned int not_treated = 0;
   std::vector<double> status_eq = { 0,0,0,0,0,0 };
   std::vector<double> mosq_status_eq = { 0,0,0,0,0,0 };
   unsigned int log_counter = 0;
@@ -418,9 +426,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     // START: SUMMARY LOGGING
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    // Log the last week //
+    // Log the last period //
     
-     if (u_ptr->parameters.g_current_time > g_end_time - 7)
+     if (u_ptr->parameters.g_current_time > g_end_time - (u_ptr->parameters.g_years * 365) - 1)
      {
       
       log_counter++;
@@ -472,7 +480,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
         if (element.get_m_treatment_outcome() == Person::LPF){
           unsuccesful_treatments_lpf++;
         }
-        
+        if (element.get_m_treatment_outcome() == Person::NOT_TREATED){
+          not_treated++;
+        }
       }
       
       for (auto &element : u_ptr->scourge)
@@ -568,17 +578,20 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   // Create Rcpp loggers list
   Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
                                           Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
+                                          Rcpp::Named("Log_Counter")=log_counter,                                                                                      
                                           Rcpp::Named("Incidence")=total_incidence/log_counter,
                                           Rcpp::Named("Incidence_05")=total_incidence_05/log_counter, 
-                                          Rcpp::Named("Successful_Treatments")=succesful_treatments/log_counter,
-                                          Rcpp::Named("Unsuccesful_Treatments_LPF")=unsuccesful_treatments_lpf/log_counter,
+                                          Rcpp::Named("Treatments")=Rcpp::List::create(
+                                            Rcpp::Named("Successful_Treatments")=succesful_treatments,
+                                            Rcpp::Named("Unsuccesful_Treatments_LPF")=unsuccesful_treatments_lpf,
+                                            Rcpp::Named("Not_Treated")=not_treated
+                                          ),
                                           Rcpp::Named("InfectionStates")=Infection_States, 
                                           Rcpp::Named("Ages")=Ages, 
                                           Rcpp::Named("IB")=IB, 
                                           Rcpp::Named("ICA")=ICA, 
                                           Rcpp::Named("ICM")=ICM, 
                                           Rcpp::Named("ID")=ID,
-                                          Rcpp::Named("Daily_Bites")=daily_bite_counters/log_counter,
                                           Rcpp::Named("Mos_S")=mosq_status_eq[0], Rcpp::Named("Mos_E")=mosq_status_eq[1], Rcpp::Named("Mos_I")=mosq_status_eq[2]);
   
   

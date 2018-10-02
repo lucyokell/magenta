@@ -6,6 +6,13 @@
 \usage{
 spl_grab(country, admin, year_range)
 }
+\arguments{
+\item{country}{Country string}
+
+\item{admin}{Admin string}
+
+\item{year_range}{Year range}
+}
 \description{
 Grabs spatial incidence and mosquitoFOI matrix from database
 }

@@ -101,7 +101,10 @@ public:
   double relative_contribution(const Parameters &parameters);
   
   // Work out if the strain caused late parasitological failure
-  bool late_paristological_failure_boolean(const Parameters &parameters, int drug_choice);
+  double late_paristological_failure_prob(const Parameters &parameters, int drug_choice);
+  
+  // Work out if the strain is resistant at all for the drug given
+  bool resistant_boolean(const Parameters &parameters, int drug_choice);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SETTERS

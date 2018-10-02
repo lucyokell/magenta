@@ -8,7 +8,17 @@ mu_fv_create(eqInit, ft = ft, itn_cov = itn_cov, irs_cov = irs_cov,
   int_times = NULL, years = years, full = FALSE)
 }
 \arguments{
-\item{years}{}
+\item{eqInit}{Equilibrium Inititial Conditions}
+
+\item{ft}{Annual Treatment Coverage vector}
+
+\item{itn_cov}{Annual ITN Coverage vector}
+
+\item{irs_cov}{Annual IRS Coverage vector}
+
+\item{years}{Numeric for total years}
+
+\item{admin}{Admin string}
 }
 \description{
 Grabs spatial incidence and mosquitoFOI vector from database

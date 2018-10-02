@@ -8,7 +8,7 @@
 #' @param sample_states sample_states
 #' @param ibd ibd boolean.
 #' 
-pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, ibd = FALSE, seed, genetics_df_without_summarising = FALSE, nl = 24, big_mat_test = TRUE){
+pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, ibd = FALSE, seed, nl = 24, big_mat_test = TRUE){
   
   paramList <- list("statePtr" = statePtr,
                     "sample_size" = sample_size,
@@ -130,10 +130,17 @@ COI_df_create2 <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0
       summary_coi_detected <- summarySE_mean_only(df[chosen,],measurevar = "coi_detected_micro", groupvars = groupvars, mean_only = mean_only)
       summary_moi_detected <- summarySE_mean_only_max_mean(df[chosen,],measurevar = "coi_detected_micro", groupvars = groupvars, mean_only = mean_only, max = 6)
       summary_polygenom <- summarySE_mean_only(df[chosen,],measurevar = "polygenom", groupvars = groupvars, mean_only = mean_only)
+      
       summary_unique1 <- dplyr::group_by(df[chosen,], age_bin) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]), mean = clonality_from_barcode_list(nums))
       summary_unique2 <- dplyr::group_by(df[chosen,], clinical) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]),mean = clonality_from_barcode_list(nums))
       summary_unique3 <- dplyr::group_by(df[chosen,]) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]),mean = clonality_from_barcode_list(nums))
       summary_unique <- dplyr::bind_rows(list(summary_unique1,summary_unique2,summary_unique3))
+      
+      summary_cou1 <- dplyr::group_by(df[chosen,], age_bin) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]), mean = cou_from_barcode_list(nums))
+      summary_cou2 <- dplyr::group_by(df[chosen,], clinical) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]),mean = cou_from_barcode_list(nums))
+      summary_cou3 <- dplyr::group_by(df[chosen,]) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]),mean = cou_from_barcode_list(nums))
+      summary_cou <- dplyr::bind_rows(list(summary_cou1,summary_cou2,summary_cou3))
+      
       summary_ages <- summarySE_mean_only(df[chosen,],measurevar = "age", groupvars = groupvars, mean_only = mean_only)
       
       # bundle it all up
@@ -143,6 +150,7 @@ COI_df_create2 <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0
                   "summary_polygenom"=summary_polygenom,
                   "summary_ages"=summary_ages,
                   "summary_unique"=summary_unique,
+                  "summary_cou"=summary_cou,
                   "clonality"=clonality,"coi_table"=table(df$coi[chosen]))
       
       if(barcodes){

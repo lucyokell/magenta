@@ -12,16 +12,19 @@ Person::Person(const Parameters &parameters) :
     
     // Reserve storage space for vectors - trialing suggests the below should fit about right in terms of minimising vector resizing
     m_active_strains.reserve(static_cast<int>(100 * m_individual_biting_rate));
+    m_resistant_strains.reserve(static_cast<int>(100 * m_individual_biting_rate));
+    m_post_treatment_strains.reserve(static_cast<int>(100 * m_individual_biting_rate));
+    
     m_active_strain_contribution.reserve(static_cast<int>(100 * m_individual_biting_rate));
     m_infection_time_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));			// First pending infection time in position 0 to handle multiple infections times that have not been realised yet
     m_infection_state_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));			// First pending infection state in position 0 to handle multiple infections states that have not been realised yet
     m_infection_barcode_realisation_vector.reserve(static_cast<int>(100 * m_individual_biting_rate));		// First pending infection barcode in position 0 to handle multiple infections states that have not been realised yet
- 
- // if doing nmf then set this here
-  if(parameters.g_nmf_flag){
-    set_m_day_of_nmf(parameters);
-  } 
- 
+    
+    // if doing nmf then set this here
+    if(parameters.g_nmf_flag){
+      set_m_day_of_nmf(parameters);
+    } 
+    
   }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -146,7 +149,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
   {
     // TODO: If we need selfing, then introduce effective selfing here, by making a m_temp_active_strain_contribution, for which the position that 
     // was drawn for the first barcode becomes x, such that p(selfing) = x/std::accumulate(m_temp_active_strain_contribution)
-    return(std::vector<boost::dynamic_bitset<>> { m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode(), 
+    return(std::vector<boost::dynamic_bitset<> > { m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode(), 
            m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode() });
   }
 }
@@ -154,12 +157,17 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
 // Work out if late parasitological failure happened
 bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   
-  // the drug by default will be the first one (we add one to what we pass on below)
-  int drug_choice = 0;
+  // the default drug
+  int drug_choice = parameters.g_drug_choice;
+  int time_ago = 0;
+  double prob_of_lpf = 0.0;
   
-  // set up our post treatment vector
+  // set up our post treatment vectors
   m_post_treatment_strains.clear();
+  m_resistant_strains.clear();
+  
   m_post_treatment_strains.reserve(m_number_of_strains);
+  m_resistant_strains.reserve(m_number_of_strains);
   
   // are we doing mft, and if so what drug did they get this time
   if(parameters.g_mft_flag) {
@@ -168,13 +176,26 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   
   //loop through the final m_numbers_of_last_passed as these have to be the relevant treatment strains
   for(int ts = 0; ts < m_number_of_strains ; ts++){
-    if(m_active_strains[ts].late_paristological_failure_boolean(parameters, drug_choice + 1)){
-      m_post_treatment_strains.emplace_back(m_active_strains[ts]);
+    
+    prob_of_lpf = m_active_strains[ts].late_paristological_failure_prob(parameters, drug_choice);
+    if(prob_of_lpf != 0.0) { 
+      
+      m_resistant_strains.emplace_back(m_active_strains[ts]);
+      
+      // if infection was more than dur_A ago then it is cleared for sure
+      time_ago = ((parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / parameters.g_dur_A);
+      
+      if( time_ago < 1 ) {
+        if(rbernoulli1(prob_of_lpf * (1 - time_ago))) {
+          m_post_treatment_strains.emplace_back(m_active_strains[ts]);
+        }
+      }
+
     }
   }
   
   return(m_post_treatment_strains.size());
-
+  
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -471,11 +492,11 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     
   }
   
-      // Increase cotransmission counter and catch for overflow
-    if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) parameters.g_cotransmission_frequencies_counter = 0;
-    
-    // Set next event date as may have changed as a result of the bite
-    set_m_day_of_next_event();
+  // Increase cotransmission counter and catch for overflow
+  if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) parameters.g_cotransmission_frequencies_counter = 0;
+  
+  // Set next event date as may have changed as a result of the bite
+  set_m_day_of_next_event();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -657,6 +678,61 @@ void Person::recover(const Parameters &parameters)
   
 }
 
+// Treatment outcomes
+void Person::treatment_outcome(const Parameters &parameters) {
+  
+  // are we doing resistance firstly
+  if(parameters.g_resistance_flag) { 
+    
+    // are they currently slow parasite clearance
+    if(m_slow_parasite_clearance_bool){
+      
+      m_slow_parasite_clearance_bool = false;
+      m_treatment_outcome = SUCCESFULLY_TREATED;
+      m_infection_state = PROPHYLAXIS;
+      m_day_last_treated = parameters.g_current_time;
+      schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+      all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+      
+    } else {
+      
+      // are they actually infected, i.e. not just here because of nmf
+      if(m_number_of_strains > 0) {
+        
+        // do they fail due to LPF
+        if(late_paristological_failure_boolean(parameters)){
+          late_paristological_failure(parameters);
+          m_treatment_outcome = LPF;
+        } else {
+          // did no LPF happen because there were no resistant strains - straight to prophylaxis
+          if(!m_resistant_strains.size()) {
+            m_treatment_outcome = SUCCESFULLY_TREATED;
+            m_infection_state = PROPHYLAXIS;
+            m_day_last_treated = parameters.g_current_time;
+            schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+            all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+          } else {
+            // otherwise we consider a SPC
+            slow_treatment_clearance(parameters);
+          }
+        } 
+        
+      } else {
+        m_infection_state = PROPHYLAXIS;
+        m_day_last_treated = parameters.g_current_time;
+        schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+      }
+    }
+  } else {
+    m_treatment_outcome = SUCCESFULLY_TREATED;
+    m_infection_state = PROPHYLAXIS;
+    m_day_last_treated = parameters.g_current_time;
+    schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+    all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+  }
+  
+}
+
 // Late parasitological failure
 void Person::late_paristological_failure(const Parameters &parameters) {
   
@@ -668,7 +744,7 @@ void Person::late_paristological_failure(const Parameters &parameters) {
   m_active_strains = m_post_treatment_strains;
   m_number_of_strains = m_post_treatment_strains.size();
   
-  //loop through the final m_numbers_of_last_passed as these have to be the relevant treatment strains and set to asymptomatic
+  //loop through the new number of strains and draw their movement dates
   for(int ts = 0; ts < m_number_of_strains ; ts++){
     
     // Set strains to asymptomatic
@@ -685,13 +761,47 @@ void Person::late_paristological_failure(const Parameters &parameters) {
   }
 }
 
+// Slow parasite clearance
+void Person::slow_treatment_clearance(const Parameters &parameters) {
+  
+  // clear the active strains and just leave the resistant ones
+  m_active_strains = m_resistant_strains;
+  m_number_of_strains = m_resistant_strains.size();
+  
+  // give a new end of treatment time
+  m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_SPC) + parameters.g_current_time + 1;
+  
+  // set their slow parasite clearance flag
+  m_slow_parasite_clearance_bool = true;
+  
+  //loop through the new number of strains and draw their new time to be after the end of treatment
+  for(int ts = 0; ts < m_number_of_strains ; ts++){
+    m_active_strains[ts].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change + 1);
+  }
+  
+}
+
 // Seek treatment for nmf
 void Person::seek_nmf_treatment(const Parameters &parameters){
-
-  // are they tested - if not we assume they are just given drugs in this situation
-  if(rbernoulli1(parameters.g_prob_of_testing_nmf)) {
-    // are they detected
-    if(rbernoulli1(q_fun(parameters))){
+  
+  // first would they seek treatment
+  if(rbernoulli1(parameters.g_ft)){
+    
+    // are they tested - if not we assume they are just given drugs in this situation
+    if(rbernoulli1(parameters.g_prob_of_testing_nmf)) {
+      // are they detected
+      if(rbernoulli1(q_fun(parameters))){
+        
+        // then trigger treatment
+        m_infection_state = TREATED;
+        schedule_m_day_of_InfectionStatus_change(parameters);
+        
+        // Clear all pending infection vectors 
+        m_infection_time_realisation_vector.clear();
+        m_infection_state_realisation_vector.clear();
+        m_infection_barcode_realisation_vector.clear();
+      }
+    } else {
       
       // then trigger treatment
       m_infection_state = TREATED;
@@ -701,24 +811,15 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
       m_infection_time_realisation_vector.clear();
       m_infection_state_realisation_vector.clear();
       m_infection_barcode_realisation_vector.clear();
+      
     }
-  } else {
-
-    // then trigger treatment
-    m_infection_state = TREATED;
-    schedule_m_day_of_InfectionStatus_change(parameters);
-    
-    // Clear all pending infection vectors 
-    m_infection_time_realisation_vector.clear();
-    m_infection_state_realisation_vector.clear();
-    m_infection_barcode_realisation_vector.clear();
     
   }
   
   // set the new nmf day
   set_m_day_of_nmf(parameters);
   set_m_day_of_next_event();
-    
+  
 }
 
 // Event handle, i.e. if any of person's death, state change, strain clearance or state change realisation days are today, respond accordingly
@@ -732,11 +833,13 @@ void Person::event_handle(const Parameters &parameters) {
   {
     
     // Handle nmf event if time to do so. If does this will update the day of infection status change 
-    if (m_day_of_nmf == m_day_of_next_event) {
-     seek_nmf_treatment(parameters);
+    if(parameters.g_nmf_flag){
+      if (m_day_of_nmf == m_day_of_next_event) {
+        seek_nmf_treatment(parameters);
+      }
     }
-     // All other events could happen theoretically on the same day though so within same else block
-
+    // All other events could happen theoretically on the same day though so within same else block
+    
     // Change Infection Status due to recoveries etc if time to do so
     if (m_day_of_InfectionStatus_change == m_day_of_next_event) {
       
@@ -754,16 +857,7 @@ void Person::event_handle(const Parameters &parameters) {
         recover(parameters); // fully recover to susceptible
         break;
       case TREATED:
-        if(late_paristological_failure_boolean(parameters)){
-          late_paristological_failure(parameters);
-          m_treatment_outcome = LPF;
-        } else {
-          m_treatment_outcome = SUCCESFULLY_TREATED;
-          m_infection_state = PROPHYLAXIS;
-          m_day_last_treated = parameters.g_current_time;
-          schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
-          all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
-        }
+        treatment_outcome(parameters); // handle their state of treatment accordingly
         break;
       case PROPHYLAXIS:
         recover(parameters); // fully recover to susceptible
@@ -888,7 +982,7 @@ void Person::event_handle(const Parameters &parameters) {
       // Is the next pending infection for today
       if (m_infection_time_realisation_vector[m_number_of_realised_infections] == m_day_of_next_event)
       {
-      
+        
         // Assign infection state
         
         // If you are diseased already and the next infection would make you asymptomatic then remain diseased
@@ -904,6 +998,11 @@ void Person::event_handle(const Parameters &parameters) {
         else  
         {
           m_infection_state = m_infection_state_realisation_vector[m_number_of_realised_infections];
+          
+          // if you are now diseased this is a treatment failure
+          if (m_infection_state == DISEASED){
+            m_treatment_outcome = NOT_TREATED;
+          }
         }
         
         // schedule next state change
@@ -1016,7 +1115,7 @@ double Person::update(Parameters &parameters)
   }
   
   // reset this now so we know who has gone to be treated
-  m_treatment_outcome = NOT_TREATED;
+  m_treatment_outcome = NOT_CLINICAL;
   
   // Handle any events that are happening today
   if (m_day_of_next_event == parameters.g_current_time || m_person_age >= parameters.g_max_age) {
@@ -1031,7 +1130,7 @@ double Person::update(Parameters &parameters)
   m_active_strain_contribution.clear();
   m_gametocytogenic_infections = 0;
   m_gametocytogenic_strains.clear();
- 
+  
   
   // Throw if the next event date is still today
   assert(m_day_of_next_event != parameters.g_current_time &&

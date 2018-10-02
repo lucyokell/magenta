@@ -2,9 +2,9 @@
 #' 
 #' Makes age brackets given, number of brackets, max age, and spacing
 #' 
-#' @param max_age
-#' @param num_age_brackets
-#' @param geometric_age_brackets
+#' @param max_age Maximum age in years
+#' @param num_age_brackets Number of age brackets
+#' @param geometric_age_brackets Boolean for geometric brackets
 
 age_brackets <- function(max_age=100, 
                          num_age_brackets=20, 
@@ -25,9 +25,9 @@ age_brackets <- function(max_age=100,
 #' 
 #' Grabs spatial incidence and mosquitoFOI matrix from database
 #' 
-#' @param country
-#' @param admin
-#' @param year_range
+#' @param country Country string
+#' @param admin Admin string
+#' @param year_range Year range
 
 spl_grab <- function(country, admin, year_range) {
   
@@ -95,8 +95,8 @@ spl_grab <- function(country, admin, year_range) {
 #' 
 #' Grabs spatial incidence and mosquitoFOI matrix from database
 #' 
-#' @param matrix
-#' @param years
+#' @param matrix Spatial matrix for 2000 to 2017
+#' @param years Years desired
 
 spl_matrix_check <- function(matrix, years) {
   
@@ -120,12 +120,12 @@ spl_matrix_check <- function(matrix, years) {
 #' 
 #' Grabs ITN, IRS  ft from database
 #' 
-#' @param country
-#' @param admin
-#' @param year_range
-#' @param final_itn_cov
-#' @param final_irs_cov
-#' @param final_ft
+#' @param country Country string
+#' @param admin Admin string
+#' @param year_range Year range
+#' @param final_itn_cov Final ITN coverage
+#' @param final_irs_cov Final IRS coverage
+#' @param final_ft Final treatment coverage
 #' 
 
 intervention_grab <- function(country, admin, year_range, 
@@ -207,12 +207,12 @@ intervention_grab <- function(country, admin, year_range,
 #' 
 #' Grabs spatial incidence and mosquitoFOI vector from database
 #' 
-#' @param eqInit
-#' @param admin
-#' @param ft
-#' @param itn_cov
-#' @param irs_cov
-#' @param years
+#' @param eqInit Equilibrium Inititial Conditions
+#' @param admin Admin string
+#' @param ft Annual Treatment Coverage vector
+#' @param itn_cov Annual ITN Coverage vector
+#' @param irs_cov Annual IRS Coverage vector
+#' @param years Numeric for total years
 #' 
 
 mu_fv_create <- function(eqInit,
@@ -277,8 +277,8 @@ mu_fv_create <- function(eqInit,
 #' 
 #' List for simulation housekeeping vars, e.g. quiet prints,
 #' 
-#' @param quiet
-#' @param cluster
+#' @param quiet Boolean for quiet simulation
+#' @param cluster Boolean for simulation being on cluster
 #' 
 
 housekeeping_list_create <- function(quiet = TRUE,
@@ -296,33 +296,49 @@ return(l)
 #' 
 #' List for simulating drug usage for resistance/mft variables
 #' 
-#' @param resistance_flag
-#' @param number_of_resistance_loci
-#' @param resistance_costs
-#' @param prob_of_lpf
-#' @param mft_flag
-#' @param number_of_drugs
-#' @param partner_drug_ratios
+#' @param resistance_flag Boolean are we simulating resistance
+#' @param number_of_resistance_loci Numeric for number of res. loci
+#' @param resistance_costs Numeric vector for costs of res. Should be 2^res.loci
+#' @param prob_of_lpf Numeric vector for lpf, Should be 2^res.loci * num_drugs
+#' @param mft_flag Boolean are we doing mft
+#' @param temporal_cycling Numeric for when in years a drug switch occurs
+#' @param sequential_cycling Numeric for what perc. treatment failure before switch
+#' @param number_of_drugs Numeric for number of drugs used
+#' @param drug_choice What's the default drug choice to begin. Default = 0
+#' @param partner_drug_ratios Numeric vector for ratio of first line drugs used
 #' 
 #' 
 
 drug_list_create <- function(resistance_flag = FALSE,
                              number_of_resistance_loci = 3,
-                             resistance_costs = rep(0.99, 3),
-                             prob_of_lpf = rep(0.75, 3),
+                             resistance_costs = c(1,rep(0.99,3),rep(0.98,3),0.97),
+                             prob_of_lpf = c(c(1.0,0.97,0.80,0.55,1.00,0.97,0.80,0.55),
+                                             c(1.0,0.97,1.00,0.97,0.80,0.55,0.80,0.55)),
                              mft_flag = FALSE,
+                             temporal_cycling = -1,
+                             sequential_cycling = -1,
                              number_of_drugs = 2,
-                             partner_drug_ratios = c(0.5, 0.5)) {
+                             drug_choice = 0,
+                             partner_drug_ratios = rep(1/number_of_drugs,number_of_drugs)) {
   
-  resistance_costs <- matrix(c(rep(1,length(resistance_costs)),resistance_costs), nrow=2, byrow=TRUE)
-  prob_of_lpf <- matrix(c(rep(1,length(prob_of_lpf)),prob_of_lpf), nrow=2, byrow=TRUE)
+  
+  if(temporal_cycling > 0 && sequential_cycling > 0) {
+    stop ("Both sequential and temporal cycling can't be greater than 0")
+  }
+  
+  
+  prob_of_lpf <- matrix(prob_of_lpf, nrow = number_of_drugs, byrow=TRUE)
   
   l <- list("g_resistance_flag" = resistance_flag,
             "g_number_of_resistance_loci" = number_of_resistance_loci,
             "g_cost_of_resistance" = resistance_costs,
             "g_prob_of_lpf" = prob_of_lpf,
             "g_mft_flag" = mft_flag,
+            "g_temporal_cycling" = temporal_cycling,
+            "g_next_temporal_cycle" = temporal_cycling,
+            "g_sequential_cycling" = sequential_cycling,
             "g_number_of_drugs" = number_of_drugs,
+            "g_drug_choice" = drug_choice,
             "g_partner_drug_ratios" = partner_drug_ratios)
   
   return(l)
@@ -330,19 +346,62 @@ drug_list_create <- function(resistance_flag = FALSE,
 }
 
 
+drug_list_update <- function(drug_list, year, tf){
+
+  
+  if (drug_list$g_resistance_flag) {
+    if (!drug_list$g_mft_flag) {
+      
+      # if sequential cycling
+      if (drug_list$g_sequential_cycling > 0) {
+        if (tf > drug_list$g_sequential_cycling && year > drug_list$g_next_temporal_cycle) {
+          drug_list$g_drug_choice <- drug_list$g_drug_choice + 1
+          drug_list$g_next_temporal_cycle <- year + 2
+          if(drug_list$g_drug_choice == (drug_list$g_number_of_drugs)){
+            drug_list$g_drug_choice <- 0
+          }
+         
+          message(drug_list$g_drug_choice)
+        }
+      }
+      
+      # if temporal cycling
+      if (drug_list$g_temporal_cycling > 0) {
+      if (drug_list$g_next_temporal_cycle == year) {
+        drug_list$g_drug_choice <- drug_list$g_drug_choice + 1
+        if(drug_list$g_drug_choice == (drug_list$g_number_of_drugs)){
+          drug_list$g_drug_choice <- 0
+        }
+        drug_list$g_next_temporal_cycle <- drug_list$g_next_temporal_cycle + drug_list$g_temporal_cycling
+      }
+    }
+    }
+  }
+  
+  return(drug_list)  
+  
+} 
+  
+
+
+
+
+
 #' Create nmf list
 #' 
 #' List for simulating non malarial fever
 #' 
-#' @param nmf_flag
-#' @param mean_nmf_frequency
-#' @param nmf_age_brackets
-#' @param prob_of_testing_nmf
+#' @param nmf_flag Boolean are we doing non malarial fevers
+#' @param mean_nmf_frequency Vector for mean number of days between fevers for
+#'   the age bracket considered 
+#' @param nmf_age_brackets Vector for age brackets
+#' @param prob_of_testing_nmf Numeric for probability that a NMF is tested by 
+#'   RDT before being treated with antimalarials. 
 #' 
 #' 
 
 nmf_list_create <- function(nmf_flag = FALSE,
-                            mean_nmf_frequency = c(247.63,232.63,235.94,259.79,298.94,360.32,389.13,446.76,521.43,525.94,475.26,425.41,397.17,361.03),
+                            mean_nmf_frequency = c(148.578,139.578,141.564,155.874,179.364,216.192,233.478,268.056,312.858,315.564,285.156,255.246,238.302,216.618),
                             nmf_age_brackets = c(-0.1, 365.0, 730.0, 1095.0, 1460.0, 1825.0, 2555.0, 3285.0, 4015.0, 4745.0, 5475.0, 7300.0, 9125.0, 10950.0, 36850.0),
                             prob_of_testing_nmf = 0.5){
   
