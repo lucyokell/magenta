@@ -303,6 +303,7 @@ return(l)
 #' @param mft_flag Boolean are we doing mft
 #' @param temporal_cycling Numeric for when in years a drug switch occurs
 #' @param sequential_cycling Numeric for what perc. treatment failure before switch
+#' @param sequential_update How long does it take in years for sequential to be implemented
 #' @param number_of_drugs Numeric for number of drugs used
 #' @param drug_choice What's the default drug choice to begin. Default = 0
 #' @param partner_drug_ratios Numeric vector for ratio of first line drugs used
@@ -317,6 +318,7 @@ drug_list_create <- function(resistance_flag = FALSE,
                              mft_flag = FALSE,
                              temporal_cycling = -1,
                              sequential_cycling = -1,
+                             sequential_update = 3,
                              number_of_drugs = 2,
                              drug_choice = 0,
                              partner_drug_ratios = rep(1/number_of_drugs,number_of_drugs)) {
@@ -337,6 +339,7 @@ drug_list_create <- function(resistance_flag = FALSE,
             "g_temporal_cycling" = temporal_cycling,
             "g_next_temporal_cycle" = temporal_cycling,
             "g_sequential_cycling" = sequential_cycling,
+            "g_sequential_update" = sequential_update,
             "g_number_of_drugs" = number_of_drugs,
             "g_drug_choice" = drug_choice,
             "g_partner_drug_ratios" = partner_drug_ratios)
@@ -356,7 +359,7 @@ drug_list_update <- function(drug_list, year, tf){
       if (drug_list$g_sequential_cycling > 0) {
         if (tf > drug_list$g_sequential_cycling && year > drug_list$g_next_temporal_cycle) {
           drug_list$g_drug_choice <- drug_list$g_drug_choice + 1
-          drug_list$g_next_temporal_cycle <- year + 2
+          drug_list$g_next_temporal_cycle <- year + drug_list$g_sequential_update
           if(drug_list$g_drug_choice == (drug_list$g_number_of_drugs)){
             drug_list$g_drug_choice <- 0
           }
@@ -383,6 +386,108 @@ drug_list_update <- function(drug_list, year, tf){
 } 
   
 
+# function to calculate probability of strain being detected by microscopy
+q_fun <- function(d1, ID, ID0, kD, fd) {
+  return(d1 + ((1-d1) / (1 + ((ID/ID0)^kD)*fd)))
+}
+
+fd <- function(age, fD0, aD, gammaD) {
+  return( 1 - ((1-fD0) / (1 + (age/aD)^gammaD)) )
+}
+
+# convert allele frequencies
+pop_alf <- function(nums,nl){ 
+  if(class(nums %>% unlist)=="raw") {colMeans(matrix(as.numeric(do.call(rbind,nums)),ncol=nl))} else {rep(NA,nl)}
+}
+
+# convert to lineages frequencies
+lineages <- function(nums,nl){ 
+  if(class(nums %>% unlist)=="raw") {table(factor(apply(matrix(as.numeric(do.call(rbind,nums)),ncol=nl),1,bitsToInt),levels=0:((2^nl)-1)))} else {rep(NA,2^nl)}
+}
+
+
+# what to save in update_saves
+update_saves <- function(res, i, sim.out, sample_states,sample_size, sample_reps, mean_only,
+                         barcode_parms, num_loci, genetics_df_without_summarising,
+                         human_update_save, summary_saves_only, only_allele_freqs, mpl,
+                         seed) {
+  
+  
+  # what are saving, does it include the humans
+  if(human_update_save) 
+  {
+    # do we just want the summary data frame 
+    if(summary_saves_only){
+      
+      if(length(sample_size)>1){
+        df <- pop_strains_df(sim.out$Ptr, sample_size = 0, 
+                             sample_states = sample_states, ibd = barcode_parms$barcode_type,
+                             seed = seed,
+                             nl = num_loci)
+      } else {
+        df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
+                             sample_states = sample_states, ibd = barcode_parms$barcode_type,
+                             seed = seed, 
+                             nl = num_loci)
+        
+      }
+      
+      if(genetics_df_without_summarising) {
+        res[[i]] <- list()
+        if(only_allele_freqs){
+          res[[i]]$af <- pop_alf(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci) %>% unlist
+          # res[[i]]$lineage <- lineages(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci) %>% unlist
+        } else {
+          res[[i]]$df <- df
+        }
+        res[[i]]$succesfull_treatments <- sim.out$Loggers$Treatments$Successful_Treatments
+        res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Treatments$Unsuccesful_Treatments_LPF
+        res[[i]]$not_treated <- sim.out$Loggers$Treatments$Not_Treated
+        res[[i]]$treatment_failure <-  res[[i]]$unsuccesful_treatments_lpf / (res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments) 
+        if(is.na(res[[i]]$treatment_failure)) res[[i]]$treatment_failure <- 0 
+        
+        ## prevs
+        dt_10 <- sum(sim.out$Loggers$InfectionStates %in% c(1,4) & (sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720) ) / sum((sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720))
+        micro_det <- q_fun(mpl$d1,sim.out$Loggers$ID,mpl$ID0,mpl$kD,sapply(sim.out$Loggers$Ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
+        a_10 <- sum(sim.out$Loggers$InfectionStates %in% c(2) & (sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720) ) / sum((sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720)) * mean(micro_det[(sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720)])
+        res[[i]]$pcr_prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
+        res[[i]]$micro_2_10 <- dt_10 + a_10
+        
+        
+      } else {
+        
+        if(i%%12 == 0 && i >= (length(res)-180)){
+          res[[i]] <- COI_df_create2(df, barcodes=TRUE, nl=num_loci, ibd = barcode_parms$barcode_type,
+                                     n = sample_size, reps = sample_reps, mean_only = mean_only)
+        } else {
+          res[[i]] <- COI_df_create2(df, barcodes=FALSE, nl=num_loci, ibd = barcode_parms$barcode_type,
+                                     n = sample_size, reps = sample_reps, mean_only = mean_only)
+        }
+        res[[i]]$Prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
+      }
+      # or do we want the full human popualation
+    } else {
+      
+      # then grab the population
+      pl3 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
+      sim.save <- Simulation_R(pl3, seed = seed)
+      
+      # and then store what's needed
+      Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
+      Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
+      res[[i]] <- Humans
+    }
+    
+    # or are we just saving the loggers
+  } 
+  else 
+  {
+    res[[i]] <- sim.out$Loggers
+  }
+  
+  return(res)
+  
+}
 
 
 

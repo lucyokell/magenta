@@ -9,8 +9,8 @@ drug_list_create(resistance_flag = FALSE,
   rep(0.98, 3), 0.97), prob_of_lpf = c(c(1, 0.97, 0.8, 0.55, 1, 0.97,
   0.8, 0.55), c(1, 0.97, 1, 0.97, 0.8, 0.55, 0.8, 0.55)),
   mft_flag = FALSE, temporal_cycling = -1, sequential_cycling = -1,
-  number_of_drugs = 2, drug_choice = 0, partner_drug_ratios = c(0.5,
-  0.5))
+  sequential_update = 3, number_of_drugs = 2, drug_choice = 0,
+  partner_drug_ratios = rep(1/number_of_drugs, number_of_drugs))
 }
 \arguments{
 \item{resistance_flag}{Boolean are we simulating resistance}
@@ -26,6 +26,8 @@ drug_list_create(resistance_flag = FALSE,
 \item{temporal_cycling}{Numeric for when in years a drug switch occurs}
 
 \item{sequential_cycling}{Numeric for what perc. treatment failure before switch}
+
+\item{sequential_update}{How long does it take in years for sequential to be implemented}
 
 \item{number_of_drugs}{Numeric for number of drugs used}
 

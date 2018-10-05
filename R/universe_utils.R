@@ -30,20 +30,29 @@ pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, ibd 
     
   }
   
-  breaks <- cumsum(unlist(lapply(list$barcode_states,length)))
-  seqs <- unlist(lapply(list$barcode_states,length))
-  df$nums <- list$barcode_states
+  # bring barcode states in 
   df$barcode_states <- list$barcode_states
+  
+  # split the barcodes into a list and then move
+  seqs <- unlist(lapply(list$barcode_states,length))
+  breaks <- cumsum(seqs)
+  nums <- list()
+  length(nums) <- length(df$barcode_states)
+  
   if(seqs[1] > 0){
-  df$nums[[1]] <- list$barcodes[1:breaks[1],, drop=FALSE]
+  nums[[1]] <- list$barcodes[1:breaks[1],, drop=FALSE]
   }
   
   for(i in 2:(length(breaks))) { 
-    if(seqs[i] > 0){
-    df$nums[[i]] <- list$barcodes[(breaks[i-1]+1):breaks[i],,drop=FALSE]
+    if(seqs[i] > 1){
+    nums[[i]] <- list$barcodes[(breaks[i-1]+1):breaks[i],]
+    }
+    if(seqs[i] == 1){
+      nums[[i]] <- list$barcodes[(breaks[i-1]+1):breaks[i],,drop=FALSE]
     }
   }
   
+  df$nums <- nums
   return(df)
 
 }

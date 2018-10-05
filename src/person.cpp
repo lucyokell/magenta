@@ -359,8 +359,10 @@ void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
   }
   
   // Work out if the bite has led to an infection
-  // Firstly if the human is treated or in prophylaxis then cannot be infected
-  if (m_infection_state != TREATED || m_infection_state != PROPHYLAXIS)
+  // Firstly if the human is treated or in prophylaxis or is prophylactic but mosquito has resistant strains and they are soon to recover.
+  if (m_infection_state != TREATED || m_infection_state != PROPHYLAXIS || 
+      (m_infection_state == PROPHYLAXIS && mosquito.check_resistance() && m_day_of_InfectionStatus_change > (parameters.g_current_time-5))
+  )
   {
     
     // Random draw to see if the bite led to an infection
@@ -493,7 +495,9 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
   }
   
   // Increase cotransmission counter and catch for overflow
-  if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) parameters.g_cotransmission_frequencies_counter = 0;
+  if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) {
+    parameters.g_cotransmission_frequencies_counter = 0;
+  }
   
   // Set next event date as may have changed as a result of the bite
   set_m_day_of_next_event();

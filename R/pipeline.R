@@ -89,17 +89,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   ## if no seed is specified then save the seed
   set.seed(seed)
   message(paste0("Seed set to ",seed))
-  message("New Chapter Come On Maybs Today");
-  
-  # convert allele frequencies
-  pop_alf <- function(nums,nl=num_loci){ 
-    if(class(nums %>% unlist)=="raw") {colMeans(matrix(as.numeric(do.call(rbind,nums)),ncol=nl))} else {rep(NA,nl)}
-  }
-  
-  # convert to lineages frequencies
-  lineages <- function(nums,nl=num_loci){ 
-    if(class(nums %>% unlist)=="raw") {table(factor(apply(matrix(as.numeric(do.call(rbind,nums)),ncol=nl),1,bitsToInt),levels=0:((2^nl)-1)))} else {rep(NA,2^nl)}
-  }
+  message("New MFT Chapter. Come on Spurs");
   
   # ---
   ## If we don't have a saved state then we initialise first
@@ -158,6 +148,12 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                mosquito_imporation_rate_vector = spatial_mosquitoFOI_matrix[1,],
                                cotransmission_freq_vector = ztrgeomintp(10000, 10, survival_percentage),
                                oocyst_freq_vector = ztrnbinom(10000, mean=oocyst_mean, size=oocyst_shape))
+    
+    
+    # handle drug parms
+    resistance_flags <- drug_list$g_resistance_flag
+    if(length(resistance_flags) == 1) resistance_flags <- rep(resistance_flags, years)
+    drug_list$g_resistance_flag <- resistance_flags[1]
     
     ## Now check and create the parameter list for use in the Rcpp simulation
     pl <- Param_List_Simulation_Init_Create(N=N,eqSS=eqSS,
@@ -283,12 +279,13 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     next_drug_cycle <- drug_list$g_temporal_cycling
     ft_now <- ft[year]
     
+    
     # messaging
     message("Starting Stochastic Simulation for ", years, " years")
     p <- progress::progress_bar$new( format = paste0(" Running: [:bar] :percent eta: :eta"),
                                      total = length(res))
     p_print <- progress_logging(housekeeping_list, res, p, initial = TRUE)
-
+    
     ## START MAIN SIMULATION LOOP
     if(length(res) > 1){
       for(i in 1:(length(res)-1)){
@@ -296,7 +293,6 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         # messaging
         p_print <- progress_logging(housekeeping_list, res, p, i, 
                                     initial = FALSE, p_print = p_print)
-
         times[i] <- Sys.time()
         
         ## annual updates
@@ -308,8 +304,11 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                      mosquito_imporation_rate_vector = spatial_mosquitoFOI_matrix[year,],
                                      cotransmission_freq_vector = sample(2,10000,replace = TRUE, prob = c(0.82,0.18)),
                                      oocyst_freq_vector = sample(5,10000,replace = TRUE, prob = c(0.5,0.3,0.1,0.075,0.025)))
+          
+         drug_list$g_resistance_flag <- resistance_flags[year]
+          
         }
-
+        
         
         # prepare simulation for update
         pl2 <- Param_List_Simulation_Update_Create(years = update_length/365, 
@@ -323,69 +322,10 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         # carry out simulation
         sim.out <- Simulation_R(pl2, seed = seed)
         
-        # what are saving, does it include the humans
-        if(human_update_save) 
-        {
-          # do we just want the summary data frame 
-          if(summary_saves_only){
-            
-            if(length(sample_size)>1){
-            df <- pop_strains_df(sim.out$Ptr, sample_size = 0, 
-                                 sample_states = sample_states, ibd = barcode_parms$barcode_type,
-                                 seed = seed,
-                                 nl = num_loci)
-            } else {
-              df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
-                                   sample_states = sample_states, ibd = barcode_parms$barcode_type,
-                                   seed = seed, 
-                                   nl = num_loci)
-              
-            }
-            
-            if(genetics_df_without_summarising) {
-              res[[i]] <- list()
-              if(only_allele_freqs){
-                res[[i]]$af <- pop_alf(df$nums[unlist(lapply(df$barcode_states,length))>0]) %>% unlist
-                res[[i]]$lineage <- lineages(df$nums[unlist(lapply(df$barcode_states,length))>0]) %>% unlist
-                res[[i]]$pcr_prev <- sum(c(lapply(df$barcode_states,length) %>% unlist)>0)
-              } else {
-                res[[i]]$df <- df
-              }
-              res[[i]]$succesfull_treatments <- sim.out$Loggers$Treatments$Successful_Treatments
-              res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Treatments$Unsuccesful_Treatments_LPF
-              res[[i]]$not_treated <- sim.out$Loggers$Treatments$Not_Treated
-              res[[i]]$treatment_failure <-  res[[i]]$unsuccesful_treatments_lpf / (res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments) 
-              
-            } else {
-            
-            if(i%%12 == 0 && i >= (length(res)-180)){
-              res[[i]] <- COI_df_create2(df, barcodes=TRUE, nl=num_loci, ibd = barcode_parms$barcode_type,
-                                        n = sample_size, reps = sample_reps, mean_only = mean_only)
-            } else {
-              res[[i]] <- COI_df_create2(df, barcodes=FALSE, nl=num_loci, ibd = barcode_parms$barcode_type,
-                                         n = sample_size, reps = sample_reps, mean_only = mean_only)
-            }
-            res[[i]]$Prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
-            }
-            # or do we want the full human popualation
-          } else {
-            
-            # then grab the population
-            pl3 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-            sim.save <- Simulation_R(pl3, seed = seed)
-            
-            # and then store what's needed
-            Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
-            Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
-            res[[i]] <- Humans
-          }
-          
-          # or are we just saving the loggers
-        } 
-        else 
-        {
-          res[[i]] <- sim.out$Loggers
-        }
+        # save what we want to save
+        res <- update_saves(res, i, sim.out, sample_states,sample_size, sample_reps, mean_only,
+                           barcode_parms, num_loci, genetics_df_without_summarising,
+                           human_update_save, summary_saves_only, only_allele_freqs, mpl,seed)
         
         ## spatial export
         if(spatial_type==2) {
@@ -419,7 +359,14 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         }
         
         ## drug resistance updates
-        drug_list <- drug_list_update(drug_list, year, res[[i]]$treatment_failure)
+        if(i == 1)
+        {
+          drug_list <- drug_list_update(drug_list, year, res[[i]]$treatment_failure)
+        } 
+        else 
+        {
+          drug_list <- drug_list_update(drug_list, year, mean(c(res[[i-1]]$treatment_failure,res[[i]]$treatment_failure)))  
+        }
         
       }
     }
@@ -509,7 +456,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   
   # append times
   if(update_save){
-  attr(res,"times") <- times
+    attr(res,"times") <- times
   }
   
   # Save the seed as an attribute adn return the result
