@@ -66,6 +66,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   Rcpp::List housekeeping_list = paramList["housekeeping_list"];
   Rcpp::List drug_list = paramList["drug_list"];
   Rcpp::List nmf_list = paramList["nmf_list"];
+  Rcpp::List vector_adaptation_list = paramList["vector_adaptation_list"];
   
   // Un pack housekeeping parms
   parameters.g_h_quiet_print = Rcpp::as<bool>(housekeeping_list["quiet_print"]);
@@ -94,6 +95,11 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   parameters.g_number_of_drugs = Rcpp::as<unsigned int>(drug_list["g_number_of_drugs"]);
   parameters.g_drug_choice = Rcpp::as<int>(drug_list["g_drug_choice"]);
   parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["g_partner_drug_ratios"]);
+  
+  // vector adaptation parameters
+  parameters.g_vector_adaptation_flag = Rcpp::as<bool>(vector_adaptation_list["g_vector_adaptation_flag"]);
+  parameters.g_local_oocyst_advantage = Rcpp::as<double>(vector_adaptation_list["g_local_oocyst_advantage"]);
+  parameters.g_gametocyte_non_sterilisation = Rcpp::as<double>(vector_adaptation_list["g_gametocyte_non_sterilisation"]);
   
   // non malaria fever parameters
   parameters.g_nmf_flag = Rcpp::as<bool>(nmf_list["g_nmf_flag"]); // are we doing nmf work

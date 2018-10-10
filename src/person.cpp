@@ -135,6 +135,14 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
         m_active_strain_contribution.back() *= m_active_strains[m_gametocytogenic_strains[n]].relative_contribution(parameters);
       }
       
+      if(parameters.g_vector_adaptation_flag){
+        if(m_infection_state == TREATED){
+        if(!m_active_strains[m_gametocytogenic_strains[n]].barcode_position(0)){
+        m_active_strain_contribution.back() *= parameters.g_gametocyte_non_sterilisation;
+        }
+        }
+      }
+      
     }
     m_contribution_counter = 1;
     m_contribution_sum = std::accumulate(m_active_strain_contribution.begin(), m_active_strain_contribution.end(), 1.0);

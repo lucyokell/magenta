@@ -116,6 +116,31 @@ spl_matrix_check <- function(matrix, years) {
   return(matrix)
 }
 
+#' plaf matrix check
+#' 
+#' checks length formatting etc
+#' 
+#' @param plaf plaf matrix
+#' @param years Years desired
+
+plaf_matrix_check <- function(matrix, years) {
+  
+  if(is.matrix(matrix)){
+    if(dim(matrix)[1] != years){
+      matrix <- rbind(matrix,matrix(rep(matrix[2,],years - dim(matrix)[1]),ncol=dim(matrix)[2],byrow=TRUE))
+    }
+  }
+  
+  if(is.vector(matrix)) {
+    if(length(matrix) != years){
+      matrix <- c(rep(matrix[1],years - length(matrix)),matrix)
+    }
+    matrix <- as.matrix(matrix)
+  }
+  
+  return(matrix)
+}
+
 #' Intervention grab
 #' 
 #' Grabs ITN, IRS  ft from database
@@ -449,7 +474,7 @@ lineages <- function(nums,nl){
 
 # what to save in update_saves
 update_saves <- function(res, i, sim.out, sample_states,sample_size, sample_reps, mean_only,
-                         barcode_parms, num_loci, genetics_df_without_summarising,
+                         barcode_parms, num_loci, genetics_df_without_summarising, save_lineages = FALSE,
                          human_update_save, summary_saves_only, only_allele_freqs, mpl,
                          seed) {
   
@@ -477,7 +502,9 @@ update_saves <- function(res, i, sim.out, sample_states,sample_size, sample_reps
         res[[i]] <- list()
         if(only_allele_freqs){
           res[[i]]$af <- pop_alf(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci) %>% unlist
-          # res[[i]]$lineage <- lineages(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci) %>% unlist
+          if(save_lineages){
+            res[[i]]$lineage <- lineages(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci) %>% unlist
+          }
         } else {
           res[[i]]$df <- df
         }
@@ -531,6 +558,26 @@ update_saves <- function(res, i, sim.out, sample_states,sample_size, sample_reps
 }
 
 
+#' Create vector adaptation list
+#' 
+#' List for vector adaptations relating to oocyst success
+#' 
+#' @param vector_adaptation_flag Boolean are we doing vector adaptation
+#' @param local_oocyst_advantage Double for multiplicative efffect on oocyst 
+#'   chance formation
+#' 
+
+vector_adaptation_list_create <- function(vector_adaptation_flag = FALSE,
+                            local_oocyst_advantage = 0.2,
+                            gametocyte_non_sterilisation = 0.2){
+  
+  l <- list("g_vector_adaptation_flag" = vector_adaptation_flag,
+            "g_local_oocyst_advantage" = local_oocyst_advantage,
+            "g_gametocyte_non_sterilisation" = gametocyte_non_sterilisation)
+  
+  return(l)
+  
+}
 
 
 #' Create nmf list

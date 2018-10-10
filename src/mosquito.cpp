@@ -116,6 +116,29 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
     for(int oocyst_freq = 0 ; oocyst_freq < parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter] ; oocyst_freq++)
     {  
       gam_sampled = person.sample_two_barcodes(parameters);
+      
+      // are we doing vector adaptation
+      if (parameters.g_vector_adaptation_flag){
+        // if they only have one strain then pass it 
+        if(person.get_m_number_of_strains() > 1) {
+          bool adapted_check = false;
+          
+          // check if the oocyst would have been produced by judging the female gametocyte for adaptation
+          while(!adapted_check){
+            // if the last loci is true then it is adapted so always fine
+            if(gam_sampled[0][parameters.g_num_loci-1]) {
+              adapted_check = true;
+            } else {
+              // if not would it have still made it through though otherwise draw new gametocytes
+              adapted_check = rbernoulli1(parameters.g_local_oocyst_advantage);
+              if(!adapted_check) {
+                gam_sampled = person.sample_two_barcodes(parameters);
+              }
+            }
+          }
+        }
+      }
+      
       allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
     }
   }

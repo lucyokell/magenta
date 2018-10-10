@@ -231,7 +231,8 @@ spl_create <- function(spatial_type = 0,
                        cotransmission_freq_vector=rep(1,10000),
                        oocyst_freq_vector=rep(1,10000),
                        num_human_infs=0,
-                       num_mos_infs=0){
+                       num_mos_infs=0,
+                       plaf = rep(0.5,24)){
   
   
   
@@ -245,7 +246,8 @@ spl_create <- function(spatial_type = 0,
                          "cotransmission_freq_vector" = cotransmission_freq_vector,
                          "oocyst_freq_vector" = oocyst_freq_vector,
                          "imported_cotransmissions_events"=0,
-                         "imported_oocyst_events"=0)
+                         "imported_oocyst_events"=0,
+                         "plaf"=plaf)
     
     # if island spatial  
   } else if(spatial_type == 1){
@@ -258,7 +260,8 @@ spl_create <- function(spatial_type = 0,
                          "cotransmission_freq_vector" = cotransmission_freq_vector,
                          "oocyst_freq_vector" = oocyst_freq_vector,
                          "imported_cotransmissions_events"=hum_imp_rate,
-                         "imported_oocyst_events"=mos_imp_rate)
+                         "imported_oocyst_events"=mos_imp_rate,
+                         "plaf"=plaf)
     
     # if metapop sspatial
   } else {

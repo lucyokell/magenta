@@ -18,12 +18,13 @@ Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
   update_save = FALSE, human_update_save = FALSE,
   genetics_df_without_summarising = FALSE, summary_saves_only = FALSE,
-  set_up_only = FALSE, mean_only = TRUE, saved_state_path = NULL,
-  seed = as.integer(runif(1, 1, 1e+09)), sample_size = Inf,
-  sample_states = 0:5, sample_reps = 1,
+  set_up_only = FALSE, mean_only = TRUE, save_lineages = FALSE,
+  saved_state_path = NULL, seed = as.integer(runif(1, 1, 1e+09)),
+  sample_size = Inf, sample_states = 0:5, sample_reps = 1,
   housekeeping_list = housekeeping_list_create(),
-  drug_list = drug_list_create(), only_allele_freqs = TRUE,
-  nmf_list = nmf_list_create())
+  drug_list = drug_list_create(),
+  vector_adaptation_list = vector_adaptation_list_create(),
+  only_allele_freqs = TRUE, nmf_list = nmf_list_create())
 }
 \arguments{
 \item{EIR}{Numeric for desired annual EIR. Default = 120}

@@ -104,6 +104,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     u_ptr->parameters.g_spatial_total_imported_human_infections = u_ptr->parameters.g_percentage_imported_human_infections * u_ptr->parameters.g_total_human_infections;
     u_ptr->parameters.g_spatial_total_imported_mosquito_infections = u_ptr->parameters.g_percentage_imported_mosquito_infections * u_ptr->parameters.g_total_mosquito_infections;
   }
+  u_ptr->parameters.g_plaf = Rcpp::as<std::vector<double> >(spatial_list["plaf"]);
   
   // Resistance updates
   if (drug_list["g_resistance_flag"]) {

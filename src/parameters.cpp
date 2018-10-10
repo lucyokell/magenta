@@ -126,6 +126,11 @@ Parameters::Parameters() {
   g_partner_drug_ratios = {0.0};
   g_dur_SPC = 10;
   
+  // mosquito strain interaction params
+  g_vector_adaptation_flag = false;
+  g_local_oocyst_advantage = 0.8;
+  g_gametocyte_non_sterilisation = 0.2;
+  
   // non malaria fever parameters
   g_nmf_flag = false;
   g_mean_nmf_frequency = {247.63,232.63,235.94,259.79,298.94,360.32,389.13,446.76,521.43,525.94,475.26,425.41,397.17,361.03}; // probability that a non malarial fever happens

@@ -78,18 +78,20 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                      geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, mu_vec=NULL, fv_vec=NULL,
                      full_save = FALSE, human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
                      update_save = FALSE, human_update_save = FALSE, genetics_df_without_summarising = FALSE,
-                     summary_saves_only = FALSE, set_up_only = FALSE, mean_only = TRUE,
+                     summary_saves_only = FALSE, set_up_only = FALSE, mean_only = TRUE,save_lineages=FALSE,
                      saved_state_path = NULL,seed=as.integer(runif(1,1,1000000000)),
                      sample_size = Inf, sample_states = 0:5, sample_reps = 1,
                      housekeeping_list = housekeeping_list_create(),
-                     drug_list = drug_list_create(),only_allele_freqs = TRUE,
+                     drug_list = drug_list_create(),
+                     vector_adaptation_list = vector_adaptation_list_create(),
+                     only_allele_freqs = TRUE,
                      nmf_list = nmf_list_create()){
   
   
   ## if no seed is specified then save the seed
   set.seed(seed)
   message(paste0("Seed set to ",seed))
-  message("New MFT Chapter. Come on Spurs");
+  message("New MFT Chapter. Come on you Baum Spurs");
   
   # ---
   ## If we don't have a saved state then we initialise first
@@ -120,9 +122,10 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
     eqSS <- Equilibrium_SS_Create(eqInit = eqInit, end.year=5, use_odin = use_odin)
     
     ## and the barcode parms list
+    plaf_matrix <- plaf_matrix_check(plaf,years)
     barcode_parms <- barcode_parms_create(num_loci = num_loci,
                                           ibd_length = ibd_length,
-                                          plaf = plaf,
+                                          plaf = plaf_matrix[1,],
                                           prob_crossover = prob_crossover,
                                           starting_ibd = starting_ibd)
     
@@ -147,7 +150,8 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                human_importation_rate_vector = spatial_incidence_matrix[1,],
                                mosquito_imporation_rate_vector = spatial_mosquitoFOI_matrix[1,],
                                cotransmission_freq_vector = ztrgeomintp(10000, 10, survival_percentage),
-                               oocyst_freq_vector = ztrnbinom(10000, mean=oocyst_mean, size=oocyst_shape))
+                               oocyst_freq_vector = ztrnbinom(10000, mean=oocyst_mean, size=oocyst_shape),
+                               plaf = plaf_matrix[1,])
     
     
     # handle drug parms
@@ -161,12 +165,12 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                             spatial_list = spatial_list,
                                             housekeeping_list = housekeeping_list,
                                             drug_list = drug_list,
-                                            nmf_list = nmf_list)
+                                            nmf_list = nmf_list,
+                                            vector_adaptation_list = vector_adaptation_list)
     
   } 
   else 
   {
-    
     # If we have provided the saved state then load this and then delete as can be large
     saved_state <- readRDS(saved_state_path)
     pl <- Param_List_Simulation_Saved_Init_Create(savedState = saved_state)
@@ -303,7 +307,8 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                      human_importation_rate_vector = spatial_incidence_matrix[year,],
                                      mosquito_imporation_rate_vector = spatial_mosquitoFOI_matrix[year,],
                                      cotransmission_freq_vector = sample(2,10000,replace = TRUE, prob = c(0.82,0.18)),
-                                     oocyst_freq_vector = sample(5,10000,replace = TRUE, prob = c(0.5,0.3,0.1,0.075,0.025)))
+                                     oocyst_freq_vector = sample(5,10000,replace = TRUE, prob = c(0.5,0.3,0.1,0.075,0.025)),
+                                     plaf = plaf_matrix[year,])
           
          drug_list$g_resistance_flag <- resistance_flags[year]
           
@@ -324,7 +329,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
         
         # save what we want to save
         res <- update_saves(res, i, sim.out, sample_states,sample_size, sample_reps, mean_only,
-                           barcode_parms, num_loci, genetics_df_without_summarising,
+                           barcode_parms, num_loci, genetics_df_without_summarising,save_lineages,
                            human_update_save, summary_saves_only, only_allele_freqs, mpl,seed)
         
         ## spatial export

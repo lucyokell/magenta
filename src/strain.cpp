@@ -59,25 +59,53 @@ boost::dynamic_bitset<> Strain::temp_crossovers(Parameters::g_num_loci);
 
 // Work out the strain's relative onward contribution given the fitness costs in the parameters object
 double Strain::relative_contribution(const Parameters &parameters){
-  return(parameters.g_cost_of_resistance[m_barcode.to_ulong()]);
+  return(parameters.g_cost_of_resistance[to_ulong_range(0,parameters.g_number_of_resistance_loci)]);
 }
 
 // Work out if the strain caused late parasitological failure
 double Strain::late_paristological_failure_prob(const Parameters &parameters, int drug_choice){
   
-  return(1 - parameters.g_prob_of_lpf[m_barcode.to_ulong()][drug_choice]);
+  return(1 - parameters.g_prob_of_lpf[to_ulong_range(0,parameters.g_number_of_resistance_loci)][drug_choice]);
 }
 
 // Work out if the strain is resistant at all for the drug given
 bool Strain::resistant_boolean(const Parameters &parameters, int drug_choice){
   
-  double prob_of_no_failure = parameters.g_prob_of_lpf[m_barcode.to_ulong()][drug_choice];
+  double prob_of_no_failure = parameters.g_prob_of_lpf[to_ulong_range(0,parameters.g_number_of_resistance_loci)][drug_choice];
   if(prob_of_no_failure == 1.0) { 
     return(false);
   } else {
     return(true);
   }
 }
+
+// Get barcode position
+bool Strain::barcode_position(unsigned int position){
+  return(m_barcode[position]);
+}
+
+// to_ulong but for range within a bitset
+unsigned long Strain::to_ulong_range(unsigned int start_bit, unsigned int end_bit){
+  
+unsigned long mask = 1;
+unsigned long result = 0;
+for (;start_bit < end_bit; ++ start_bit) {
+  if (m_barcode[start_bit])
+    result |= mask;
+  mask <<= 1;
+}
+return result;
+
+}
+
+// Work out if the strain is vector adapted
+bool Strain::vector_adapted_boolean(const Parameters &parameters){
+  
+  return(m_barcode[parameters.g_num_loci-1]);
+  
+}
+
+
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // STRAIN - UTILS

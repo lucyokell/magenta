@@ -166,6 +166,11 @@ public:
   std::vector<double> g_partner_drug_ratios;
   double g_dur_SPC;
   
+  // mosquito strain interaction params
+  bool g_vector_adaptation_flag;
+  double g_local_oocyst_advantage;
+  double g_gametocyte_non_sterilisation;
+  
   // non malaria fever parameters
   bool g_nmf_flag; // are we doing nmf work
   std::vector<double> g_mean_nmf_frequency; // mean number of days between nmf events

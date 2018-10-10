@@ -5,7 +5,8 @@
 \title{Parameter List creation for MAGENTA simulation initialisation}
 \usage{
 Param_List_Simulation_Init_Create(N = 10000, eqSS, barcode_parms,
-  spatial_list, housekeeping_list, drug_list, nmf_list)
+  spatial_list, housekeeping_list, drug_list, nmf_list,
+  vector_adaptation_list)
 }
 \arguments{
 \item{N}{Population size. Default = 1e4}
@@ -24,6 +25,9 @@ from \code{drug_list_create}}
 
 \item{nmf_list}{Non malarial fever parameter list 
 from \code{nmf_list_create}}
+
+\item{vector_adaptation_list}{vector adaptation list 
+from \code{vector_adaptation_list}}
 }
 \description{
 \code{Param_List_Simulation_Init_Create} creates suitable parameter list for
