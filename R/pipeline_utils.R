@@ -312,9 +312,9 @@ return(l)
 
 drug_list_create <- function(resistance_flag = FALSE,
                              number_of_resistance_loci = 3,
-                             resistance_costs = c(1,rep(0.99,3),rep(0.98,3),0.97),
-                             prob_of_lpf = c(c(1.0,0.97,0.80,0.55,1.00,0.97,0.80,0.55),
-                                             c(1.0,0.97,1.00,0.97,0.80,0.55,0.80,0.55)),
+                             resistance_costs = c(1,0.99,0.98,0.97),
+                             prob_of_lpf = list(c(1.0,0.97,0.80,0.55),
+                                                c(1,0,0.98,0.7,0.51)),
                              mft_flag = FALSE,
                              temporal_cycling = -1,
                              sequential_cycling = -1,
@@ -324,12 +324,18 @@ drug_list_create <- function(resistance_flag = FALSE,
                              partner_drug_ratios = rep(1/number_of_drugs,number_of_drugs)) {
   
   
+  
+  
   if(temporal_cycling > 0 && sequential_cycling > 0) {
     stop ("Both sequential and temporal cycling can't be greater than 0")
   }
   
+  prob_of_lpf <- matrix(lpf_table_create(number_of_drugs, prob_of_lpf),
+                        nrow = number_of_drugs, byrow=TRUE)
   
-  prob_of_lpf <- matrix(prob_of_lpf, nrow = number_of_drugs, byrow=TRUE)
+  resistance_costs <- resistance_cost_table_create(number_of_resistance_loci, 
+                                                   resistance_costs)
+  
   
   l <- list("g_resistance_flag" = resistance_flag,
             "g_number_of_resistance_loci" = number_of_resistance_loci,
@@ -345,6 +351,41 @@ drug_list_create <- function(resistance_flag = FALSE,
             "g_partner_drug_ratios" = partner_drug_ratios)
   
   return(l)
+  
+}
+
+lpf_table_create <- function(number_of_drugs, drug_tables){
+
+  max_bits <- (2^(number_of_drugs+1))-1
+  barcode_poss <- matrix(intToBits(0:max_bits),ncol=32,byrow=T)[,1:(number_of_drugs+1)]
+  
+  results <- rep(1, (2^(number_of_drugs+1))*number_of_drugs)
+  count <- 1
+  
+  for(i in 1:number_of_drugs){
+    for(j in 1:nrow(barcode_poss)){
+      results[count] <- drug_tables[[i]][bitsToInt(barcode_poss[j,c(1,i+1)])+1]
+      count <- count+1
+    }
+  }
+  
+  return(results)
+  
+}
+
+resistance_cost_table_create <- function(number_of_resistance_loci, resistance_costs){
+  
+  max_bits <- (2^(number_of_resistance_loci))-1
+  barcode_poss <- matrix(intToBits(0:max_bits),ncol=32,byrow=T)[,1:(number_of_resistance_loci)]
+  results <- rep(1, nrow(barcode_poss))
+  count <- 1
+  
+  for(j in 1:nrow(barcode_poss)){
+    results[count] <- resistance_costs[sum(as.numeric(barcode_poss[j,]))+1]
+    count <- count+1
+  }
+  
+  return(results)
   
 }
 
