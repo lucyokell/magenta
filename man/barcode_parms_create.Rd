@@ -5,7 +5,8 @@
 \title{Barcode parameter list creation}
 \usage{
 barcode_parms_create(num_loci = 24, ibd_length = 1, plaf = rep(0.5,
-  24), prob_crossover = rep(0.5, 24), starting_ibd = 0)
+  24), prob_crossover = rep(0.5, 24), starting_ibd = 0,
+  mutation_flag = FALSE, mutation_occurence = 1e-07)
 }
 \arguments{
 \item{num_loci}{Number of loci. Default = 24}
@@ -29,6 +30,10 @@ Default = rep(0.5, barcode_length)}
 barcode. Default = rep(0.5, barcode_length)}
 
 \item{starting_ibd}{Starting ibd. Default = 0}
+
+\item{mutation_flag}{Are we simulating mutations}
+
+\item{mutation_flag}{What is the probability of occurence}
 }
 \description{
 \code{barcode_parms_create} creates list detialing the barcode/genetic

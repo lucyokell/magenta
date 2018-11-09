@@ -228,6 +228,15 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     u_ptr->parameters.g_spatial_imported_human_infection_counter = 0;
     u_ptr->parameters.g_spatial_imported_mosquito_infection_counter = 0;
     
+    // Reset mutation counters
+    if(u_ptr->parameters.g_mutation_flag){
+      u_ptr->parameters.g_mutation_pos_allocator = 0;
+      // mutation updates
+        for(unsigned int l = 0; l < u_ptr->parameters.g_num_loci; l++){
+          u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_occurence * u_ptr->parameters.g_total_human_infections);
+        }
+      }
+    
     // Reset age dependent biting rate sum
     psi_sum = 0;
     

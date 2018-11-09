@@ -81,6 +81,9 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   parameters.g_plaf = Rcpp::as<std::vector<double> >(barcode_parms["plaf"]);
   parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(barcode_parms["prob_crossover"]);
   parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_parms["barcode_type"]));
+  parameters.g_mutation_flag = Rcpp::as<bool>(barcode_parms["mutation_flag"]);
+  parameters.g_mutation_occurence = Rcpp::as<double>(barcode_parms["mutation_occurence"]);
+  parameters.g_mutations_today = std::vector<unsigned int>(parameters.g_num_loci,0);
   
   // Un pack drug parameters
   // barcode drug related parameters

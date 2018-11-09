@@ -119,6 +119,12 @@ Parameters::Parameters() {
   g_cost_of_resistance = {1.0};
   g_prob_of_lpf = { {1.0,0.0} }; // late parasitological failure
   
+  // mutation parameters
+  g_mutation_flag = false;
+  g_mutation_occurence = 0.0000001;
+  g_mutations_today = std::vector<unsigned int> {0,0};
+  g_mutation_pos_allocator = 0;
+  
   // drug related parameters
   g_mft_flag = false;
   g_drug_choice = 0;

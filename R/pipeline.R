@@ -74,6 +74,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                      spatial_type = NULL, redis_host = "fi--dideclusthn.dide.ic.ac.uk",spatial_uuid = NULL,
                      spatial_incidence_matrix = NULL,spatial_mosquitoFOI_matrix = NULL,
                      num_loci = 24,ibd_length = 1, plaf = rep(0.5,num_loci),prob_crossover = rep(0.5, num_loci),starting_ibd=0.0,
+                     mutation_occurence = 1e-7, mutation_flag = FALSE,
                      num_het_brackets = 5, num_age_brackets = 20, 
                      geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE, mu_vec=NULL, fv_vec=NULL,
                      full_save = FALSE, human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
@@ -91,7 +92,7 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   ## if no seed is specified then save the seed
   set.seed(seed)
   message(paste0("Seed set to ",seed))
-  message("New MFT Chapter. Come on you Baum Spurs");
+  message("New MFT Chapter. Come on you mutation Spurs");
   
   # ---
   ## If we don't have a saved state then we initialise first
@@ -127,7 +128,9 @@ Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
                                           ibd_length = ibd_length,
                                           plaf = plaf_matrix[1,],
                                           prob_crossover = prob_crossover,
-                                          starting_ibd = starting_ibd)
+                                          starting_ibd = starting_ibd,
+                                          mutation_flag = mutation_flag,
+                                          mutation_occurence = mutation_occurence)
     
     ## pass to spatial
     # spatial checks

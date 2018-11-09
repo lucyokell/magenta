@@ -455,12 +455,16 @@ generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
 #' @param prob_crossover Vector of probabilities for crossover events for the 
 #'   barcode. Default = rep(0.5, barcode_length)
 #' @param starting_ibd Starting ibd. Default = 0
+#' @param mutation_flag Are we simulating mutations
+#' @param mutation_flag What is the probability of occurence
 #' 
 barcode_parms_create <- function(num_loci = 24,
                                  ibd_length = 1,
                                  plaf = rep(0.5, 24),
                                  prob_crossover = rep(0.5,24),
-                                 starting_ibd = 0) {
+                                 starting_ibd = 0,
+                                 mutation_flag = FALSE,
+                                 mutation_occurence = 1e-7) {
   
   
   # are we doing ibd or not
@@ -475,7 +479,9 @@ barcode_parms_create <- function(num_loci = 24,
               "starting_ibd" = starting_ibd,
               "plaf" = plaf,
               "prob_crossover" = prob_crossover,
-              "barcode_type" = barcode_type)
+              "barcode_type" = barcode_type,
+              "mutation_flag" = mutation_flag,
+              "mutation_occurence" = mutation_occurence)
   
   return(res)
   

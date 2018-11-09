@@ -159,6 +159,12 @@ public:
   std::vector<double> g_cost_of_resistance;
   std::vector<std::vector<double> > g_prob_of_lpf; // late parasitological failure
   
+  // mutation parameters
+  bool g_mutation_flag;
+  double g_mutation_occurence;
+  std::vector<unsigned int> g_mutations_today;
+  unsigned int g_mutation_pos_allocator;
+  
   // drug related parameters
   bool g_mft_flag;
   int g_drug_choice;

@@ -498,6 +498,23 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
         
       }
       
+      // are we simulating mutations
+      if (parameters.g_mutation_flag){
+        // are we still allocating mutations
+        if(parameters.g_mutation_pos_allocator < parameters.g_num_loci){
+          // were there any mutations at this position for the population
+          if(parameters.g_mutations_today[parameters.g_mutation_pos_allocator]>0){
+            m_infection_barcode_realisation_vector[m_infection_barcode_realisation_vector.size()-1][parameters.g_mutation_pos_allocator].flip();
+            parameters.g_mutations_today[parameters.g_mutation_pos_allocator]--;
+            if(parameters.g_mutations_today[parameters.g_mutation_pos_allocator] == 0){
+              parameters.g_mutation_pos_allocator++;
+            }
+          } else {
+            parameters.g_mutation_pos_allocator++;
+          }
+        }
+      }
+      
     }
     
   }
