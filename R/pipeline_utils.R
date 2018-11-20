@@ -132,10 +132,8 @@ plaf_matrix_check <- function(matrix, years) {
   }
   
   if(is.vector(matrix)) {
-    if(length(matrix) != years){
-      matrix <- c(rep(matrix[1],years - length(matrix)),matrix)
-    }
-    matrix <- as.matrix(matrix)
+      matrix <- c(rep(matrix,years - 1),matrix)
+    matrix <- matrix(matrix,nrow=years,byrow=TRUE)
   }
   
   return(matrix)

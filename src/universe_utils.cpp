@@ -262,7 +262,7 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List paramList) {
     barcode_states_i.reserve(strains_i.size());
     
     
-    // for coi let's first get the barcodes for the non U and U states 
+    // for coi let's first get the barcodes for the non U states 
     for(auto b : strains_i) {
       if(b.get_m_strain_infection_status() != Strain::SUBPATENT) {
         bitsets_not_u_i.emplace_back(b.get_m_barcode()); 

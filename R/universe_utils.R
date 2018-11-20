@@ -186,7 +186,7 @@ COI_df_create2 <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0
       }
       
       summary_ibd <- summarySE_mean_only(df[chosen,],measurevar = "pibd", groupvars = groupvars,mean_only = mean_only)
-      summary_ibd_d <- summarySE_mean_only(df[chosen,],measurevar = "pibd_d",groupvars = "age_bin", mean_only = mean_only)
+      summary_ibd_d <- summarySE_mean_only(df[chosen,],measurevar = "pibd_d",groupvars = groupvars, mean_only = mean_only)
       summary_within_ibd <- summarySE_mean_only(df[chosen,],measurevar = "pibd_within",groupvars = groupvars, mean_only = mean_only)
       summary_within_ibd_d <- summarySE_mean_only(df[chosen,],measurevar = "pibd_within_d",groupvars = groupvars, mean_only = mean_only)
       summary_ages <- summarySE_mean_only(df[chosen,],measurevar = "age", groupvars = groupvars, mean_only = mean_only)
