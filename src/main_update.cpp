@@ -262,6 +262,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
     // Human update loop
     // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Human loop" + "\n"); 
+    // #pragma omp parallel for schedule(static,1)
     for (human_update_i = 0; human_update_i < u_ptr->parameters.g_N; human_update_i++)
     {
       psi_sum += u_ptr->psi_vector[human_update_i] = u_ptr->population[human_update_i].update(u_ptr->parameters);

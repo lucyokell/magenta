@@ -4,9 +4,9 @@
 \alias{Pipeline}
 \title{Pipeline for cluster submission}
 \usage{
-Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
+Pipeline(EIR = 20, ft = 0.4, itn_cov = 0, irs_cov = 0,
   survival_percentage = 0.18, oocyst_mean = 5, oocyst_shape = 5,
-  N = 1e+05, years = 20, update_length = 365, country = NULL,
+  N = 10000, years = 20, update_length = 365, country = NULL,
   admin = NULL, use_historic_interventions = FALSE,
   spatial_type = NULL, redis_host = "fi--dideclusthn.dide.ic.ac.uk",
   spatial_uuid = NULL, spatial_incidence_matrix = NULL,

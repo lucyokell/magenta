@@ -67,9 +67,9 @@
 #' @export
 
 
-Pipeline <- function(EIR=120, ft = 0.4, itn_cov = 0, irs_cov = 0,
+Pipeline <- function(EIR=20, ft = 0.4, itn_cov = 0, irs_cov = 0,
                      survival_percentage = 0.18, oocyst_mean = 5, oocyst_shape = 5,
-                     N=100000, years = 20,update_length = 365, 
+                     N=10000, years = 20,update_length = 365, 
                      country = NULL, admin = NULL, use_historic_interventions = FALSE,
                      spatial_type = NULL, redis_host = "fi--dideclusthn.dide.ic.ac.uk",spatial_uuid = NULL,
                      spatial_incidence_matrix = NULL,spatial_mosquitoFOI_matrix = NULL,

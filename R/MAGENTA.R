@@ -12,7 +12,7 @@
 #' @importFrom stats rlnorm heatmap runif qt sd
 #' @importFrom utils adist read.csv tail
 #' @importFrom ggplot2 ggplot
-#' @importFrom grDevices dev.off tiff windows dev.new hcl
+#' @importFrom grDevices dev.off tiff dev.new hcl
 #' @importFrom odin odin
 #'
 "_PACKAGE"
