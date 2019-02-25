@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  person.h
 //
 //  Created: OJ on 12/01/2017

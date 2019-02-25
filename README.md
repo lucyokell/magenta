@@ -1,4 +1,4 @@
-# MAGENTA
+# magenta
 
 Individual-based simulation model of malaria epidemiology and genomics.
 
@@ -14,17 +14,17 @@ Individual-based simulation model of malaria epidemiology and genomics.
 
 ### What is this?
 
-*MAGENTA* is an individual-based simulation model of malaria epidemiology and genomics.
-*MAGENTA* extends the imperial malaria model by tracking the infection history of 
+*magenta* is an individual-based simulation model of malaria epidemiology and genomics.
+*magenta* extends the imperial malaria model by tracking the infection history of 
 individuals. With this additional genetic characteristics of the parasite can be 
 assessed.
 
 ***
-> To view the tutorial please click [here](https://github.com/bobverity/MAGENTA/blob/master/tutorials/MAGENTA_tutorial.md)
+> To view the tutorial please click [here](https://github.com/bobverity/magenta/blob/master/tutorials/magenta_tutorial.md)
 
 ***
 
-### Installing *MAGENTA*
+### Installing *magenta*
 
 To install the development version from github the package [*devtools*](https://github.com/hadley/devtools) is required.
 
@@ -45,12 +45,12 @@ library(devtools)
 Once installed, the package can be installed and loaded using:
 
 ```r
-devtools::install_github("OJWatson/MAGENTA")
-library(MAGENTA)
+devtools::install_github("OJWatson/magenta")
+library(magenta)
 ```
 
 ***
 
 #### Asking a question
 
-For bug reports, feature requests, contributions, use github's [issue system.](https://github.com/OJWatson/MAGENTA/issues)
+For bug reports, feature requests, contributions, use github's [issue system.](https://github.com/OJWatson/magenta/issues)

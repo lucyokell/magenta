@@ -75,7 +75,7 @@ Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd
   
   ages <- sim.save$Ages
   ages[ages==0] <- 0.001
-  mpl <- Model_Param_List_Create()
+  mpl <- model_param_list_create()
   micro_det <- q_fun(mpl$d1,ID,mpl$ID0,mpl$kD,sapply(ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
   
   
@@ -175,13 +175,13 @@ Sample_COI <- function(sim.save,ID,sample_size,age_densities,age_breaks=seq(0,90
 #' @param span Smoothing parameter for loess
 #' @param ylimmax ylim max
 #' @param xlimmax xlim max
-#' @param plot Boolean to print the plot
+#' @param max_coi max_coi
 #' @importFrom ggplot2 ggplot aes geom_smooth theme_bw geom_point xlim ylim
 #' 
 #' 
 #' @export
 
-COI_age_plot_sample_x <- function(Sample_COI_out,x,span=0.6,ylimmax=NULL,xlimmax=NULL){
+COI_age_plot_sample_x <- function(Sample_COI_out,x,span=0.6,ylimmax=NULL,xlimmax=NULL,max_coi=25){
   
   
   mround <- function(x,base){ 
@@ -194,7 +194,7 @@ COI_age_plot_sample_x <- function(Sample_COI_out,x,span=0.6,ylimmax=NULL,xlimmax
   COI <- Sample_COI_out$COI[ids]
   df <- data.frame("Ages"=Ages,"COI"=COI)
   
-  df$COI[df$COI>25] <- sample(df$COI[df$COI<25],sum(df$COI>25))
+  df$COI[df$COI>max_coi] <- sample(df$COI[df$COI<max_coi],sum(df$COI>max_coi))
   df$Ages <- mround(df$Ages,1)
   
   if(is.null(ylimmax)) ylimmax <- max(df$COI) + 1

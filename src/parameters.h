@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  parameters.h
 //
 //  Created: OJ on 17/01/2017

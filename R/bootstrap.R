@@ -42,7 +42,7 @@ mean_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_f
 }
 
 
-bootstrap <- function(sim = "M:/OJ/MAGENTA_Results/scripts/fig3_r1.rds", year0 = 21, year = 22,
+bootstrap <- function(sim = "M:/OJ/magenta_Results/scripts/fig3_r1.rds", year0 = 21, year = 22,
                       ss=10, sub_sample=100, less = TRUE, conf = .95, permutations = 100,
                       metric = "coi", unphased = FALSE, ages = c(5,15), states = c(1,2,4)){
   

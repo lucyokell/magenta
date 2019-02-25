@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  main_get.cpp
 //
 //  Created: OJ Watson on 06/12/2015
@@ -43,11 +43,11 @@ struct Universe {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //' Returns whole model to R in series of nested lists
 //'
-//' @param paramList parameter list generated with \code{Param_List_Simulation_Get_Create}
+//' @param param_list parameter list generated with \code{Param_List_Simulation_Get_Create}
 //' @return list of 4 lists with the entire model state
 //' @export
 // [[Rcpp::export]]
-Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
+Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
 {
   
 
@@ -58,8 +58,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List paramList)
   // START: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  // Create universe pointer from paramList statePtr
-  Rcpp::XPtr<Universe> universe_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (paramList["statePtr"]);
+  // Create universe pointer from param_list statePtr
+  Rcpp::XPtr<Universe> universe_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (param_list["statePtr"]);
   
     // prove that C++ code is being run
   rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Rcpp function is working!\n");

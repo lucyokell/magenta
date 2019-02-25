@@ -3,70 +3,70 @@
 
 #' Returns whole model to R in series of nested lists
 #'
-#' @param paramList parameter list generated with \code{Param_List_Simulation_Get_Create}
+#' @param param_list parameter list generated with \code{Param_List_Simulation_Get_Create}
 #' @return list of 4 lists with the entire model state
 #' @export
-Simulation_Get_cpp <- function(paramList) {
-    .Call('_MAGENTA_Simulation_Get_cpp', PACKAGE = 'MAGENTA', paramList)
+Simulation_Get_cpp <- function(param_list) {
+    .Call('_magenta_Simulation_Get_cpp', PACKAGE = 'magenta', param_list)
 }
 
 #' Creates initial model simulation using paramter list provided
 #'
-#' @param paramList parameter list generated with \code{Param_List_Simulation_Init_Create}
+#' @param param_list parameter list generated with \code{Param_List_Simulation_Init_Create}
 #' @return list with ptr to model state and loggers describing the current model state
 #' @export
-Simulation_Init_cpp <- function(paramList) {
-    .Call('_MAGENTA_Simulation_Init_cpp', PACKAGE = 'MAGENTA', paramList)
+Simulation_Init_cpp <- function(param_list) {
+    .Call('_magenta_Simulation_Init_cpp', PACKAGE = 'magenta', param_list)
 }
 
-Simulation_Saved_Init_cpp <- function(paramList) {
-    .Call('_MAGENTA_Simulation_Saved_Init_cpp', PACKAGE = 'MAGENTA', paramList)
+Simulation_Saved_Init_cpp <- function(param_list) {
+    .Call('_magenta_Simulation_Saved_Init_cpp', PACKAGE = 'magenta', param_list)
 }
 
-#' Continues simulation forward for as long as specified in paramList
+#' Continues simulation forward for as long as specified in param_list
 #'
-#' @param paramList parameter list generated with \code{Param_List_Simulation_Update_Create}
+#' @param param_list parameter list generated with \code{Param_List_Simulation_Update_Create}
 #' @return list with ptr to model state and loggers describing the current model state
 #' @export
-Simulation_Update_cpp <- function(paramList) {
-    .Call('_MAGENTA_Simulation_Update_cpp', PACKAGE = 'MAGENTA', paramList)
+Simulation_Update_cpp <- function(param_list) {
+    .Call('_magenta_Simulation_Update_cpp', PACKAGE = 'magenta', param_list)
 }
 
 test_barcode_from_PLAF <- function(plaf, n) {
-    .Call('_MAGENTA_test_barcode_from_PLAF', PACKAGE = 'MAGENTA', plaf, n)
+    .Call('_magenta_test_barcode_from_PLAF', PACKAGE = 'magenta', plaf, n)
 }
 
 test_recombinant_with_ibd <- function(barcode_1, barcode_2, bl, nl, ib, pc) {
-    .Call('_MAGENTA_test_recombinant_with_ibd', PACKAGE = 'MAGENTA', barcode_1, barcode_2, bl, nl, ib, pc)
+    .Call('_magenta_test_recombinant_with_ibd', PACKAGE = 'magenta', barcode_1, barcode_2, bl, nl, ib, pc)
 }
 
 test_generate_next_ibd <- function(bl, nl, ib, pc, id) {
-    .Call('_MAGENTA_test_generate_next_ibd', PACKAGE = 'MAGENTA', bl, nl, ib, pc, id)
+    .Call('_magenta_test_generate_next_ibd', PACKAGE = 'magenta', bl, nl, ib, pc, id)
 }
 
 test_ibd_conversion <- function(barcode, bl, nl, ib) {
-    .Call('_MAGENTA_test_ibd_conversion', PACKAGE = 'MAGENTA', barcode, bl, nl, ib)
+    .Call('_magenta_test_ibd_conversion', PACKAGE = 'magenta', barcode, bl, nl, ib)
 }
 
 #' Returns the population's parasite genetics for ibd style summarised by pibd for given sample size and state
 #'
-#' @param paramList paramList containing statePtr, sample_size, and sample_states
+#' @param param_list param_list containing statePtr, sample_size, and sample_states
 #' @return list of population information
 #' @export
-population_get_genetics_ibd_df_n <- function(paramList) {
-    .Call('_MAGENTA_population_get_genetics_ibd_df_n', PACKAGE = 'MAGENTA', paramList)
+population_get_genetics_ibd_df_n <- function(param_list) {
+    .Call('_magenta_population_get_genetics_ibd_df_n', PACKAGE = 'magenta', param_list)
 }
 
 #' Returns the population's parasite genetics summarised by coi for given sample size and state
 #'
-#' @param paramList paramList containing statePtr, sample_size, and sample_states
+#' @param param_list param_list containing statePtr, sample_size, and sample_states
 #' @return list of population information
 #' @export
-population_get_genetics_df_n <- function(paramList) {
-    .Call('_MAGENTA_population_get_genetics_df_n', PACKAGE = 'MAGENTA', paramList)
+population_get_genetics_df_n <- function(param_list) {
+    .Call('_magenta_population_get_genetics_df_n', PACKAGE = 'magenta', param_list)
 }
 
 test_bitset_serialisation <- function(x, n) {
-    .Call('_MAGENTA_test_bitset_serialisation', PACKAGE = 'MAGENTA', x, n)
+    .Call('_magenta_test_bitset_serialisation', PACKAGE = 'magenta', x, n)
 }
 

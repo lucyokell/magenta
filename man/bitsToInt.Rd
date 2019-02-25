@@ -2,7 +2,8 @@
 % Please edit documentation in R/utils.R
 \name{bitsToInt}
 \alias{bitsToInt}
-\title{Function to convert vector of bools representing up to a 32 bit number into the corresponding integer}
+\title{Function to convert vector of bools representing up to a 32 bit 
+number into the corresponding integer}
 \usage{
 bitsToInt(x, big_endian = FALSE)
 }
@@ -12,5 +13,6 @@ bitsToInt(x, big_endian = FALSE)
 \item{big_endian}{Is big_endian. Default = FALSE}
 }
 \description{
-Function to convert vector of bools representing up to a 32 bit number into the corresponding integer
+Function to convert vector of bools representing up to a 32 bit 
+number into the corresponding integer
 }

@@ -2,16 +2,16 @@
 % Please edit documentation in R/RcppExports.R
 \name{Simulation_Update_cpp}
 \alias{Simulation_Update_cpp}
-\title{Continues simulation forward for as long as specified in paramList}
+\title{Continues simulation forward for as long as specified in param_list}
 \usage{
-Simulation_Update_cpp(paramList)
+Simulation_Update_cpp(param_list)
 }
 \arguments{
-\item{paramList}{parameter list generated with \code{Param_List_Simulation_Update_Create}}
+\item{param_list}{parameter list generated with \code{Param_List_Simulation_Update_Create}}
 }
 \value{
 list with ptr to model state and loggers describing the current model state
 }
 \description{
-Continues simulation forward for as long as specified in paramList
+Continues simulation forward for as long as specified in param_list
 }

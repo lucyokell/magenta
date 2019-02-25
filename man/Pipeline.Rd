@@ -36,40 +36,52 @@ Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
 
 \item{years}{Lenth of simulation. Default = 20}
 
-\item{update_length}{How long each update is run for in days. Default = 365}
+\item{update_length}{How long each update is run for in days.
+Default = 365}
 
-\item{country}{Character for country within which admin2 is in. Default = NULL}
+\item{country}{Character for country within which admin2 is in.
+Default = NULL}
 
-\item{admin}{Character for admin region. Some fuzzy logic will be used to match. If 
+\item{admin}{Character for admin region. Some fuzzy logic will be
+used to match. If
 not provided then no seasonality is introduced. Default = NULL}
 
-\item{use_historic_interventions}{Boolean as to whether the historic interventions are incorporated.
-  This will occur by using the length of years and taking the most recent years back in time. Therefore
-  if years > 15, then there will be burn in time, when no interventions are assumed. Default = FALSE, and
-  only is used if country and admin are suitably provided.  
-## Genetic Params}
+\item{use_historic_interventions}{Boolean as to whether the historic
+ interventions are incorporated.
+  This will occur by using the length of years and taking the most
+  recent years back in time. Therefore
+  if years > 15, then there will be burn in time, when no interventions
+  are assumed. Default = FALSE, and
+  only is used if country and admin are suitably provided.
+# Genetic Params}
 
-\item{spatial_type}{Default = NULL. If spatial is wanted then provide a character describing 
+\item{spatial_type}{Default = NULL. If spatial is wanted then provide
+a character describing
 the type of spatial simulation, which must be one of "island" or "metapop".}
 
-\item{redis_host}{Default = "fi--dideclusthn.dide.ic.ac.uk". This should be the host address
+\item{redis_host}{Default = "fi--dideclusthn.dide.ic.ac.uk". This should
+be the host address
 where your redis server is running.}
 
-\item{spatial_uuid}{Default = NULL. If spatial is provided, then this will error unless a character
-string is passed to this argument. This character should be the same for each parallel task within
+\item{spatial_uuid}{Default = NULL. If spatial is provided, then this will
+error unless a character
+string is passed to this argument. This character should be the same for
+each parallel task within
 the same job.}
 
-\item{spatial_incidence_matrix}{Spatial incidence for humans, i.e. importation vector}
+\item{spatial_incidence_matrix}{Spatial incidence for humans,
+i.e. importation vector}
 
-\item{spatial_mosquitoFOI_matrix}{Spatial mosquio FOI, i.e. importation to mosquitoes vector}
+\item{spatial_mosquitoFOI_matrix}{Spatial mosquio FOI, i.e. importation
+to mosquitoes vector}
 
 \item{num_loci}{Number of loci. Default = 24}
 
-\item{ibd_length}{If we are simulating IBD dynamics, each loci is now 
+\item{ibd_length}{If we are simulating IBD dynamics, each loci is now
 represented by a bitset of ibd_length. Thus ibd_length needs to be long
-enough to ensure that as new identity relationships occur, i.e. 
+enough to ensure that as new identity relationships occur, i.e.
 an importation barcode will be a new identity. e.g. If are population is
-1000, we may expect at 80% prevalence, with a mean COI of 3 we will need 
+1000, we may expect at 80% prevalence, with a mean COI of 3 we will need
 2400 different identities, i.e. 2^ibd_length > 2400. However, keep in mind
 importations as these need to be continually new, i.e. if we are simulating
 for 30 years, with 3 importations a day, then we will need at least length
@@ -77,40 +89,50 @@ to ensure that 2^ibd_length > 2400 + (30*365*3). This will probably be
 automatically calculated in the future. If we are not ding IBD, then this
 should be 1, which is the defalt.}
 
-\item{plaf}{Vector of population level allele frequencies for the barcode. 
+\item{plaf}{Vector of population level allele frequencies for the barcode.
 Default = rep(0.5, num_loci)}
 
-\item{prob_crossover}{Vector of probabilities for crossover events for the 
+\item{prob_crossover}{Vector of probabilities for crossover events for the
   barcode. Default = rep(0.5, num_loci)
-## odin Params}
+# odin Params}
 
-\item{num_het_brackets}{Number of heterogeinity brackets to use in initialisation. Default = 5}
+\item{num_het_brackets}{Number of heterogeinity brackets to use in
+initialisation. Default = 5}
 
-\item{num_age_brackets}{Number of age brackets to use in initialisation. Default = 200}
+\item{num_age_brackets}{Number of age brackets to use in initialisation.
+Default = 200}
 
-\item{geometric_age_brackets}{Boolean detailing whether age brackets are geometric. Default = TRUE}
+\item{geometric_age_brackets}{Boolean detailing whether age brackets are
+geometric. Default = TRUE}
 
 \item{max_age}{Maximum age in age brackets. Default = 100}
 
-\item{use_odin}{Boolean detailing whether the intiial solution is run within the odin model 
+\item{use_odin}{Boolean detailing whether the intiial solution is run
+ within the odin model
 first. Default = FALSE while the model is still buggy.}
 
 \item{mu_vec}{Numeric for hor mu_vec changes as calculated from odin model}
 
 \item{fv_vec}{Numeric for how fv_vec changes as calculated from odin model}
 
-\item{full_save}{Boolean detailing whether the entire simulation is saved. Default = FALSE}
+\item{full_save}{Boolean detailing whether the entire simulation is saved.
+Default = FALSE}
 
-\item{human_only_full_save}{Boolean detailing whether just the human component of the simulation is saved within full_save. Default = FALSE}
+\item{human_only_full_save}{Boolean detailing whether just the human
+component of the simulation is saved within full_save. Default = FALSE}
 
-\item{update_save}{Boolean detailing whether the logging output is saved each update_length up to years. Default = FALSE}
+\item{update_save}{Boolean detailing whether the logging output is saved
+each update_length up to years. Default = FALSE}
 
-\item{human_update_save}{Boolean detailing if the human state is also saved during each update_length. Default = FALSE}
+\item{human_update_save}{Boolean detailing if the human state is also
+saved during each update_length. Default = FALSE}
 
-\item{summary_saves_only}{Boolean if summary tables about COI are saved within human yearly save only. Dataframes of age, clinical status
+\item{summary_saves_only}{Boolean if summary tables about COI are saved
+within human yearly save only. Dataframes of age, clinical status
 binned COI.}
 
-\item{saved_state_path}{Full file path to a saved model state to be loaded and continued. Default = NULL,
+\item{saved_state_path}{Full file path to a saved model state to be
+loaded and continued. Default = NULL,
 which will trigger initialisation}
 
 \item{seed}{Random seed. Default is Random
@@ -120,6 +142,6 @@ which will trigger initialisation}
 \description{
 \code{Pipeline} steps through creating the parameter list, the equilibrium
 initialisation and steady state creation before checking and passing suitable
-parameters to the simulation. This is then saved. If a path to a savedState is
-provided then this state is loaded and continued.
+parameters to the simulation. This is then saved. If a path to a 
+savedState is provided then this state is loaded and continued.
 }

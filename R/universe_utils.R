@@ -8,9 +8,10 @@
 #' @param sample_states sample_states
 #' @param ibd ibd boolean.
 #' 
-pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, ibd = FALSE, seed, nl = 24, big_mat_test = TRUE){
+pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, 
+                           ibd = FALSE, seed, nl = 24, big_mat_test = TRUE){
   
-  paramList <- list("statePtr" = statePtr,
+  param_list <- list("statePtr" = statePtr,
                     "sample_size" = sample_size,
                     "sample_states" = sample_states)
   #message("pop_strains\n")
@@ -18,14 +19,14 @@ pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, ibd 
     
     # Get the info
     set.seed(seed)
-    list <-  population_get_genetics_df_n(paramList)
+    list <-  population_get_genetics_df_n(param_list)
     df <- as.data.frame.list(list[1:4])
   
   } else {
     
     # Get the info
     set.seed(seed)
-    list <- population_get_genetics_ibd_df_n(paramList)
+    list <- population_get_genetics_ibd_df_n(param_list)
     df <- as.data.frame.list(list[1:6])
     
   }
@@ -109,7 +110,7 @@ COI_df_create2 <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0
   }
 
   
-  
+  # non ibd simulation summary
   if(!ibd){
     
     # polygenomic return
@@ -200,6 +201,165 @@ COI_df_create2 <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0
                   "mean_within"=mean(df$pibd_within[chosen], na.rm = TRUE),
                   "mean_within_d"=mean(df$pibd_within_d[chosen], na.rm = TRUE))
                   
+      results[[i]] <- res
+    }
+  }
+  
+  # if no reps then unlist
+  if(reps == 1) {
+    results <- res
+  }
+  return(results)
+  
+  
+}
+
+###
+#---
+#' Create COI dataframe
+#'
+#' @param sim_save Output of a simulation save
+#' @param groupvars Grouping vars for summarySE. Default = c("Age_Bin","State")
+#' @param barcodes Boolean whether to return tabled barcodes. Default = FALSE
+#' 
+COI_df_create <- function(sim_save, groupvars = c("Age_Bin","State"),
+                          barcodes=FALSE,mpl = model_param_list_create(),
+                          ibd = 0, nl = 24, n = Inf, sample_group = c("T","D","A","U"), reps = 1){
+  
+  # function to calculate probability of strain being detected by microscopy
+  q_fun <- function(d1, ID, ID0, kD, fd) {
+    return(d1 + ((1-d1) / (1 + ((ID/ID0)^kD)*fd)))
+  }
+  
+  fd <- function(age, fD0, aD, gammaD) {
+    return( 1 - ((1-fD0) / (1 + (age/aD)^gammaD)) )
+  }
+  
+  # population vars
+  ID <- sim_save$population_List$ID
+  ages <- sim_save$population_List$Ages
+  ages[ages==0] <- 0.001
+  micro_det <- q_fun(mpl$d1,ID,mpl$ID0,mpl$kD,sapply(ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
+  
+  t_now <- sim_save$parameters_List$g_current_time
+  
+  if(!ibd){
+    # Convert the barcodes to COIs
+    COIS <- Convert_Barcode_Vectors(sim_save$populations_event_and_strains_List,
+                                    sub_patents_included=TRUE,ibd = ibd,nl = nl)
+    COIs <- COIS$COI
+    COIs[is.na(COIs)] <- 0
+    
+    # grab the age, status etc 
+    clinical_status <- sim_save$population_List$Infection_States
+    infection_state <- c("S","D","A","U","T","P")
+    last_treatment <- t_now - sim_save$populations_event_and_strains_List$Day_of_last_treatment
+    last_treatment[last_treatment==0] <- 0.001
+    
+    #  bring into df
+    df <- data.frame("COI"=COIs,"Ages"=ages/365,"State"=infection_state[(clinical_status)+1],
+                     "Age_Bin" = cut(ages/365,breaks = c(0,1,2,3,5,10,20,40,60,100)),
+                     "Last_Treatment" = last_treatment,
+                     "Last_Treatment_Binned" = cut(last_treatment,breaks = c(0,28,90,365,t_now)),
+                     stringsAsFactors = FALSE)
+    
+    # Add the non subpatent COIs
+    COIS <- Convert_Barcode_Vectors(sim_save$populations_event_and_strains_List,
+                                    sub_patents_included=FALSE)
+    COIs <- COIS$COI
+    COIs[is.na(COIs)] <- 0
+    df$COI_in_A <- COIs
+    df$COI_detected_micro <- round(micro_det*df$COI_in_A)
+    df$polygenom <- df$COI>1
+    df$nums <- COIS$nums
+    
+    results <- list()
+    length(results) <- reps
+    pop_size <- length(df$Ages)
+    
+    # make samples and reps of them
+    for(i in seq_len(length(results))) {
+      
+      # make a sample
+      if(n == Inf) {
+        chosen <- 1:pop_size
+      } else {
+        chosen <- sample(which(df$State %in% sample_group), size = n, replace = FALSE)
+      }
+      
+      # create overall clonality
+      clonality <- table(table(unlist(COIS$nums[chosen])))
+      barcodes_tab <- sort(table(unlist(COIS$nums[chosen])),decreasing=TRUE)
+      
+      # create summary dfs
+      summary_coi <- summarySE(df[chosen,],measurevar = "COI")
+      summary_coi_detected <- summarySE(df[chosen,],measurevar = "COI_detected_micro")
+      summary_polygenom <- summarySE(df[chosen,],measurevar = "polygenom")
+      summary_polygenom <- dplyr::left_join(
+        summary_polygenom,
+        dplyr::group_by(df[chosen,], Age_Bin, State) %>% 
+          dplyr::summarise(unique = clonality_from_barcode_list(nums)), 
+        by = groupvars
+      )
+      
+      # bundle it all up
+      res <- list("summary_coi"=summary_coi,
+                  "summary_coi_detected"=summary_coi_detected,
+                  "summary_polygenom"=summary_polygenom,
+                  "clonality"=clonality,"coi_table"=table(df$COI[chosen]))
+      
+      if(barcodes){
+        res$barcodes <- barcodes_tab[barcodes_tab>1]
+      } 
+      
+      results[[i]] <- res
+    }
+    
+  } else {
+    
+    # grab the age, status etc 
+    ages <- sim_save$population_List$Ages
+    ages[ages==0] <- 0.001
+    clinical_status <- sim_save$population_List$Infection_States
+    infection_state <- c("S","D","A","U","T","P")
+    last_treatment <- t_now - sim_save$populations_event_and_strains_List$Day_of_last_treatment
+    last_treatment[last_treatment==0] <- 0.001
+    
+    #  bring into df
+    out <- sim_save$populations_event_and_strains_List$Recent_identity_vectors
+    n.strains <- lapply(out,length) %>% unlist()
+    pibd <- rep(0,length(ages))
+    if(sum(n.strains)>0){
+      ibds <- population_ibd_distances(mat = matrix(unlist(out),nrow=sum(n.strains>0),byrow=TRUE))
+      mi <- which(sim_save$populations_event_and_strains_List$Number_of_Strains>0)
+      pibd[mi] <- proxy::colMeans.dist(ibds$p_ibd,diag = FALSE)
+    }
+    
+    df <- data.frame("pibd"=pibd,"Ages"=ages/365,"State"=infection_state[(clinical_status)+1],
+                     "Age_Bin" = cut(ages/365,breaks = c(0,1,2,3,5,10,20,40,60,100)),
+                     "Last_Treatment" = last_treatment,
+                     "Last_Treatment_Binned" = cut(last_treatment,breaks = c(0,28,90,365,t_now)),
+                     stringsAsFactors = FALSE)
+    
+    
+    results <- list()
+    length(results) <- reps
+    pop_size <- length(df$Ages)
+    
+    # make samples and reps of them
+    for(i in seq_len(length(results))) {
+      
+      # make a sample
+      if(n == Inf) {
+        chosen <- 1:pop_size
+      } else {
+        chosen <- sample(which(df$State %in% sample_group), size = n, replace = FALSE)
+      }
+      
+      summary_ibd <- summarySE(df[chosen,],measurevar = "pibd",groupvars = groupvars)
+      mic <- which(sim_save$populations_event_and_strains_List$Number_of_Strains[chosen]>0)
+      res <- list("summary_ibd"=summary_ibd,
+                  "Mean"=mean(pibd[chosen[mic]] ))
       results[[i]] <- res
     }
   }

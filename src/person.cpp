@@ -253,7 +253,7 @@ void Person::set_m_day_of_nmf(const Parameters &parameters){
   // Exppnential waiting time plus current day and 1 so not the same day
   m_day_of_nmf = rexpint1(parameters.g_mean_nmf_frequency[m_nmf_age_band]) + parameters.g_current_time + 1;
   
-};
+}
 
 // Set day of next strain state change
 void Person::set_m_day_of_next_strain_state_change()

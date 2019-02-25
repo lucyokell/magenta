@@ -4,10 +4,10 @@
 \alias{Simulation_Get_cpp}
 \title{Returns whole model to R in series of nested lists}
 \usage{
-Simulation_Get_cpp(paramList)
+Simulation_Get_cpp(param_list)
 }
 \arguments{
-\item{paramList}{parameter list generated with \code{Param_List_Simulation_Get_Create}}
+\item{param_list}{parameter list generated with \code{Param_List_Simulation_Get_Create}}
 }
 \value{
 list of 4 lists with the entire model state

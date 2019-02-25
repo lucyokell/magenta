@@ -1,8 +1,8 @@
 #------------------------------------------------
 #' Equilibrium initialisation list creation
 #'
-#' \code{Equilibrium_Init_Create} creates an equilibrium initialisation state to be 
-#' used as a parameter within \code{Equilibrium_SS_Create}
+#' \code{equilibrium_init_create} creates an equilibrium initialisation state to be 
+#' used as a parameter within \code{equilibrium_ss_create}
 #' @param age.vector Vector of age brackets.
 #' @param het.brackets Integer number of biting heteogenity compartments.
 #' @param country String for country of interest. If NULL the seasonal parameters
@@ -17,11 +17,11 @@
 #' @param EIR Numeric for desired annual EIR.
 #' @param model.param.list List of epidemiological parameters created by 
 #' 
-#' \code{Model_Param_List_Create}
+#' \code{model_param_list_create}
 #' 
 #' @export
 
-Equilibrium_Init_Create <- function(age.vector, het.brackets,
+equilibrium_init_create <- function(age.vector, het.brackets,
                                     country = NULL, admin = NULL, ft,
                                     EIR, model.param.list)
 {
@@ -186,7 +186,7 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
       # {
       #   for (j in 1:nh)
       #     
-      {
+    {
       Z_eq[i, j, 1] <- (den_het[i, j] - delta[i] * (Z_eq[i - 1, j, 2]/betaT[i, j] + 
                                                       Z_eq[i - 1, j, 3]/betaD[i, j] + 
                                                       (mpl$rT *  Z_eq[i - 1, j, 2]/betaT[i, j] + Z_eq[i - 1, j, 4])/betaP[i, j]))/(1 + aT[i, j] + aD[i, j] + aP[i, j])
@@ -301,69 +301,27 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   p_det_eq = array(p_det_eq, c(na, nh, num_int))
   
   # find database seasonal parameters
+  admin_matches <- admin_match(admin, country)
   
-  # intiialise admin match as no match
-  admin.matches <- 0
-  
-  if(!is.null(admin)){
-    
-    # if there is no country given then search for the admin unit
-    if(is.null(country)){
-      
-      # find exact match
-      admin.matches <- grep(paste("^",admin,"$",sep=""),admin_units_seasonal$admin1)
-      # if exact does not match try fuzzy match up to dist of 4 which should catch having nop spaces or separators etc
-      if(length(admin.matches)==0){
-        admin.matches <- which(adist(admin_units_seasonal$admin1,admin)<=3)
-      }
-      if(length(admin.matches)>1) stop("Admin unit string specified is ambiguous without country")
-      
-      # if we do have a country though find that match first and then find admin    
-    } else {
-      
-      # first find an exact match
-      country.matches <- grep(paste("^",country,"$",sep=""), admin_units_seasonal$country)
-      if(length(unique(admin_units_seasonal$country[country.matches]))==1){
-        chosen.country <- unique(admin_units_seasonal$country[country.matches])
-      } else if(length(unique(admin_units_seasonal$country[country.matches]))==0){
-        # if exact does not match try fuzzy match up to dist of 2 which should catch having no spaces or separators etc
-        country.matches <- which(adist(admin_units_seasonal$country,y = country)<=2)  
-        if(length(unique(admin_units_seasonal$country[country.matches]))==1){
-          chosen.country <- unique(admin_units_seasonal$country[country.matches])
-        } else if(length(unique(admin_units_seasonal$country[country.matches]))==0) stop ("Country string specified not close enough to those in database")
-      }
-      
-      # find exact match
-      
-      admin_sub_matches <- grep(paste("^",admin,"$",sep=""),admin_units_seasonal$admin1[country.matches], ignore.case = TRUE)
-      # if exact does not match try fuzzy match up to dist of 4 which should catch having nop spaces or separators etc
-      if(length(admin_sub_matches)==0){
-        admin_sub_matches <- which(adist(admin_units_seasonal$admin1[country.matches],admin)<=1)
-      }
-      if(length(admin_sub_matches)>1) stop("Admin unit string specified is not close enougth to those in the database")
-      
-      admin.matches <- country.matches[admin_sub_matches]
-    }
-    
-  }
-  
-  if(admin.matches!=0){
-    ssa0 <- admin_units_seasonal$a0[admin.matches]
-    ssa1 <- admin_units_seasonal$a1[admin.matches]
-    ssa2 <- admin_units_seasonal$a2[admin.matches]
-    ssa3 <- admin_units_seasonal$a3[admin.matches]
-    ssb1 <- admin_units_seasonal$b1[admin.matches]
-    ssb2 <- admin_units_seasonal$b2[admin.matches]
-    ssb3 <- admin_units_seasonal$b3[admin.matches]
-    theta_c <- admin_units_seasonal$theta_c[admin.matches]
+  if(admin_matches!=0){
+    ssa0 <- admin_units_seasonal$a0[admin_matches]
+    ssa1 <- admin_units_seasonal$a1[admin_matches]
+    ssa2 <- admin_units_seasonal$a2[admin_matches]
+    ssa3 <- admin_units_seasonal$a3[admin_matches]
+    ssb1 <- admin_units_seasonal$b1[admin_matches]
+    ssb2 <- admin_units_seasonal$b2[admin_matches]
+    ssb3 <- admin_units_seasonal$b3[admin_matches]
+    theta_c <- admin_units_seasonal$theta_c[admin_matches]
   } else {
     ssa0 <- ssa1 <- ssa2 <- ssa3 <- ssb1 <- ssb2 <- ssb3 <- theta_c <- 0 
   }
   
   # better het bounds for equilbirum initialisation in individual model
   zetas <- rlnorm(n = 1e5,meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
-  while(sum(zetas>100)>0){
-    zetas[zetas>100] <- rlnorm(n = sum(zetas>100),meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
+  while(sum(zetas>100)>0) {
+    zetas[zetas>100] <- rlnorm(n = sum(zetas>100), 
+                               meanlog = -mpl$sigma2/2,
+                               sdlog = sqrt(mpl$sigma2))
   }
   wt_cuts <- round(cumsum(het_wt)*1e5)
   zeros <- which(wt_cuts==0)
@@ -376,21 +334,20 @@ Equilibrium_Init_Create <- function(age.vector, het.brackets,
   
   
   ## collate init
-  res <- list(S = S_eq, T = T_eq, D = D_eq, A = A_eq, U = U_eq, P = P_eq, Y = Y_eq,
-              IB = IB_eq, ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, ICM_init_eq = ICM_init_eq, Iv = Iv_eq,
-              Sv = Sv_eq, Ev = Ev_eq, PL = PL_eq, LL = LL_eq, EL = EL_eq, pi = pi, int_len = 1,
-              init_S = S_eq, init_T = T_eq, init_D = D_eq, init_A = A_eq, init_U = U_eq, init_P = P_eq, init_Y = Y_eq,
-              init_IB = IB_eq, init_ID = ID_eq, init_ICA = ICA_eq, init_ICM = ICM_eq, ICM_init_eq = ICM_init_eq, init_Iv = Iv_eq,
-              init_Sv = Sv_eq, init_Ev = Ev_eq, init_PL = PL_eq, init_LL = LL_eq, init_EL = EL_eq,
-              age_rate = age_rate, het_wt = het_wt, het_x = het_x, omega = omega, foi_age = foi_age, rel_foi = rel_foi, 
-              K0 = K0, mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I, p_det_eq = p_det_eq,
-              age_rate = age_rate, FOI = FOI_eq, EIR = EIR_eq, cA_eq = cA_eq, 
-              den = den, age59 = age59, age05 = age05, ssa0 = ssa0, ssa1 = ssa1, 
-              ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3, 
-              theta_c = theta_c, age_brackets = age.vector, age = age.vector, ft = ft, FOIv_eq = FOIv_eq, U_eq=U_eq, S_eq=S_eq,
-              T_eq=T_eq, A_eq=A_eq, D_eq = D_eq, betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,midages=age2,
-              age02 = age2years, age2years = age2years, age10years = age10years, het_bounds = het_bounds,country = country,admin = admin)
-  
+  res <- list(S = S_eq, T = T_eq, D = D_eq, A = A_eq, U = U_eq, P = P_eq, Y = Y_eq, IB = IB_eq, 
+              ID = ID_eq, ICA = ICA_eq, ICM = ICM_eq, ICM_init_eq = ICM_init_eq, Iv = Iv_eq, Sv = Sv_eq, 
+              Ev = Ev_eq, PL = PL_eq, LL = LL_eq, EL = EL_eq, pi = pi, int_len = 1, init_S = S_eq, init_T = T_eq, 
+              init_D = D_eq, init_A = A_eq, init_U = U_eq, init_P = P_eq, init_Y = Y_eq, init_IB = IB_eq, 
+              init_ID = ID_eq, init_ICA = ICA_eq, init_ICM = ICM_eq, ICM_init_eq = ICM_init_eq, init_Iv = Iv_eq, 
+              init_Sv = Sv_eq, init_Ev = Ev_eq, init_PL = PL_eq, init_LL = LL_eq, init_EL = EL_eq, age_rate = age_rate, 
+              het_wt = het_wt, het_x = het_x, omega = omega, foi_age = foi_age, rel_foi = rel_foi, K0 = K0, 
+              mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I, p_det_eq = p_det_eq, age_rate = age_rate, 
+              FOI = FOI_eq, EIR = EIR_eq, cA_eq = cA_eq, den = den, age59 = age59, age05 = age05, ssa0 = ssa0, 
+              ssa1 = ssa1, ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3, theta_c = theta_c, 
+              age_brackets = age.vector, age = age.vector, ft = ft, FOIv_eq = FOIv_eq, U_eq = U_eq, S_eq = S_eq, 
+              T_eq = T_eq, A_eq = A_eq, D_eq = D_eq, betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq = FOIvij_eq, 
+              midages = age2, age02 = age2years, age2years = age2years, age10years = age10years, het_bounds = het_bounds, 
+              country = country, admin = admin)
   res <- append(res,unlist(mpl))
   
   return(res)

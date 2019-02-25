@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  strain.h
 //
 //  Created: OJ on 13/01/2017

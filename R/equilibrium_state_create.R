@@ -1,17 +1,17 @@
 #' Equilibrium steady state list creation
 #'
-#' \code{Equilibrium_SS_Create} creates a close to steady-state system by 
+#' \code{equilibrium_ss_create} creates a close to steady-state system by 
 #' running an ODE compartment version of the Imperial Malaria model, using
-#' as an initialisation the output of \code{Equilibrium_Init_Create}
+#' as an initialisation the output of \code{equilibrium_init_create}
 #' 
-#' @param eqInit Equilibrium initialisation state as output from \code{Equilibrium_Init_Create}
+#' @param eqInit Equilibrium initialisation state as output from \code{equilibrium_init_create}
 #' @param end.year Number of years to run ODE model for. Default = 5.
 #' @param use_odin Boolean detailing whether the intiial solution is run within the odin model 
 #' for end.year length. Default = False while the model is still buggy. 
 #' 
 #' @export
 
-Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
+equilibrium_ss_create <- function(eqInit, end.year = 5, use_odin = FALSE){
   
   if(use_odin){
     
@@ -127,7 +127,7 @@ Equilibrium_SS_Create <- function(eqInit, end.year = 5, use_odin = FALSE){
     }
     
     # Create odin generator
-    odin_model_path <- system.file("extdata/odin_model.R",package="MAGENTA")
+    odin_model_path <- system.file("extdata/odin_model.R",package="magenta")
     gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
     
     #create model with initial values
@@ -435,7 +435,7 @@ generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
 
 #' Barcode parameter list creation
 #'
-#' \code{barcode_parms_create} creates list detialing the barcode/genetic
+#' \code{barcode_params_create} creates list detialing the barcode/genetic
 #'   parameters for the model
 #' 
 #' @param num_loci Number of loci. Default = 24
@@ -458,7 +458,7 @@ generate_default_model <- function(ft,age,dat,generator,dde = TRUE){
 #' @param mutation_flag Are we simulating mutations
 #' @param mutation_flag What is the probability of occurence
 #' 
-barcode_parms_create <- function(num_loci = 24,
+barcode_params_create <- function(num_loci = 24,
                                  ibd_length = 1,
                                  plaf = rep(0.5, 24),
                                  prob_crossover = rep(0.5,24),

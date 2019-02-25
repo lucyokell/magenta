@@ -1,12 +1,12 @@
-Package: MAGENTA
+Package: magenta
 Type: Package
 Title: Individual-based simulation model of malaria epidemiology and genomics
-Version: 0.30
+Version: 0.4.0
 Date: 2018-08-21
 Author: OJ Watson & Bob Verity
 Maintainer: Oliver Watson <o.watson@imperial.ac.uk>
 Description: Individual-based simulation model of malaria epidemiology and genomics.
-  MAGENTA extends the imperial malaria model by tracking the infection history of 
+  magenta extends the imperial malaria model by tracking the infection history of 
   individuals. With this additional genetic characteristics of the parasite can be 
   assessed.
 License: MIT + file LICENSE
@@ -29,7 +29,7 @@ Remotes:
     richfitz/dde
 LinkingTo: Rcpp, BH
 LazyData: TRUE
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 SystemRequirements: C++11
 Suggests:
     testthat

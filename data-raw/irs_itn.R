@@ -1,4 +1,4 @@
-irs_raw <- xml2::as_list(xml2::read_xml(system.file("MAGENTA",lib.loc = "data-raw/irs2000-15.xml")))
+irs_raw <- xml2::as_list(xml2::read_xml(system.file("magenta",lib.loc = "data-raw/irs2000-15.xml")))
 
 intervention <- lapply(irs_raw,function(x) x$parameters$Type[[1]]) %>% unlist
 year <- lapply(irs_raw,function(x) x$parameters$StartTime[[1]]) %>% unlist
@@ -19,7 +19,7 @@ irs_2010_2015 <- list("intervention"=intervention,
 devtools::use_data(irs_2010_2015)
 
 
-itn_raw <- xml2::as_list(xml2::read_xml(system.file("MAGENTA",lib.loc = "data-raw/itn2000-15.xml")))
+itn_raw <- xml2::as_list(xml2::read_xml(system.file("magenta",lib.loc = "data-raw/itn2000-15.xml")))
 
 intervention <- lapply(itn_raw,function(x) x$parameters$Type[[1]]) %>% unlist
 year <- lapply(itn_raw,function(x) x$parameters$StartTime[[1]]) %>% unlist

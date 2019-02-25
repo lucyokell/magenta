@@ -4,10 +4,10 @@
 \alias{Simulation_Init_cpp}
 \title{Creates initial model simulation using paramter list provided}
 \usage{
-Simulation_Init_cpp(paramList)
+Simulation_Init_cpp(param_list)
 }
 \arguments{
-\item{paramList}{parameter list generated with \code{Param_List_Simulation_Init_Create}}
+\item{param_list}{parameter list generated with \code{Param_List_Simulation_Init_Create}}
 }
 \value{
 list with ptr to model state and loggers describing the current model state

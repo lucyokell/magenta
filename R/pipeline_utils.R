@@ -65,7 +65,7 @@ spl_grab <- function(country, admin, year_range) {
     
     incidence <- incidence[1:(end_year - 1999),]
     mosquitoFOI <- mosquitoFOI[1:(end_year - 1999),]
-
+    
     
   } else {
     
@@ -132,7 +132,7 @@ plaf_matrix_check <- function(matrix, years) {
   }
   
   if(is.vector(matrix)) {
-      matrix <- c(rep(matrix,years - 1),matrix)
+    matrix <- c(rep(matrix,years - 1),matrix)
     matrix <- matrix(matrix,nrow=years,byrow=TRUE)
   }
   
@@ -250,46 +250,49 @@ mu_fv_create <- function(eqInit,
     out <- data.frame("mu"=rep(0.132, length(seq_len(years*365)+1)),
                       "fv"=rep(0.333, length(seq_len(years*365)+1)))
   } else {
-  
-  message("\nRunning Deterministic Model for ", years, " years")
-  
-  length_check <- function(x) {
-    if (length(x) == 0) {
-      x <- rep(0, years)
-    } 
-    if(length(x) < years) {
-      x <- rep(x, length.out = years)
-    } 
-    return(x)
-  }
-  
-  # check interventions parm lengths
-  eqInit$ft <- length_check(ft)
-  eqInit$itn_cov <- length_check(itn_cov)
-  eqInit$irs_cov <- length_check(irs_cov)
-  
-  # set up the intervetnion times
-  if (is.null(int_times)) {
-    int_times <- seq(0,by=365,length.out = years)
-    int_times[length(int_times)] <- int_times[length(int_times)]
-  }
-  eqInit$int_times <- int_times
-  eqInit$ITN_IRS_on <- 0
-  
-  # create odin model
-  odin_model_path <- system.file("extdata/odin.R",package="MAGENTA")
-  gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
-  model <- generate_default_model(ft=eqInit$ft,age=eqInit$age_brackets,dat=eqInit,generator=gen,dde=TRUE)
-  
-  #create model and simulate
-  tt <- seq(0,years*365,1)
-  mod_run <- model$run(tt)
-  out <- model$transform_variables(mod_run)
-  
-  if(!full){
-  out <- data.frame("mu"=out$mu,"fv"=out$fv)
-  }
-  
+    
+    message("\nRunning Deterministic Model for ", years, " years")
+    
+    length_check <- function(x) {
+      if (length(x) == 0) {
+        x <- rep(0, years)
+      } 
+      if(length(x) < years) {
+        x <- rep(x, length.out = years)
+      } 
+      if(length(x) > years) {
+        x <- tail(x, years)
+      }
+      return(x)
+    }
+    
+    # check interventions parm lengths
+    eqInit$ft <- length_check(ft)
+    eqInit$itn_cov <- length_check(itn_cov)
+    eqInit$irs_cov <- length_check(irs_cov)
+    
+    # set up the intervetnion times
+    if (is.null(int_times)) {
+      int_times <- seq(0,by=365,length.out = years)
+      int_times[length(int_times)] <- int_times[length(int_times)]
+    }
+    eqInit$int_times <- int_times
+    eqInit$ITN_IRS_on <- 0
+    
+    # create odin model
+    odin_model_path <- system.file("extdata/odin.R",package="magenta")
+    gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
+    model <- generate_default_model(ft=eqInit$ft,age=eqInit$age_brackets,dat=eqInit,generator=gen,dde=TRUE)
+    
+    #create model and simulate
+    tt <- seq(0,years*365,1)
+    mod_run <- model$run(tt)
+    out <- model$transform_variables(mod_run)
+    
+    if(!full){
+      out <- data.frame("mu"=out$mu,"fv"=out$fv)
+    }
+    
   }
   
   return(out)
@@ -307,10 +310,10 @@ mu_fv_create <- function(eqInit,
 housekeeping_list_create <- function(quiet = TRUE,
                                      cluster = FALSE) {
   
-l <- list("quiet_print" = quiet,
-          "cluster" = cluster)
-
-return(l)
+  l <- list("quiet_print" = quiet,
+            "cluster" = cluster)
+  
+  return(l)
   
 }
 
@@ -346,9 +349,6 @@ drug_list_create <- function(resistance_flag = FALSE,
                              drug_choice = 0,
                              partner_drug_ratios = rep(1/number_of_drugs,number_of_drugs)) {
   
-  
-  
-  
   if(temporal_cycling > 0 && sequential_cycling > 0) {
     stop ("Both sequential and temporal cycling can't be greater than 0")
   }
@@ -378,7 +378,7 @@ drug_list_create <- function(resistance_flag = FALSE,
 }
 
 lpf_table_create <- function(number_of_drugs, drug_tables){
-
+  
   max_bits <- (2^(number_of_drugs+1))-1
   barcode_poss <- matrix(intToBits(0:max_bits),ncol=32,byrow=T)[,1:(number_of_drugs+1)]
   
@@ -414,7 +414,7 @@ resistance_cost_table_create <- function(number_of_resistance_loci, resistance_c
 
 
 drug_list_update <- function(drug_list, year, tf){
-
+  
   
   if (drug_list$g_resistance_flag) {
     if (!drug_list$g_mft_flag) {
@@ -427,28 +427,29 @@ drug_list_update <- function(drug_list, year, tf){
           if(drug_list$g_drug_choice == (drug_list$g_number_of_drugs)){
             drug_list$g_drug_choice <- 0
           }
-         
+          
           message(drug_list$g_drug_choice)
         }
       }
       
       # if temporal cycling
       if (drug_list$g_temporal_cycling > 0) {
-      if (drug_list$g_next_temporal_cycle == year) {
-        drug_list$g_drug_choice <- drug_list$g_drug_choice + 1
-        if(drug_list$g_drug_choice == (drug_list$g_number_of_drugs)){
-          drug_list$g_drug_choice <- 0
+        if (drug_list$g_next_temporal_cycle == year) {
+          drug_list$g_drug_choice <- drug_list$g_drug_choice + 1
+          if(drug_list$g_drug_choice == (drug_list$g_number_of_drugs)){
+            drug_list$g_drug_choice <- 0
+          }
+          drug_list$g_next_temporal_cycle <- drug_list$g_next_temporal_cycle + 
+            drug_list$g_temporal_cycling
         }
-        drug_list$g_next_temporal_cycle <- drug_list$g_next_temporal_cycle + drug_list$g_temporal_cycling
       }
-    }
     }
   }
   
   return(drug_list)  
   
 } 
-  
+
 
 # function to calculate probability of strain being detected by microscopy
 q_fun <- function(d1, ID, ID0, kD, fd) {
@@ -461,20 +462,37 @@ fd <- function(age, fD0, aD, gammaD) {
 
 # convert allele frequencies
 pop_alf <- function(nums,nl){ 
-  if(class(nums %>% unlist)=="raw") {colMeans(matrix(as.numeric(do.call(rbind,nums)),ncol=nl))} else {rep(NA,nl)}
+  if(class(nums %>% unlist)=="raw") {
+    res <- colMeans(matrix(as.numeric(do.call(rbind,nums)),ncol=nl))
+  } else {
+    res <- rep(NA,nl)
+  }
+  return(unlist(res))
 }
 
 # convert to lineages frequencies
 lineages <- function(nums,nl){ 
-  if(class(nums %>% unlist)=="raw") {table(factor(apply(matrix(as.numeric(do.call(rbind,nums)),ncol=nl),1,bitsToInt),levels=0:((2^nl)-1)))} else {rep(NA,2^nl)}
+  if(class(nums %>% unlist)=="raw") {
+    res <- table(
+      factor(
+        apply(matrix(as.numeric(do.call(rbind,nums)),ncol=nl),1,bitsToInt),
+        levels=0:((2^nl)-1)
+      )
+    )
+  } else {
+    res <- rep(NA,2^nl)
+  }
+  return(unlist(res))
 }
 
 
 # what to save in update_saves
-update_saves <- function(res, i, sim.out, sample_states,sample_size, sample_reps, mean_only,
-                         barcode_parms, num_loci, genetics_df_without_summarising, save_lineages = FALSE,
-                         human_update_save, summary_saves_only, only_allele_freqs, mpl,
-                         seed) {
+update_saves <- function(res, i, sim.out, sample_states,
+                         sample_size, sample_reps, mean_only,
+                         barcode_params, num_loci, 
+                         genetics_df_without_summarising, save_lineages = FALSE,
+                         human_update_save, summary_saves_only,
+                         only_allele_freqs, mpl, seed) {
   
   
   # what are saving, does it include the humans
@@ -483,39 +501,51 @@ update_saves <- function(res, i, sim.out, sample_states,sample_size, sample_reps
     # do we just want the summary data frame 
     if(summary_saves_only){
       
+      # sample the population strain's genetics
       if(length(sample_size)>1){
         df <- pop_strains_df(sim.out$Ptr, sample_size = 0, 
-                             sample_states = sample_states, ibd = barcode_parms$barcode_type,
+                             sample_states = sample_states, ibd = barcode_params$barcode_type,
                              seed = seed,
                              nl = num_loci)
       } else {
         df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
-                             sample_states = sample_states, ibd = barcode_parms$barcode_type,
+                             sample_states = sample_states, ibd = barcode_params$barcode_type,
                              seed = seed, 
                              nl = num_loci)
         
       }
       
+      # summarise the genetics
       if(genetics_df_without_summarising) {
+        
         res[[i]] <- list()
         if(only_allele_freqs){
-          res[[i]]$af <- pop_alf(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci) %>% unlist
+          res[[i]]$af <- pop_alf(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci)
           if(save_lineages){
-            res[[i]]$lineage <- lineages(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci) %>% unlist
+            res[[i]]$lineage <-lineages(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci)
           }
         } else {
           res[[i]]$df <- df
         }
+        
+        # treatment outcomes for resistance work
         res[[i]]$succesfull_treatments <- sim.out$Loggers$Treatments$Successful_Treatments
         res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Treatments$Unsuccesful_Treatments_LPF
         res[[i]]$not_treated <- sim.out$Loggers$Treatments$Not_Treated
         res[[i]]$treatment_failure <-  res[[i]]$unsuccesful_treatments_lpf / (res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments) 
-        if(is.na(res[[i]]$treatment_failure)) res[[i]]$treatment_failure <- 0 
         
-        ## prevs
-        dt_10 <- sum(sim.out$Loggers$InfectionStates %in% c(1,4) & (sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720) ) / sum((sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720))
-        micro_det <- q_fun(mpl$d1,sim.out$Loggers$ID,mpl$ID0,mpl$kD,sapply(sim.out$Loggers$Ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
-        a_10 <- sum(sim.out$Loggers$InfectionStates %in% c(2) & (sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720) ) / sum((sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720)) * mean(micro_det[(sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720)])
+        if(is.na(res[[i]]$treatment_failure)) {
+          res[[i]]$treatment_failure <- 0 
+        }
+        
+        # prevalence measures
+        two_ten <- sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720
+        dt_10 <- sum(sim.out$Loggers$InfectionStates %in% c(1, 4) & two_ten) / sum(two_ten)
+        
+        micro_det <- q_fun(mpl$d1,sim.out$Loggers$ID,mpl$ID0,mpl$kD,
+                           sapply(sim.out$Loggers$Ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
+        
+        a_10 <- sum(sim.out$Loggers$InfectionStates %in% 2 & two_ten ) / sum(two_ten) * mean(micro_det[two_ten])
         res[[i]]$pcr_prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
         res[[i]]$micro_2_10 <- dt_10 + a_10
         
@@ -523,24 +553,37 @@ update_saves <- function(res, i, sim.out, sample_states,sample_size, sample_reps
       } else {
         
         if(i%%12 == 0 && i >= (length(res)-180)){
-          res[[i]] <- COI_df_create2(df, barcodes=TRUE, nl=num_loci, ibd = barcode_parms$barcode_type,
-                                     n = sample_size, reps = sample_reps, mean_only = mean_only)
+          res[[i]] <- COI_df_create2(df, barcodes=TRUE, nl=num_loci, 
+                                     ibd = barcode_params$barcode_type,
+                                     n = sample_size, reps = sample_reps, 
+                                     mean_only = mean_only)
         } else {
-          res[[i]] <- COI_df_create2(df, barcodes=FALSE, nl=num_loci, ibd = barcode_parms$barcode_type,
-                                     n = sample_size, reps = sample_reps, mean_only = mean_only)
+          res[[i]] <- COI_df_create2(df, barcodes=FALSE, nl=num_loci, 
+                                     ibd = barcode_params$barcode_type,
+                                     n = sample_size, reps = sample_reps, 
+                                     mean_only = mean_only)
         }
+        
         res[[i]]$Prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
       }
+      
       # or do we want the full human popualation
     } else {
       
       # then grab the population
-      pl3 <- Param_List_Simulation_Get_Create(statePtr = sim.out$Ptr)
-      sim.save <- Simulation_R(pl3, seed = seed)
+      strain_vars <- c(
+        "Strain_infection_state_vectors",
+        "Strain_day_of_infection_state_change_vectors",
+        "Strain_barcode_vectors"
+      )
+      human_vars <- c("Infection_States", "Zetas", "Ages")
+      
+      pl3 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
+      sim.save <- simulation_R(pl3, seed = seed)
       
       # and then store what's needed
-      Strains <- sim.save$populations_event_and_strains_List[c("Strain_infection_state_vectors", "Strain_day_of_infection_state_change_vectors","Strain_barcode_vectors" )]
-      Humans <- c(sim.save$population_List[c("Infection_States", "Zetas", "Ages")],Strains)
+      Strains <- sim.save$populations_event_and_strains_List[strain_vars]
+      Humans <- c(sim.save$population_List[human_vars],Strains)
       res[[i]] <- Humans
     }
     
@@ -560,14 +603,16 @@ update_saves <- function(res, i, sim.out, sample_states,sample_size, sample_reps
 #' 
 #' List for vector adaptations relating to oocyst success
 #' 
-#' @param vector_adaptation_flag Boolean are we doing vector adaptation
+#' @param vector_adaptation_flag Boolean are we doing vector adaptation.
 #' @param local_oocyst_advantage Double for multiplicative efffect on oocyst 
-#'   chance formation
+#'   chance formation.
+#' @param gametocyte_non_sterilisation Double for reduction in a wild type's 
+#'   onward contribution to infection due to sterilisation due to artemisinin. 
 #' 
 
 vector_adaptation_list_create <- function(vector_adaptation_flag = FALSE,
-                            local_oocyst_advantage = 0.2,
-                            gametocyte_non_sterilisation = 0.2){
+                                          local_oocyst_advantage = 0.2,
+                                          gametocyte_non_sterilisation = 0.2){
   
   l <- list("g_vector_adaptation_flag" = vector_adaptation_flag,
             "g_local_oocyst_advantage" = local_oocyst_advantage,
@@ -592,8 +637,12 @@ vector_adaptation_list_create <- function(vector_adaptation_flag = FALSE,
 #' 
 
 nmf_list_create <- function(nmf_flag = FALSE,
-                            mean_nmf_frequency = c(148.578,139.578,141.564,155.874,179.364,216.192,233.478,268.056,312.858,315.564,285.156,255.246,238.302,216.618),
-                            nmf_age_brackets = c(-0.1, 365.0, 730.0, 1095.0, 1460.0, 1825.0, 2555.0, 3285.0, 4015.0, 4745.0, 5475.0, 7300.0, 9125.0, 10950.0, 36850.0),
+                            mean_nmf_frequency = c(148.578,139.578,141.564,155.874,179.364,
+                                                   216.192,233.478,268.056,312.858,315.564,
+                                                   285.156,255.246,238.302,216.618),
+                            nmf_age_brackets = c(-0.1, 365.0, 730.0, 1095.0, 1460.0, 1825.0, 
+                                                 2555.0, 3285.0, 4015.0, 4745.0, 5475.0, 
+                                                 7300.0, 9125.0, 10950.0, 36850.0),
                             prob_of_testing_nmf = 0.5){
   
   l <- list("g_nmf_flag" = nmf_flag,

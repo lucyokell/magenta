@@ -1,13 +1,13 @@
 #------------------------------------------------
-#' Parameter List creation for MAGENTA simulation initialisation
+#' Parameter List creation for magenta simulation initialisation
 #'
-#' \code{Param_List_Simulation_Init_Create} creates suitable parameter list for
-#' \code{Simulation_R} for the beginning of a simulation. Also takes an argument
+#' \code{param_list_simulation_init_create} creates suitable parameter list for
+#' \code{simulation_R} for the beginning of a simulation. Also takes an argument
 #' for feeding in spatial parameters/data.
 #'
 #' @param N Population size. Default = 1e4
-#' @param eqSS Output of \code{Equilibrium_Steady_State_Create}
-#' @param barcode_parms List of barcode/genetic parameters
+#' @param eqSS Output of \code{equilibrium_steady_state_create}
+#' @param barcode_params List of barcode/genetic parameters
 #' @param spatial_list Spatial parmeters to come in
 #' @param housekeeping_list Housekeeping parameter list 
 #'   from \code{housekeeping_list_create}
@@ -20,7 +20,7 @@
 #' 
 #' @export
 
-Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms, 
+param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params, 
                                               spatial_list, housekeeping_list,
                                               drug_list, nmf_list,
                                               vector_adaptation_list)
@@ -48,22 +48,22 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms,
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(N = N, eqSS = eqSS, barcode_parms = barcode_parms, 
+  param_list <- list(N = N, eqSS = eqSS, barcode_params = barcode_params, 
                     spatial_list = spatial_list,
                     housekeeping_list = housekeeping_list,
                     drug_list = drug_list,
                     nmf_list = nmf_list,
                     vector_adaptation_list = vector_adaptation_list)
   
-  return(paramList)
+  return(param_list)
   
 }
 
 #------------------------------------------------
-#' Parameter List creation for MAGENTA simulation updating
+#' Parameter List creation for magenta simulation updating
 #'
-#' \code{Param_List_Simulation_Update_Create} creates suitable parameter list for
-#' \code{Simulation_R} for continuing a simulation from memory within the active
+#' \code{param_list_simulation_update_create} creates suitable parameter list for
+#' \code{simulation_R} for continuing a simulation from memory within the active
 #' session.
 #'
 #' @param years Length of simulation. Default = 1
@@ -72,13 +72,13 @@ Param_List_Simulation_Init_Create <- function(N = 1e+04, eqSS, barcode_parms,
 #' will result in rep(0.132,floor(years*365))
 #' @param fv_vec Vector of mosquito bitings for each day with years. Default = NULL, which
 #' will result in rep(1/3,floor(years*365))
-#' @param statePtr Pointer for current model state as return by \code{Simulation_R}$Ptr
+#' @param statePtr Pointer for current model state as return by \code{simulation_R}$Ptr
 #' @param spatial_list Spatial list
 #' @param drug_list Drug list
 #' 
 #' @export
 
-Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
+param_list_simulation_update_create <- function(years = 1, ft = 0.4,
                                                 mu_vec = NULL, fv_vec = NULL,
                                                 statePtr, spatial_list, drug_list)
 {
@@ -107,28 +107,28 @@ Param_List_Simulation_Update_Create <- function(years = 1, ft = 0.4,
   }
   
   # Create paramlist
-  paramList <- list(years = years, ft = ft, mu_vec = mu_vec,
+  param_list <- list(years = years, ft = ft, mu_vec = mu_vec,
                     fv_vec = fv_vec,
                     statePtr = statePtr, 
                     spatial_list = spatial_list,
                     drug_list = drug_list)
   
-  return(paramList)
+  return(param_list)
   
 }
 
 #------------------------------------------------
-#' Parameter List creation for MAGENTA simulation getting (saving to disk)
+#' Parameter List creation for magenta simulation getting (saving to disk)
 #'
-#' \code{Param_List_Simulation_Get_Create} creates suitable parameter list for
-#' \code{Simulation_R} for continuing a simulation from memory within the active
+#' \code{param_list_simulation_get_create} creates suitable parameter list for
+#' \code{simulation_R} for continuing a simulation from memory within the active
 #' session.
 #'
-#' @param statePtr Pointer for current model state as return by \code{Simulation_R}$Ptr
+#' @param statePtr Pointer for current model state as return by \code{simulation_R}$Ptr
 #' 
 #' @export
 
-Param_List_Simulation_Get_Create <- function(statePtr)
+param_list_simulation_get_create <- function(statePtr)
 {
   
   ## CHECKS ##
@@ -138,21 +138,21 @@ Param_List_Simulation_Get_Create <- function(statePtr)
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(statePtr = statePtr)
+  param_list <- list(statePtr = statePtr)
   
-  return(paramList)
+  return(param_list)
   
 }
 
 #------------------------------------------------
-#' Parameter List creation for loading saved MAGENTA simulation
+#' Parameter List creation for loading saved magenta simulation
 #'
 #' \code{Param_List_Simulation_Saved_Init_Create} creates suitable parameter list for
-#' \code{Simulation_R} for continuing a simulation from memory within the active
+#' \code{simulation_R} for continuing a simulation from memory within the active
 #' session.
 #'
-#' @param savedState Saved state generated by \code{Simulation_R} when provided with 
-#' a \code{Param_List_Simulation_Get_Create} parameter list
+#' @param savedState Saved state generated by \code{simulation_R} when provided with 
+#' a \code{param_list_simulation_get_create} parameter list
 #' 
 #' @export
 
@@ -168,67 +168,67 @@ Param_List_Simulation_Saved_Init_Create <- function(savedState)
   ##---------------------------------------------
   
   # Create paramlist
-  paramList <- list(savedState = savedState)
+  param_list <- list(savedState = savedState)
   
-  return(paramList)
+  return(param_list)
   
 }
 
 
 #------------------------------------------------
-#' Simulation_R function
+#' simulation_R function
 #'
-#' This function triggers the main MAGENTA simulation from the R side
+#' This function triggers the main magenta simulation from the R side
 #'
-#' @param paramList Paramlist passed from \code{Param_List_Simulation_Init_Create}
-#' or from \code{Param_List_Simulation_Update_Create}
+#' @param param_list paramlist passed from \code{param_list_simulation_init_create}
+#' or from \code{param_list_simulation_update_create}
 #' @param seed Seed for the simulation
 #' @export
 
 # The following commands are needed to ensure that the roxygen2
 # package, which deals with documenting the package, does not conflict
 # with the Rcpp package. Do not alter!
-#' @useDynLib MAGENTA
+#' @useDynLib magenta
 #' @importFrom Rcpp evalCpp
 
-Simulation_R <- function(paramList, seed)
+simulation_R <- function(param_list, seed)
 {
   
   # check that this function is working
   #print("R function is working!")
-  stopifnot(is.list(paramList))
+  stopifnot(is.list(param_list))
   
-  ## Decide whether the paramList is from initialisation, memory-continutation or continuation
+  ## Decide whether the param_list is from initialisation, memory-continutation or continuation
   
   ## -----------------------------------
   ## 1. From initialisation
   ## -----------------------------------
-  if(!is.null(paramList$eqSS)){
+  if(!is.null(param_list$eqSS)){
     
     ## Check if paramlist is correct length and has right variable names
-    stopifnot(is.list(paramList))
-    if(length(paramList)==8)
+    stopifnot(is.list(param_list))
+    if(length(param_list)==8)
     {
-      stopifnot(identical(names(paramList), c("N","eqSS","barcode_parms","spatial_list", "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list")))  
+      stopifnot(identical(names(param_list), c("N","eqSS","barcode_params","spatial_list", "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list")))  
     }
     # if it is length one it may be an unpacked list in which case unpack and check
-    # this might happen in the future when a list of paramLists is fed directly to this
+    # this might happen in the future when a list of param_lists is fed directly to this
     # fucntion in a cluster way
-    else if(length(paramList)==8)
+    else if(length(param_list)==8)
     {
-      paramList <- paramList[[1]]
-      stopifnot(identical(names(paramList), c("N", "eqSS", "barcode_parms","spatial_list", "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list")))  
+      param_list <- param_list[[1]]
+      stopifnot(identical(names(param_list), c("N", "eqSS", "barcode_params","spatial_list", "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list")))  
     } 
     else 
     {
-      stop("paramList not correct length")
+      stop("param_list not correct length")
     }
     
     # ---------------------- RUN C CODE ------------------------------------- #
     
     # call Rcpp command with input list
     set.seed(seed)
-    rawOutput <- Simulation_Init_cpp(paramList)
+    rawOutput <- Simulation_Init_cpp(param_list)
     
     # ----------------------------------------------------------------------- #
     
@@ -238,25 +238,25 @@ Simulation_R <- function(paramList, seed)
   ## -----------------------------------
   ## 2. From memory-continutation
   ## -----------------------------------
-  if(!is.null(paramList$years) & !is.null(paramList$statePtr)){
+  if(!is.null(param_list$years) & !is.null(param_list$statePtr)){
     
     ## Check if paramlist is correct length and has right variable names
-    stopifnot(is.list(paramList))
-    if(length(paramList)==7)
+    stopifnot(is.list(param_list))
+    if(length(param_list)==7)
     {
-      stopifnot(identical(names(paramList), 
+      stopifnot(identical(names(param_list), 
                           c("years","ft","mu_vec","fv_vec","statePtr", "spatial_list", "drug_list")))  
     }
     else 
     {
-      stop("paramList not correct length")
+      stop("param_list not correct length")
     }
     
     # ---------------------- RUN C CODE ------------------------------------- #
     
     # call Rcpp command with input list
     set.seed(seed)
-    rawOutput <- Simulation_Update_cpp(paramList)
+    rawOutput <- Simulation_Update_cpp(param_list)
     
     # ----------------------------------------------------------------------- #
     
@@ -265,24 +265,24 @@ Simulation_R <- function(paramList, seed)
   ## -----------------------------------
   ## 3. From memory-continutation to saving
   ## -----------------------------------
-  if(is.null(paramList$years) & !is.null(paramList$statePtr)){
+  if(is.null(param_list$years) & !is.null(param_list$statePtr)){
     
     ## Check if paramlist is correct length and has right variable names
-    stopifnot(is.list(paramList))
-    if(length(paramList)==1)
+    stopifnot(is.list(param_list))
+    if(length(param_list)==1)
     {
-      stopifnot(identical(names(paramList), c("statePtr")))  
+      stopifnot(identical(names(param_list), c("statePtr")))  
     }
     else 
     {
-      stop("paramList not correct length")
+      stop("param_list not correct length")
     } 
     
     # ---------------------- RUN C CODE ------------------------------------- #
     
     # call Rcpp command with input list
     set.seed(seed)
-    rawOutput <- Simulation_Get_cpp(paramList)
+    rawOutput <- Simulation_Get_cpp(param_list)
     
     # ----------------------------------------------------------------------- #
     
@@ -291,31 +291,31 @@ Simulation_R <- function(paramList, seed)
   ## -----------------------------------
   ## 4. From saved state
   ## -----------------------------------
-  if(!is.null(paramList$savedState)){
+  if(!is.null(param_list$savedState)){
     
     ## Check if paramlist is correct length and has right variable names
-    stopifnot(is.list(paramList))
-    if(length(paramList)==1)
+    stopifnot(is.list(param_list))
+    if(length(param_list)==1)
     {
-      stopifnot(identical(names(paramList), c("savedState")))  
+      stopifnot(identical(names(param_list), c("savedState")))  
     }
     else 
     {
-      stop("paramList not correct length")
+      stop("param_list not correct length")
     } 
     
     # ---------------------- RUN C CODE ------------------------------------- #
     
     # call Rcpp command with input list
     set.seed(seed)
-    rawOutput <- Simulation_Saved_Init_cpp(paramList)
+    rawOutput <- Simulation_Saved_Init_cpp(param_list)
     
     # ----------------------------------------------------------------------- #
     
   }
   
   ## Catch if parameter list not matched well
-  if(is.null(rawOutput)) stop("No matching parameter list handler found within Simulation_R")
+  if(is.null(rawOutput)) stop("No matching parameter list handler found within simulation_R")
   
   # return rawOutput
   return(rawOutput)

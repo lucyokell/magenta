@@ -8,10 +8,13 @@ vector_adaptation_list_create(vector_adaptation_flag = FALSE,
   local_oocyst_advantage = 0.2, gametocyte_non_sterilisation = 0.2)
 }
 \arguments{
-\item{vector_adaptation_flag}{Boolean are we doing vector adaptation}
+\item{vector_adaptation_flag}{Boolean are we doing vector adaptation.}
 
 \item{local_oocyst_advantage}{Double for multiplicative efffect on oocyst 
-chance formation}
+chance formation.}
+
+\item{gametocyte_non_sterilisation}{Double for reduction in a wild type's 
+onward contribution to infection due to sterilisation due to artemisinin.}
 }
 \description{
 List for vector adaptations relating to oocyst success

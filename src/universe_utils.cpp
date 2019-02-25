@@ -23,16 +23,16 @@ double q_fun(const Parameters &parms, unsigned int age, double ID) {
 
 //' Returns the population's parasite genetics for ibd style summarised by pibd for given sample size and state
 //'
-//' @param paramList paramList containing statePtr, sample_size, and sample_states
+//' @param param_list param_list containing statePtr, sample_size, and sample_states
 //' @return list of population information
 //' @export
 // [[Rcpp::export]]
-Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List paramList) {
+Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List param_list) {
   
   // create universe and do parameter conversions
-  Rcpp::XPtr<Universe> u_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (paramList["statePtr"]);
-  unsigned int sample_size = Rcpp::as<unsigned int>(paramList["sample_size"]);
-  std::vector<unsigned int> sample_states = Rcpp::as<std::vector<unsigned int> >(paramList["sample_states"]);
+  Rcpp::XPtr<Universe> u_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (param_list["statePtr"]);
+  unsigned int sample_size = Rcpp::as<unsigned int>(param_list["sample_size"]);
+  std::vector<unsigned int> sample_states = Rcpp::as<std::vector<unsigned int> >(param_list["sample_states"]);
   
   unsigned int pop_size = u_ptr->population.size();
   // handle if we are subsampling
@@ -188,16 +188,16 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List paramList) {
 
 //' Returns the population's parasite genetics summarised by coi for given sample size and state
 //'
-//' @param paramList paramList containing statePtr, sample_size, and sample_states
+//' @param param_list param_list containing statePtr, sample_size, and sample_states
 //' @return list of population information
 //' @export
 // [[Rcpp::export]]
-Rcpp::List population_get_genetics_df_n(Rcpp::List paramList) {
+Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
   
   // create universe and do parameter conversions
-  Rcpp::XPtr<Universe> u_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (paramList["statePtr"]);
-  unsigned int sample_size = Rcpp::as<unsigned int>(paramList["sample_size"]);
-  std::vector<unsigned int> sample_states = Rcpp::as<std::vector<unsigned int> >(paramList["sample_states"]);
+  Rcpp::XPtr<Universe> u_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (param_list["statePtr"]);
+  unsigned int sample_size = Rcpp::as<unsigned int>(param_list["sample_size"]);
+  std::vector<unsigned int> sample_states = Rcpp::as<std::vector<unsigned int> >(param_list["sample_states"]);
   
   unsigned int pop_size = u_ptr->population.size();
   

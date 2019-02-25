@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  probability.h
 //
 //  Created: OJ on 12/01/2017
@@ -11,8 +11,8 @@
 //
 // ---------------------------------------------------------------------------
 
-#ifndef __MAGENTA__PROBABILITY__
-#define __MAGENTA__PROBABILITY__
+#ifndef __magenta__PROBABILITY__
+#define __magenta__PROBABILITY__
 
 #include <vector>
 #include <Rcpp.h>

@@ -1,8 +1,8 @@
 #------------------------------------------------
 #' Model Parameter List Creation 
 #'
-#' \code{Model_Param_List_Create} creates list of model parameters to be used
-#' within \code{Equilibrium_Init_Create}
+#' \code{model_param_list_create} creates list of model parameters to be used
+#' within \code{equilibrium_init_create}
 #' 
 #' @param eta Death rate for expoential population distribtuion, i.e. 1/Mean Population Age. Default = 0.0001305
 #' @param rho Age-dependent biting parameter. Default = 0.85
@@ -81,7 +81,7 @@
 #' @export
 
 
-Model_Param_List_Create <- function(
+model_param_list_create <- function(
   # age, heterogeneity in exposure,
   eta = 0.0001305,
   rho = 0.85,
