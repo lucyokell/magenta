@@ -2,20 +2,14 @@
 % Please edit documentation in R/equilibrium_state_create.R
 \name{equilibrium_ss_create}
 \alias{equilibrium_ss_create}
-\title{Equilibrium steady state list creation}
+\title{Equilibrium list creation}
 \usage{
-equilibrium_ss_create(eqInit, end.year = 5, use_odin = FALSE)
+equilibrium_ss_create(eqInit)
 }
 \arguments{
 \item{eqInit}{Equilibrium initialisation state as output from \code{equilibrium_init_create}}
-
-\item{end.year}{Number of years to run ODE model for. Default = 5.}
-
-\item{use_odin}{Boolean detailing whether the intiial solution is run within the odin model 
-for end.year length. Default = False while the model is still buggy.}
 }
 \description{
-\code{equilibrium_ss_create} creates a close to steady-state system by 
-running an ODE compartment version of the Imperial Malaria model, using
-as an initialisation the output of \code{equilibrium_init_create}
+\code{equilibrium_ss_create} creates a starting state from 
+  the output of \code{equilibrium_init_create}
 }

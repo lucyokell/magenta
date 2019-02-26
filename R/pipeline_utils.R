@@ -31,6 +31,8 @@ age_brackets <- function(max_age=100,
 
 spl_grab <- function(country, admin, year_range) {
   
+  importations <- magenta::importations
+  
   # grab importations
   imp_nms <- colnames(importations$`2000`$incidence)
   ads <- strsplit(imp_nms, "|", fixed = TRUE) %>% 
@@ -157,6 +159,10 @@ intervention_grab <- function(country, admin, year_range,
                               final_ft = NULL) {
   
   
+  itn_2000_2015 <- magenta::itn_2000_2015
+  irs_2000_2015 <- magenta::irs_2000_2015
+  admin_units_seasonal <- magenta::admin_units_seasonal
+  
   # incorporate hitoric interventions
   itn_cov <- itn_2000_2015$value[which(itn_2000_2015$admin==admin & itn_2000_2015$country==country)]
   irs_cov <- irs_2000_2015$value[which(irs_2000_2015$admin==admin & irs_2000_2015$country==country)]
@@ -263,7 +269,34 @@ mu_fv_create <- function(eqInit,
       if(length(x) > years) {
         x <- tail(x, years)
       }
-      return(x)
+      return(c(x[1],x))
+    }
+    
+    intervention_odin_create <- function(int_times, itn_cov, irs_cov){
+      
+      l <- length(int_times)
+      num_split <- 4 + 3*(l-2)
+      cov <- rep(0,num_split)
+      cov[1] <- 1
+      cov_mat <- matrix(cov,nrow = l,ncol=length(cov), byrow = TRUE)
+      cumulative <- c(0,0,0)
+      
+      for(i in seq_len(l-1)){
+        
+        cov_mat[i+1, ] <- cov_mat[i, ]
+        cov_mat[i+1, 1] <- (1 - itn_cov[i+1]) * (1 - irs_cov[i+1])
+        range <- (2 + ((i-1) * 3)) : ((3*i)+1)
+        itn_diff <- (itn_cov[i+1]-itn_cov[i])*(1-sum(cov_mat[i,-1]))
+        irs_diff <- (irs_cov[i+1]-irs_cov[i])*(1-sum(cov_mat[i,-1]))
+        cov_mat[i+1, range] <- c(itn_cov[i+1] * (1 - irs_cov[i+1]), (1 - itn_cov[i+1]) * irs_cov[i+1], itn_cov[i+1] * irs_cov[i+1]) - cumulative
+        cumulative <- cumulative + cov_mat[i+1, range]
+        
+      }
+      
+      cov_mat <- cov_mat[,c(1,seq(2,num_split-2,3),seq(3,num_split-1,3),seq(4,num_split,3))]
+      return(list("cov_mat"=cov_mat, 
+                  "cov_breaks"=c(l,(2*l)-1),
+                  "num_int"=num_split))
     }
     
     # check interventions parm lengths
@@ -273,8 +306,7 @@ mu_fv_create <- function(eqInit,
     
     # set up the intervetnion times
     if (is.null(int_times)) {
-      int_times <- seq(0,by=365,length.out = years)
-      int_times[length(int_times)] <- int_times[length(int_times)]
+      int_times <- seq(0,by=365,length.out = years+1)
     }
     eqInit$int_times <- int_times
     eqInit$ITN_IRS_on <- 0
@@ -282,7 +314,7 @@ mu_fv_create <- function(eqInit,
     # create odin model
     odin_model_path <- system.file("extdata/odin.R",package="magenta")
     gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
-    model <- generate_default_model(ft=eqInit$ft,age=eqInit$age_brackets,dat=eqInit,generator=gen,dde=TRUE)
+    model <- gen(user=eqInit,use_dde=TRUE)
     
     #create model and simulate
     tt <- seq(0,years*365,1)
@@ -299,6 +331,9 @@ mu_fv_create <- function(eqInit,
   
 }
 
+
+
+
 #' Create housekeeping parameter list
 #' 
 #' List for simulation housekeeping vars, e.g. quiet prints,
@@ -308,7 +343,7 @@ mu_fv_create <- function(eqInit,
 #' 
 
 housekeeping_list_create <- function(quiet = TRUE,
-                                     cluster = FALSE) {
+                                     cluster = TRUE) {
   
   l <- list("quiet_print" = quiet,
             "cluster" = cluster)

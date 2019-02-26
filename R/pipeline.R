@@ -58,16 +58,6 @@
 #' @param prob_crossover Vector of probabilities for crossover events for the
 #'   barcode. Default = rep(0.5, num_loci)
 #' # odin Params
-#' @param num_het_brackets Number of heterogeinity brackets to use in
-#' initialisation. Default = 5
-#' @param num_age_brackets Number of age brackets to use in initialisation.
-#' Default = 200
-#' @param geometric_age_brackets Boolean detailing whether age brackets are
-#'  geometric. Default = TRUE
-#' @param max_age Maximum age in age brackets. Default = 100
-#' @param use_odin Boolean detailing whether the intiial solution is run
-#'  within the odin model
-#' first. Default = FALSE while the model is still buggy.
 #' @param full_save Boolean detailing whether the entire simulation is saved.
 #'  Default = FALSE
 #' @param human_only_full_save Boolean detailing whether just the human
@@ -113,10 +103,6 @@ Pipeline <- function(EIR = 120,
                      starting_ibd = 0.0,
                      mutation_occurence = 1e-7,
                      mutation_flag = FALSE,
-                     num_het_brackets = 5,
-                     num_age_brackets = 20,
-                     geometric_age_brackets = TRUE,
-                     max_age = 100, use_odin = FALSE,
                      mu_vec = NULL,
                      fv_vec = NULL,
                      full_save = FALSE,
@@ -145,7 +131,7 @@ Pipeline <- function(EIR = 120,
   # if no seed is specified then save the seed
   set.seed(seed)
   message(paste0("Seed set to ", seed))
-  message("magenta v", packageVersion("magenta"))
+  message("magenta test1 v", packageVersion("magenta"))
 
   # simulation save variables
   strain_vars <- c(
@@ -161,27 +147,27 @@ Pipeline <- function(EIR = 120,
   if (is.null(saved_state_path)) {
 
     # Create parameter list, changine any key parameters, e.g. the average age
-    mpl <- model_param_list_create(eta = 1 / (21 * 365))
+    mpl <- model_param_list_create()
 
     # Create age brackets, either geometric or evenly spaced
-    age_vector <- age_brackets(max_age, num_age_brackets, geometric_age_brackets)
+    age_vector <- age_brackets(100, 20, TRUE)
 
     # Create a near equilibirum initial condition
     eqInit <- equilibrium_init_create(
-      age.vector = age_vector,
-      het.brackets = num_het_brackets,
+      age_vector = age_vector,
+      het_brackets = 5,
       ft = ft[1],
       EIR = EIR,
       country = country,
       admin = admin,
-      model.param.list = mpl
+      model_param_list = mpl
     )
 
     # reset seed here as there is some randomness in equlibirum (Need?)
     set.seed(seed)
 
-    # Next create the near equilibrium steady state
-    eqSS <- equilibrium_ss_create(eqInit = eqInit, end.year = 5, use_odin = use_odin)
+    # Next create the starting state
+    eqSS <- equilibrium_ss_create(eqInit = eqInit)
 
     # and the barcode parms list
     plaf_matrix <- plaf_matrix_check(plaf, years)

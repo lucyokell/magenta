@@ -105,8 +105,10 @@ Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd
     if(!sub_patents_included){
       COI <- rep(0,length(int.out))
       for(i in 1:length(int.out)){
-        COI[i] <- length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]!=3)]))
-        COI[i] <- round(micro_det[i]*COI[i])
+        COI[i] <- length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==1)]))
+        COI[i] <- COI[i] + round(length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==2)]))*(micro_det[i]^mpl$alphaA))
+        COI[i] <- COI[i] + round(length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==3)]))*(micro_det[i]^mpl$alphaU))
+        COI[i] <- COI[i] + length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==4)]))
         if(COI[i]==0) COI[i] <- 1
       }
     } else {
@@ -135,10 +137,11 @@ Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd
 #' 
 #' @export
 
-Sample_COI <- function(sim.save,ID,sample_size,age_densities,age_breaks=seq(0,90*365,2*365),reps){
+Sample_COI <- function(sim.save,ID,sample_size,age_densities,age_breaks=seq(0,90*365,2*365),
+                       sub_patents_included=FALSE,reps){
   
   
-  COI_out <- Convert_Barcode_Vectors(sim.save, ID, sub_patents_included = FALSE)
+  COI_out <- Convert_Barcode_Vectors(sim.save, ID, sub_patents_included = sub_patents_included)
   
   grouped_ages_by_2 <- cut(sim.save$Ages,breaks = age_breaks,labels = 1:45)
   sample_groups <- round(sample_size * (age_densities*(1/sum(age_densities))))
@@ -153,7 +156,7 @@ Sample_COI <- function(sim.save,ID,sample_size,age_densities,age_breaks=seq(0,90
     
     for(j in names(tabled)){
       
-      id <- c(id,sample(x = which(grouped_ages_by_2==j & sim.save$Infection_States %in% c(2,3,4)),size = tabled[j],replace = T))
+      id <- c(id,sample(x = which(grouped_ages_by_2==j & sim.save$Infection_States %in% c(1,2,3,4)),size = tabled[j],replace = T))
       
     }
     

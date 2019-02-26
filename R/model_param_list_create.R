@@ -265,6 +265,7 @@ model_param_list_create <- function(
   mp.list$itn_cov <- itn_cov
   mp.list$irs_cov <- irs_cov
   mp.list$ITN_IRS_on <- ITN_IRS_on
+  mp.list$pop_split <- rep(1/num_int, num_int)
   
   # {No intervention} {ITN only} {IRS only} {Both ITN and IRS}
   mp.list$cov <- c((1 - itn_cov) * (1 - irs_cov), itn_cov * (1 - irs_cov), (1 - itn_cov) * irs_cov, itn_cov * irs_cov)

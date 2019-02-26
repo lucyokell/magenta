@@ -338,10 +338,10 @@ tau1 <- user() # duration of host-seeking behaviour
 tau2 <- user() # duration of resting behaviour
 p10 <- user() # prob of surviving 1 feeding cycle
 p2 <- user() #prob of surviving one resting cycle
-beta_larval0 <- user() # maximum number of eggs per oviposition per mosq
+betaL <- user() # maximum number of eggs per oviposition per mosq
 
 # Entomological variables:
-eov <- beta_larval0/mu*(exp(mu/fv)-1)
+eov <- betaL/mu*(exp(mu/fv)-1)
 beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
 lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0*dLL*(1+dPL*muPL))) 
@@ -388,6 +388,9 @@ dim(irs_cov_now) <- 1
 irs_cov_now[1] <- irs_cov_interp
 ft_interp <- interpolate(int_times, ft, "constant")
 
+int_itn_irs_on <- interpolate(int_times, int_times, "constant")
+eff_ITN_IRS_on <- if (t < ITN_IRS_on) ITN_IRS_on else int_itn_irs_on
+
 itn_cov[] <- user() # proportion of population covered by ITN over time
 irs_cov[] <- user() # proportion of population covered by IRS over time
 int_times[] <- user() # timing of interventions
@@ -430,8 +433,8 @@ irs_loss <- user()
 itn_loss <- user()
 
 # Calculates decay for ITN/IRS
-ITN_decay <- if(t < ITN_IRS_on) 0 else exp(-((t-ITN_IRS_on)%%ITN_interval) * itn_loss)
-IRS_decay <- if(t < ITN_IRS_on) 0 else exp(-((t-ITN_IRS_on)%%IRS_interval) * irs_loss)
+ITN_decay <- if(t < ITN_IRS_on) 0 else exp(-((t-eff_ITN_IRS_on)%%ITN_interval) * itn_loss)
+IRS_decay <- if(t < ITN_IRS_on) 0 else exp(-((t-eff_ITN_IRS_on)%%IRS_interval) * irs_loss)
 
 # The r,d and s values turn on after ITN_IRS_on and decay accordingly
 d_ITN <- if(t < ITN_IRS_on) 0 else d_ITN0*ITN_decay
@@ -511,22 +514,10 @@ age59 <- user()
 # index of the age vector above 5 years
 age05 <- user()
 
-# index of age above 2 years
-age2years <- user()
-# index of age above 10 years
-age10years <- user()
-two_to_10_length <- user()
-
 # slide positivity in 0 -5 year age bracket
 dim(prev0to59) <- c(age59,nh,num_int)
 prev0to59[1:age59,,] <- T[i,j,k] + D[i,j,k] + A[i,j,k] * p_det[i,j,k]
 output(prev) <- sum(prev0to59[,,])/sum(den[1:age59])
-
-# slide pos in 2 - 10 years
-# dim(slide_pos) <- c(na,nh,num_int)
-# slide_pos[,,] <- T[i,j,k] + D[i,j,k] + A[i,j,k] * p_det[i,j,k]
-# output(micro_2_10) <- sum(slide_pos[age2years:age10years,,])/sum(den[age2years:age10years])
-
 
 dim(clin_inc0to5) <- c(age05,nh,num_int)
 clin_inc0to5[1:age05,,] <- clin_inc[i,j,k]
@@ -559,3 +550,4 @@ output(cov_now[1:4]) <- cov[i]
 dim(av_now) <- 4
 output(av_now[1:4]) <- av_human[i]
 output(K0) <- K0
+output(eff_ITN_IRS_on) <- eff_ITN_IRS_on

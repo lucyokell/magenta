@@ -13,15 +13,14 @@ Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   spatial_mosquitoFOI_matrix = NULL, num_loci = 24, ibd_length = 1,
   plaf = rep(0.5, num_loci), prob_crossover = rep(0.5, num_loci),
   starting_ibd = 0, mutation_occurence = 1e-07,
-  mutation_flag = FALSE, num_het_brackets = 5, num_age_brackets = 20,
-  geometric_age_brackets = TRUE, max_age = 100, use_odin = FALSE,
-  mu_vec = NULL, fv_vec = NULL, full_save = FALSE,
-  human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
-  update_save = FALSE, human_update_save = FALSE,
-  genetics_df_without_summarising = FALSE, summary_saves_only = FALSE,
-  set_up_only = FALSE, mean_only = TRUE, save_lineages = FALSE,
-  saved_state_path = NULL, seed = as.integer(runif(1, 1, 1e+09)),
-  sample_size = Inf, sample_states = 0:5, sample_reps = 1,
+  mutation_flag = FALSE, mu_vec = NULL, fv_vec = NULL,
+  full_save = FALSE, human_only_full_save = FALSE,
+  human_only_full_summary_save = FALSE, update_save = FALSE,
+  human_update_save = FALSE, genetics_df_without_summarising = FALSE,
+  summary_saves_only = FALSE, set_up_only = FALSE, mean_only = TRUE,
+  save_lineages = FALSE, saved_state_path = NULL,
+  seed = as.integer(runif(1, 1, 1e+09)), sample_size = Inf,
+  sample_states = 0:5, sample_reps = 1,
   housekeeping_list = housekeeping_list_create(),
   drug_list = drug_list_create(),
   vector_adaptation_list = vector_adaptation_list_create(),
@@ -95,21 +94,6 @@ Default = rep(0.5, num_loci)}
 \item{prob_crossover}{Vector of probabilities for crossover events for the
   barcode. Default = rep(0.5, num_loci)
 # odin Params}
-
-\item{num_het_brackets}{Number of heterogeinity brackets to use in
-initialisation. Default = 5}
-
-\item{num_age_brackets}{Number of age brackets to use in initialisation.
-Default = 200}
-
-\item{geometric_age_brackets}{Boolean detailing whether age brackets are
-geometric. Default = TRUE}
-
-\item{max_age}{Maximum age in age brackets. Default = 100}
-
-\item{use_odin}{Boolean detailing whether the intiial solution is run
- within the odin model
-first. Default = FALSE while the model is still buggy.}
 
 \item{mu_vec}{Numeric for hor mu_vec changes as calculated from odin model}
 

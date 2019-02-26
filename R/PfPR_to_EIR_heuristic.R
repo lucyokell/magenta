@@ -41,18 +41,18 @@ PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
   for(i in 1:100){
     
     ## Create a near equilibirum initial condition
-    eqInit <- equilibrium_init_create(age.vector = age.vector,
-                                      het.brackets = num_het_brackets,
+    eqInit <- equilibrium_init_create(age_vector = age.vector,
+                                      het_brackets = num_het_brackets,
                                       ft = ft,
                                       EIR = EIR,
-                                      model.param.list = mpl)
+                                      model_param_list = mpl)
     
     if(!is.null(PfPR)){
-      diff <- PR - (1 - sum(eqInit[[1]]) - sum(eqInit[[6]]))
+      diff <- PR - (1 - sum(eqInit$init_S) - sum(eqInit$init_P))
     }  else if ((!is.null(PfPR_micro)))  {
-      diff <- PR - (sum(eqInit$D[eqInit$age2years: eqInit$age10years,,] + 
-                          eqInit$T[eqInit$age2years: eqInit$age10years,,] + 
-                          eqInit$A[eqInit$age2years: eqInit$age10years,,] *eqInit$p_det_eq[eqInit$age2years: eqInit$age10years,,]) / 
+      diff <- PR - (sum(eqInit$init_D[eqInit$age2years: eqInit$age10years,,] + 
+                          eqInit$init_T[eqInit$age2years: eqInit$age10years,,] + 
+                          eqInit$init_A[eqInit$age2years: eqInit$age10years,,] *eqInit$p_det_eq[eqInit$age2years: eqInit$age10years,,]) / 
                       sum(eqInit$den[eqInit$age2years: eqInit$age10years]))
     } else {
       diff <- PR - eqInit$mv0

@@ -4,21 +4,21 @@
 \alias{equilibrium_init_create}
 \title{Equilibrium initialisation list creation}
 \usage{
-equilibrium_init_create(age.vector, het.brackets, country = NULL,
-  admin = NULL, ft, EIR, model.param.list)
+equilibrium_init_create(age_vector, het_brackets, country = NULL,
+  admin = NULL, ft, EIR, model_param_list)
 }
 \arguments{
-\item{age.vector}{Vector of age brackets.}
+\item{age_vector}{Vector of age brackets.}
 
-\item{het.brackets}{Integer number of biting heteogenity compartments.}
+\item{het_brackets}{Integer number of biting heteogenity compartments.}
 
 \item{country}{String for country of interest. If NULL the seasonal parameters
 will attempt to be loaded using just the admin unit, however if there is ambiguity
-in the admin unit an error will be thrown. If both NULL then no seasonality is 
+in the admin unit an error will be thrown. If both NULL then no seasonality is
 assumed. Default = NULL.}
 
 \item{admin}{String for admin unit with country for loading seasonal
-parameters. If country is NULL, the admin unit will attempt to be located,however 
+parameters. If country is NULL, the admin unit will attempt to be located,however
 if there is ambiguity in the admin unit an error will be thrown. If both country
 and admin are NULL then no seasonality is assumed. Default = NULL.}
 
@@ -26,11 +26,9 @@ and admin are NULL then no seasonality is assumed. Default = NULL.}
 
 \item{EIR}{Numeric for desired annual EIR.}
 
-\item{model.param.list}{List of epidemiological parameters created by 
-
-\code{model_param_list_create}}
+\item{model_param_list}{List of epidemiological parameters created by}
 }
 \description{
-\code{equilibrium_init_create} creates an equilibrium initialisation state to be 
-used as a parameter within \code{equilibrium_ss_create}
+\code{equilibrium_init_create} creates an equilibrium initialisation state to be
+used within later model runs
 }
