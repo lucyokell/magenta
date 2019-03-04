@@ -13,6 +13,20 @@
 admin_match <- function(admin = NULL, country = NULL) {
   ads <- magenta::admin_units_seasonal
   
+  match_clean <- function(a,b, quiet=TRUE){
+    a <- gsub("[[:punct:][:space:]]","",tolower(stringi::stri_trans_general(a, "latin-ascii")))
+    b <- gsub("[[:punct:][:space:]]","",tolower(stringi::stri_trans_general(b, "latin-ascii")))
+    ret <- match(a,b)
+    if(sum(is.na(ret)>0)){
+      dists <- stringdist::seq_distmatrix(lapply(a,utf8ToInt),lapply(b,utf8ToInt))
+      ret[is.na(ret)] <- apply(dists[which(is.na(ret)),,drop=FALSE],1,which.min)
+      if(!quiet){
+        print(unique(cbind(a,b[ret])))
+      }
+    }
+    return(ret)
+  }
+  
   # intiialise admin match as no match
   admin_matches <- 0
   
@@ -24,18 +38,11 @@ admin_match <- function(admin = NULL, country = NULL) {
       # find exact match
       admin_matches <- grep(paste("^", admin, "$", sep = ""),
                             ads$admin1,
-                            ignore.case = TRUE
-      )
+                            ignore.case = TRUE)
       
-      # if exact does not match try fuzzy match up to dist of 3 which
-      # should catch having nop spaces or separators etc
-      
-      if (length(admin_matches) == 0) {
-        admin_matches <- which(adist(ads$admin1, admin) <= 2)
-      }
-      if (length(admin_matches) > 1) {
-        message(paste(ads$admin1[admin_matches], collapse = " "))
-        stop("Admin unit string specified is ambiguous without country")
+      # if exact does not match try closest match
+      if (length(admin_matches) != 1) {
+        admin_matches <- match_clean(admin,ads$admin1)
       }
       
       # if we do have a country though find that match first and then find admin
@@ -44,49 +51,36 @@ admin_match <- function(admin = NULL, country = NULL) {
       # first find an exact match
       country_matches <- grep(paste("^", country, "$", sep = ""),
                               ads$country,
-                              ignore.case = TRUE
-      )
+                              ignore.case = TRUE)
       
       if (length(unique(ads$country[country_matches])) == 1) {
         chosen.country <- unique(ads$country[country_matches])
-      } else if (length(unique(ads$country[country_matches])) == 0) {
-        
-        # if exact does not match try fuzzy match up to dist of 2 which
-        # should catch having no spaces or separators etc
-        country_matches <- which(adist(ads$country, y = country) <= 2)
-        if (length(unique(ads$country[country_matches])) == 1) {
-          chosen.country <- unique(ads$country[country_matches])
-        } else if (length(unique(ads$country[country_matches])) == 0) {
-          stop("Country string specified not close enough to those in database")
-        }
+      } else  {
+        # if exact does not match try closest
+        country_matches <- match_clean(country,ads$country)
+        chosen.country <- unique(ads$country[country_matches])
       }
       
       # find exact match
       admin_sub_matches <- grep(paste("^", admin, "$", sep = ""),
                                 ads$admin1[country_matches],
-                                ignore.case = TRUE
-      )
+                                ignore.case = TRUE)
       
-      # if exact does not match try fuzzy match up to dist of 2 which should
-      # catch having nop spaces or separators etc
-      if (length(admin_sub_matches) == 0) {
-        admin_sub_matches <- which(
-          adist(ads$admin1[country_matches], admin) <= 2
-        )
+      # if exact does not match try closest dist
+      if (length(admin_sub_matches) != 1) {
+        admin_sub_matches <- match_clean(admin,ads$admin1[country_matches])
       }
-      if (length(admin_sub_matches) > 1) {
-        message(paste(ads$admin1[admin_matches], collapse = " "))
-        stop("Admin unit string not close enough to those in the database")
-      }
-      
       admin_matches <- country_matches[admin_sub_matches]
     }
+    
+    message("Requested: ",admin,
+            "\nReturned: ",ads$admin1[admin_matches],", ",ads$country[admin_matches])
   }
   
-  return(admin_matches)
+    return(admin_matches)
 }
-
-
+  
+  
 
 #---
 #' Create seasonal theta return
@@ -155,7 +149,7 @@ country_seasonal_profiles <- function(country) {
   }
   
   max_ses <- max(sapply(admins, function(x) {
-    max(magenta:::seasonal_profile(country, x))
+    max(magenta:::seasonal_profile(x, country))
   }))
   
   ret <- sapply(admins, function(x) {
