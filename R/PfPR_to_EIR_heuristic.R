@@ -11,7 +11,7 @@
 PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
                                   ft, ...){
   
-  mpl <- Model_Param_List_Create(eta = 1/(21*365),...)
+  mpl <- model_param_list_create(eta = 1/(21*365),...)
   
   num_het_brackets <- 5
   num_age_brackets <- 20
@@ -21,7 +21,7 @@ PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
   age.vector <- 0.1 * ratio ** (1:num_age_brackets)
   age.vector[1] <- 0
   
-  bm <- read.csv(system.file("extdata/bm.txt",package = "MAGENTA"),sep=",",header = T)
+  bm <- read.csv(system.file("extdata/bm.txt",package = "magenta"),sep=",",header = T)
   
   if(!is.null(PfPR)){
     PR <- PfPR
@@ -41,18 +41,18 @@ PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
   for(i in 1:100){
     
     ## Create a near equilibirum initial condition
-    eqInit <- Equilibrium_Init_Create(age.vector = age.vector,
-                                      het.brackets = num_het_brackets,
+    eqInit <- equilibrium_init_create(age_vector = age.vector,
+                                      het_brackets = num_het_brackets,
                                       ft = ft,
                                       EIR = EIR,
-                                      model.param.list = mpl)
+                                      model_param_list = mpl)
     
     if(!is.null(PfPR)){
-      diff <- PR - (1 - sum(eqInit[[1]]) - sum(eqInit[[6]]))
+      diff <- PR - (1 - sum(eqInit$init_S) - sum(eqInit$init_P))
     }  else if ((!is.null(PfPR_micro)))  {
-      diff <- PR - (sum(eqInit$D[eqInit$age2years: eqInit$age10years,,] + 
-                          eqInit$T[eqInit$age2years: eqInit$age10years,,] + 
-                          eqInit$A[eqInit$age2years: eqInit$age10years,,] *eqInit$p_det_eq[eqInit$age2years: eqInit$age10years,,]) / 
+      diff <- PR - (sum(eqInit$init_D[eqInit$age2years: eqInit$age10years,,] + 
+                          eqInit$init_T[eqInit$age2years: eqInit$age10years,,] + 
+                          eqInit$init_A[eqInit$age2years: eqInit$age10years,,] *eqInit$p_det_eq[eqInit$age2years: eqInit$age10years,,]) / 
                       sum(eqInit$den[eqInit$age2years: eqInit$age10years]))
     } else {
       diff <- PR - eqInit$mv0

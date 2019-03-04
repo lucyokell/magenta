@@ -1,4 +1,4 @@
 library(testthat)
-library(MAGENTA)
+library(magenta)
 
-test_check("MAGENTA")
+test_check("magenta")

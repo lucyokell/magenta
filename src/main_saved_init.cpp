@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  main_saved_init.cpp
 //
 //  Created: OJ Watson on 06/12/2015
@@ -45,20 +45,20 @@ struct Universe {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //' Creates initial model simulation using a saved model state
 //'
-//' @param paramList parameter list generated with \code{Param_List_Simulation_Get_Create}
+//' @param param_list parameter list generated with \code{Param_List_Simulation_Get_Create}
 //' @return list with ptr to model state and loggers describing the current model state
 //' @export
 //' 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
+Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List param_list)
 {
   
   // Initialise parameters
   Parameters parameters;
   
   // Unpack R List to Rcpp Lists
-  Rcpp::List savedState = paramList["savedState"];
+  Rcpp::List savedState = param_list["savedState"];
   Rcpp::List population_List = savedState["population_List"];
   Rcpp::List populations_event_and_strains_List = savedState["populations_event_and_strains_List"];
   Rcpp::List scourge_List = savedState["scourge_List"];
@@ -394,7 +394,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List paramList)
     
     // Ages and immunity 
     // TODO: Figure out the best way of standardising this logging 
-    // Something like passing in a function name within the paramList which is the 
+    // Something like passing in a function name within the param_list which is the 
     // name for a logger written else where which then returns the Loggers obeject below
     Infection_States[element] = static_cast<int>(population[element].get_m_infection_state());
     population[element].update_immunities_to_today(parameters);

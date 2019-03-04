@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  strain.h
 //
 //  Created: OJ on 13/01/2017
@@ -105,6 +105,15 @@ public:
   
   // Work out if the strain is resistant at all for the drug given
   bool resistant_boolean(const Parameters &parameters, int drug_choice);
+  
+  // Work out if the strain is vector adapted
+  bool vector_adapted_boolean(const Parameters &parameters);
+  
+  // Get barcode position
+  bool barcode_position(unsigned int position);
+  
+  // to_ulong but for range within a bitset
+  unsigned long to_ulong_range(unsigned int start_bit, unsigned int end_bit);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SETTERS

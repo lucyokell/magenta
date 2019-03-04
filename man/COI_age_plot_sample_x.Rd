@@ -5,7 +5,7 @@
 \title{Plot COI against age from random sample}
 \usage{
 COI_age_plot_sample_x(Sample_COI_out, x, span = 0.6, ylimmax = NULL,
-  xlimmax = NULL)
+  xlimmax = NULL, max_coi = 25)
 }
 \arguments{
 \item{Sample_COI_out}{Output of Sample_COI}
@@ -18,7 +18,7 @@ COI_age_plot_sample_x(Sample_COI_out, x, span = 0.6, ylimmax = NULL,
 
 \item{xlimmax}{xlim max}
 
-\item{plot}{Boolean to print the plot}
+\item{max_coi}{max_coi}
 }
 \description{
 \code{Sample_COI} samples from a human save according to some age distirbution

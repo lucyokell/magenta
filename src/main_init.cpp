@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  main_init.cpp
 //
 //  Created: OJ Watson on 06/12/2015
@@ -42,11 +42,11 @@ struct Universe {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //' Creates initial model simulation using paramter list provided
 //'
-//' @param paramList parameter list generated with \code{Param_List_Simulation_Init_Create}
+//' @param param_list parameter list generated with \code{Param_List_Simulation_Init_Create}
 //' @return list with ptr to model state and loggers describing the current model state
 //' @export
 // [[Rcpp::export]]
-Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
+Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
 {
   
   // Initialise parameters object
@@ -57,15 +57,16 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Grab these R parameters first so that they are used in the initialisation
-  parameters.g_N = Rcpp::as<unsigned int>(paramList["N"]);
+  parameters.g_N = Rcpp::as<unsigned int>(param_list["N"]);
   
   // Unpack the R equilibirum state parameter list object and barcode object
-  Rcpp::List eqSS = paramList["eqSS"];
-  Rcpp::List barcode_parms  = paramList["barcode_parms"];
-  Rcpp::List spatial_list  = paramList["spatial_list"];
-  Rcpp::List housekeeping_list = paramList["housekeeping_list"];
-  Rcpp::List drug_list = paramList["drug_list"];
-  Rcpp::List nmf_list = paramList["nmf_list"];
+  Rcpp::List eqSS = param_list["eqSS"];
+  Rcpp::List barcode_params  = param_list["barcode_params"];
+  Rcpp::List spatial_list  = param_list["spatial_list"];
+  Rcpp::List housekeeping_list = param_list["housekeeping_list"];
+  Rcpp::List drug_list = param_list["drug_list"];
+  Rcpp::List nmf_list = param_list["nmf_list"];
+  Rcpp::List vector_adaptation_list = param_list["vector_adaptation_list"];
   
   // Un pack housekeeping parms
   parameters.g_h_quiet_print = Rcpp::as<bool>(housekeeping_list["quiet_print"]);
@@ -74,12 +75,15 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   rcpp_out(parameters.g_h_quiet_print, "Rcpp function is working!\n");
   
   // Un pack barcode parms
-  parameters.g_num_loci = Rcpp::as<unsigned int>(barcode_parms["num_loci"]);
-  parameters.g_ibd_length = Rcpp::as<unsigned int>(barcode_parms["ibd_length"]);
+  parameters.g_num_loci = Rcpp::as<unsigned int>(barcode_params["num_loci"]);
+  parameters.g_ibd_length = Rcpp::as<unsigned int>(barcode_params["ibd_length"]);
   parameters.g_barcode_length = static_cast<int>(parameters.g_num_loci * parameters.g_ibd_length);
-  parameters.g_plaf = Rcpp::as<std::vector<double> >(barcode_parms["plaf"]);
-  parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(barcode_parms["prob_crossover"]);
-  parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_parms["barcode_type"]));
+  parameters.g_plaf = Rcpp::as<std::vector<double> >(barcode_params["plaf"]);
+  parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(barcode_params["prob_crossover"]);
+  parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_params["barcode_type"]));
+  parameters.g_mutation_flag = Rcpp::as<bool>(barcode_params["mutation_flag"]);
+  parameters.g_mutation_occurence = Rcpp::as<double>(barcode_params["mutation_occurence"]);
+  parameters.g_mutations_today = std::vector<unsigned int>(parameters.g_num_loci,0);
   
   // Un pack drug parameters
   // barcode drug related parameters
@@ -94,6 +98,11 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   parameters.g_number_of_drugs = Rcpp::as<unsigned int>(drug_list["g_number_of_drugs"]);
   parameters.g_drug_choice = Rcpp::as<int>(drug_list["g_drug_choice"]);
   parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["g_partner_drug_ratios"]);
+  
+  // vector adaptation parameters
+  parameters.g_vector_adaptation_flag = Rcpp::as<bool>(vector_adaptation_list["g_vector_adaptation_flag"]);
+  parameters.g_local_oocyst_advantage = Rcpp::as<double>(vector_adaptation_list["g_local_oocyst_advantage"]);
+  parameters.g_gametocyte_non_sterilisation = Rcpp::as<double>(vector_adaptation_list["g_gametocyte_non_sterilisation"]);
   
   // non malaria fever parameters
   parameters.g_nmf_flag = Rcpp::as<bool>(nmf_list["g_nmf_flag"]); // are we doing nmf work
@@ -190,7 +199,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   }
   unsigned int expected_infections = static_cast<unsigned int>(parameters.g_N*infection_sum);
   rcpp_out(parameters.g_h_quiet_print, "expected = " + std::to_string(expected_infections));
-  double starting_ibd = Rcpp::as<double>(barcode_parms["starting_ibd"]);
+  double starting_ibd = Rcpp::as<double>(barcode_params["starting_ibd"]);
   std::vector<boost::dynamic_bitset<> > predrawn_barcodes(expected_infections);
   std::vector<double> ibd_sample_prob(expected_infections, 0.0);
   rcpp_out(parameters.g_h_quiet_print, "Pre - predrawn!\n");
@@ -208,6 +217,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
   }
   rcpp_out(parameters.g_h_quiet_print, "Post - predrawn!\n");
   
+  
+  // fill population vector
   for (unsigned int n=0; n < parameters.g_N; n++) 
   {
     
@@ -564,7 +575,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List paramList)
     
     // Ages and immunity 
     // TODO: Figure out the best way of standardising this logging 
-    // Something like passing in a function name within the paramList which is the 
+    // Something like passing in a function name within the param_list which is the 
     // name for a logger written else where which then returns the Loggers obeject below
     Infection_States[element] = static_cast<int>(population[element].get_m_infection_state());
     population[element].update_immunities_to_today(parameters);

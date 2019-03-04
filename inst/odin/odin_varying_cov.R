@@ -3,7 +3,7 @@
 
 na <- user() # number of age categories
 nh <- user() # number of biting heterogeneity categories
-
+ft <- user() # proportion of cases treated
 
 ##------------------------------------------------------------------------------
 ##################
@@ -34,7 +34,7 @@ initial(S[,,]) <- init_S[i,j,k]
 dim(S) <- c(na,nh,num_int)
 
 deriv(S[1, 1:nh, 1:num_int]) <- -FOI[i,j,k]*S[i,j,k] + rP*P[i,j,k] + rU*U[i,j,k] +
-  cov[k]*eta*H*het_wt[j] - (eta+age_rate[i])*S[i,j,k]
+  pop_split[k]*eta*H*het_wt[j] - (eta+age_rate[i])*S[i,j,k]
 deriv(S[2:na, 1:nh, 1:num_int]) <- -FOI[i,j,k]*S[i,j,k] + rP*P[i,j,k] + rU*U[i,j,k] -
   (eta+age_rate[i])*S[i,j,k] + age_rate[i-1]*S[i-1,j,k]
 
@@ -44,9 +44,9 @@ dim(init_T) <- c(na,nh,num_int)
 initial(T[,,]) <- init_T[i,j,k]
 dim(T) <- c(na,nh,num_int)
 
-deriv(T[1, 1:nh, 1:num_int]) <- ft_now*clin_inc[i,j,k] - rT*T[i,j,k] -
+deriv(T[1, 1:nh, 1:num_int]) <- ft*clin_inc[i,j,k] - rT*T[i,j,k] -
   (eta+age_rate[i])*T[i,j,k]
-deriv(T[2:na, 1:nh, 1:num_int]) <- ft_now*clin_inc[i,j,k] - rT*T[i,j,k] -
+deriv(T[2:na, 1:nh, 1:num_int]) <- ft*clin_inc[i,j,k] - rT*T[i,j,k] -
   (eta+age_rate[i])*T[i,j,k] + age_rate[i-1]*T[i-1,j,k]
 
 # D - CLEAR DISEASE
@@ -55,9 +55,9 @@ dim(init_D) <- c(na,nh,num_int)
 initial(D[,,]) <- init_D[i,j,k]
 dim(D) <- c(na,nh,num_int)
 
-deriv(D[1, 1:nh, 1:num_int]) <- (1-ft_now)*clin_inc[i,j,k] - rD*D[i,j,k] -
+deriv(D[1, 1:nh, 1:num_int]) <- (1-ft)*clin_inc[i,j,k] - rD*D[i,j,k] -
   (eta+age_rate[i])*D[i,j,k]
-deriv(D[2:na, 1:nh, 1:num_int]) <- (1-ft_now)*clin_inc[i,j,k] - rD*D[i,j,k] -
+deriv(D[2:na, 1:nh, 1:num_int]) <- (1-ft)*clin_inc[i,j,k] - rD*D[i,j,k] -
   (eta+age_rate[i])*D[i,j,k] + age_rate[i-1]*D[i-1,j,k]
 
 # A - ASYMPTOMATIC DISEASE
@@ -94,7 +94,7 @@ deriv(P[2:na, 1:nh, 1:num_int]) <- rT*T[i,j,k] - rP*P[i,j,k] - (eta+age_rate[i])
 
 # The number of individuals able to acquire clinical malaria
 dim(Y) <- c(na,nh,num_int)
-Y[1:na, 1:nh, 1:num_int] <- S[i,j,k]+A[i,j,k]+U[i,j,k]
+Y[1:na, 1:nh, 1:num_int] <- (S[i,j,k]+A[i,j,k]+U[i,j,k])
 
 # The number of new cases at this timestep
 dim(clin_inc) <- c(na,nh,num_int)
@@ -210,9 +210,8 @@ p_det[,,] <- d1 + (1-d1)/(1 + fd[i]*(ID[i,j,k]/ID0)^kD)
 dim(FOI_lag) <- c(na,nh,num_int)
 FOI_lag[1:na, 1:nh, 1:num_int] <- EIR[i,j,k] * (if(IB[i,j,k]==0) b0 else b[i,j,k])
 
-# Current FOI depends on humans that have been through the latent period and are
-# producing gametocytes
-dE <- user() # length of time from infection to gametocytogenesis
+# Current FOI depends on humans that have been through the latent period
+dE <- user() # latent period of human infection.
 dim(FOI) <- c(na,nh,num_int)
 FOI[,,] <- delay(FOI_lag[i,j,k],dE)
 
@@ -245,7 +244,7 @@ ssb2 <- user()
 ssb3 <- user()
 theta_c <- user()
 # Recreation of the rainfall function
-theta2 <- if(ssa0 == 0 && ssa1  == 0 && ssa2  == 0 && ssb1  == 0 && ssb2  == 0 && ssb3  == 0 && theta_c  == 0) 
+theta2 <- if(ssa0 == 0 && ssa1  == 0 && ssa2  == 0 && ssb1  == 0 && ssb2  == 0 && ssb3  == 0 && theta_c  == 0)
   1 else max((ssa0+ssa1*cos(2*pi*t/365)+ssa2*cos(2*2*pi*t/365)+ssa3*cos(3*2*pi*t/365)+ssb1*sin(2*pi*t/365)+ssb2*sin(2*2*pi*t/365)+ ssb3*sin(3*2*pi*t/365) ) /theta_c,0.001)
 
 ##------------------------------------------------------------------------------
@@ -282,12 +281,13 @@ cA[,,] <- cU + (cD-cU)*p_det[i,j,k]^gamma1
 # Force of infection from humans to mosquitoes
 dim(FOIvijk) <- c(na,nh,num_int)
 omega <- user() #normalising constant for biting rates
-FOIvijk[1:na, 1:nh, 1:num_int] <- (cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k]) * rel_foi[j] * av_mosq[k]*foi_age[i]/omega
+FOIvijk[1:na, 1:nh, 1:num_int] <- (cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k]) * 
+  rel_foi[j] * av_mosq[k]*foi_age[i]/omega * cov[k]/pop_split[k]
 lag_FOIv=sum(FOIvijk)
 
-# Current hum->mos FOI depends on the number of individuals now producing gametocytes (12 day lag)
-delayGam <- user() # latent period in humans
-delayMos <- user() # latent period in humans
+# Current hum->mos FOI depends on the number of individuals now producing gametocytes (12.5 day lag)
+delayGam <- user() # Lag from parasites to infectious gametocytes
+delayMos <- user() # Extrinsic incubation period.
 FOIv <- delay(lag_FOIv, delayGam)
 
 # Number of mosquitoes that become infected at each time point
@@ -301,7 +301,7 @@ incv <- delay(lag_incv, delayMos)
 betaa <- mv0 * mu0 * theta2
 
 deriv(Sv) <- -ince - mu*Sv + betaa
-# deriv(Ev) <- ince - incv - mu*Ev
+#deriv(Ev) <- ince - incv - mu*Ev
 deriv(Ev[1]) <- ince - Ev[1] - mu*Ev[1]
 deriv(Ev[2:10]) <- Ev[i-1] - Ev[i] - mu*Ev[i]
 deriv(Iv) <- incv - mu*Iv
@@ -309,6 +309,8 @@ deriv(Iv) <- incv - mu*Iv
 # Total mosquito population
 #mv = Sv+Ev+Iv
 mv = Sv+sum(Ev)+Iv
+
+
 ##------------------------------------------------------------------------------
 ###################
 ## LARVAL STATES ##
@@ -344,11 +346,11 @@ betaL <- user() # maximum number of eggs per oviposition per mosq
 eov <- betaL/mu*(exp(mu/fv)-1)
 beta_larval <- eov*mu*exp(-mu/fv)/(1-exp(-mu/fv)) # Number of eggs laid per day
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
-lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0*dLL*(1+dPL*muPL))) 
+lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mu0*dLL*(1+dPL*muPL)))
 K0 <- 2*mv0*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
-KL <- K0*theta2  
+KL <- K0*theta2
 fv <- 1/( tau1/(1-zbar) + tau2 ) # mosquito feeding rate (zbar from intervention param.)
 mu <- -fv*log(p1*p2) # mosquito death rate
 
@@ -377,40 +379,38 @@ deriv(PL) <- LL/dLL - muPL*PL - PL/dPL
 
 # general parameters
 ITN_IRS_on <- user() # days after which interventions begin
-#num_int <- user() # number of intervention categorys, ITN only, IRS only, neither, both
+num_int <- user() # number of intervention categorys, ITN only, IRS only, neither, both
 
-# interpolate interventions
-itn_cov_interp <- interpolate(int_times, itn_cov, "constant")
-dim(itn_cov_now) <- 1
-itn_cov_now[1] <- itn_cov_interp
-irs_cov_interp <- interpolate(int_times, irs_cov, "constant")
-dim(irs_cov_now) <- 1
-irs_cov_now[1] <- irs_cov_interp
-ft_interp <- interpolate(int_times, ft, "constant")
+dim(pop_split) <- num_int
+pop_split[] <- user() # proporion of people in each intervention compartment
 
-int_itn_irs_on <- interpolate(int_times, int_times, "constant")
+# cov_mat is a matrix of coverages for each intervention category to be interpolated
+# cov_mat[,] <- user()
+# dim(cov_mat) <- c(length(int_times),num_int)
+cov_mat[] <- user()
+dim(cov_mat) <- user()
+
+# timing of the interventions
+int_times[] <- user()
+dim(int_times) <- user()
+il <- user()
+il2 <- (2*il)-1
+
+# interpolate our coverages
+# cov_interp[] <- interpolate(int_times, cov_mat)
+# dim(cov_interp) <- num_int
+# cov[] <- cov_interp[i]
+# dim(cov) <- num_int
+cov_interp <- interpolate(int_times, cov_mat)
+cov_init[] <- user()
+dim(cov_init) <- user()
+cov[] <- cov_init[i] * cov_interp
+dim(cov) <- num_int
+
+int_itn_irs_on <- interpolate(int_times, int_times, "linear")
 eff_ITN_IRS_on <- if (t < ITN_IRS_on) ITN_IRS_on else int_itn_irs_on
 
-itn_cov[] <- user() # proportion of population covered by ITN over time
-irs_cov[] <- user() # proportion of population covered by IRS over time
-int_times[] <- user() # timing of interventions
-ft[] <- user() # treatment coverage
-
-dim(itn_cov) <- user()
-dim(irs_cov) <- user()
-dim(ft) <- user()
-dim(int_times) <- user()
-
-num_int <- user()
-dim(cov) <- num_int
-cov[1] <- (1-itn_cov_now[1])*(1-irs_cov_now[1])  # {No intervention}
-cov[2] <- itn_cov_now[1]*(1-irs_cov_now[1]) # 	   {ITN only}
-cov[3] <- (1-itn_cov_now[1])*irs_cov_now[1]	#      {IRS only}
-cov[4] <- itn_cov_now[1]*irs_cov_now[1] #	   {Both ITN and IRS}
-
-ft_now <- ft_interp
-
-
+# intervention params
 IRS_interval <- user() # how long IRS lasts
 ITN_interval <- user() # how long ITN lasts
 chi <- user() # proportion of vector endophily
@@ -433,8 +433,8 @@ irs_loss <- user()
 itn_loss <- user()
 
 # Calculates decay for ITN/IRS
-ITN_decay <- if(t < ITN_IRS_on) 0 else exp(-((t-eff_ITN_IRS_on)%%ITN_interval) * itn_loss)
-IRS_decay <- if(t < ITN_IRS_on) 0 else exp(-((t-eff_ITN_IRS_on)%%IRS_interval) * irs_loss)
+ITN_decay = if(t < ITN_IRS_on) 0 else exp(-((t-eff_ITN_IRS_on)%%ITN_interval) * itn_loss)
+IRS_decay = if(t < ITN_IRS_on) 0 else exp(-((t-eff_ITN_IRS_on)%%IRS_interval) * irs_loss)
 
 # The r,d and s values turn on after ITN_IRS_on and decay accordingly
 d_ITN <- if(t < ITN_IRS_on) 0 else d_ITN0*ITN_decay
@@ -446,25 +446,31 @@ d_IRS <- if(t < ITN_IRS_on) 0 else chi*d_IRS0*IRS_decay
 s_IRS <- if(t < ITN_IRS_on) 1 else 1 - d_IRS
 
 # probability that mosquito bites and survives for each intervention category
+dim(w_) <- num_int
+w_[1] <- 1
+w_[2:il] <- 1 - bites_Bed + bites_Bed*s_ITN
+w_[(il+1):il2] <- 1 - bites_Indoors + bites_Indoors*(1-r_IRS)*s_IRS
+w_[(il2+1):num_int] <- 1 - bites_Indoors + bites_Bed*(1-r_IRS)*s_ITN*s_IRS + (bites_Indoors - bites_Bed)*(1-r_IRS)*s_IRS
+w[] <- w_[i]
 dim(w) <- num_int
-w[1] <- 1
-w[2] <- 1 - bites_Bed + bites_Bed*s_ITN
-w[3] <- 1 - bites_Indoors + bites_Indoors*(1-r_IRS)*s_IRS
-w[4] <- 1 - bites_Indoors + bites_Bed*(1-r_IRS)*s_ITN*s_IRS + (bites_Indoors - bites_Bed)*(1-r_IRS)*s_IRS
 
 # probability that mosq feeds during a single attempt for each int. cat.
+dim(yy_) <- num_int
+yy_[1] <- 1
+yy_[2:il] <- w[2]
+yy_[(il+1):il2] <- 1 - bites_Indoors + bites_Indoors*(1-r_IRS)
+yy_[(il2+1):num_int] <- 1 - bites_Indoors + bites_Bed*(1-r_IRS)*s_ITN + (bites_Indoors - bites_Bed)*(1-r_IRS)
+yy[] <- yy_[i]
 dim(yy) <- num_int
-yy[1] <- 1
-yy[2] <- w[2]
-yy[3] <- 1 - bites_Indoors + bites_Indoors*(1-r_IRS)
-yy[4] <- 1 - bites_Indoors + bites_Bed*(1-r_IRS)*s_ITN + (bites_Indoors - bites_Bed)*(1-r_IRS)
 
 # probability that mosquito is repelled during a single attempt for each int. cat.
+dim(z_) <- 4
+z_[1] <- 0
+z_[2:il] <- bites_Bed*r_ITN
+z_[(il+1):il2] <- bites_Indoors*r_IRS
+z_[(il2+1):num_int] <- bites_Bed*(r_IRS+ (1-r_IRS)*r_ITN) + (bites_Indoors - bites_Bed)*r_IRS
+z[] <- z_[i]
 dim(z) <- num_int
-z[1] <- 0
-z[2] <- bites_Bed*r_ITN
-z[3] <- bites_Indoors*r_IRS
-z[4] <- bites_Bed*(r_IRS+ (1-r_IRS)*r_ITN) + (bites_Indoors - bites_Bed)*r_IRS
 
 # Calculating Z (zbar) and W (wbar) - see Supplementary materials 2 for details
 dim(zhi) <- num_int
@@ -473,6 +479,7 @@ zhi[1:num_int] <- cov[i]*z[i]
 whi[1:num_int] <- cov[i]*w[i]
 zh <- if(t < ITN_IRS_on) 0 else sum(zhi)
 wh <- if(t < ITN_IRS_on) 1 else sum(whi)
+
 # Z (zbar) - average probability of mosquito trying again during single feeding attempt
 zbar <- Q0*zh
 # W (wbar) - average probability of mosquito successfully feeding during single attempt
@@ -483,9 +490,9 @@ p1 <- wbar*p10/(1-zbar*p10)
 Q <- 1-(1-Q0)/wbar # updated anthropophagy given interventions
 av <- fv*Q # biting rate on humans
 dim(av_mosq) <- num_int
-av_mosq[1:num_int] <- av*w[i] # rate at which mosquitoes bite each int. cat.
+av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
 dim(av_human) <- num_int
-av_human[1:num_int] <- av*yy[i] # biting rate on humans in each int. cat.
+av_human[1:num_int] <- av*yy[i]/wh # biting rate on humans in each int. cat.
 
 ##------------------------------------------------------------------------------
 ###################
@@ -505,35 +512,32 @@ output(Pout) <- sum(P[,,])
 # population densities for each age category
 den[] <- user()
 dim(den) <- na
-
-dim(density) <- na
-output(density[1:na]) <- den[i]
-
 # index of the age vector above 59 months
 age59 <- user()
 # index of the age vector above 5 years
 age05 <- user()
 
-# slide positivity in 0 -5 year age bracket
+# The force of infection seen today in the humans is based on how much they were bitten 12 days ago due to
+# liver stage presentation.  Therefore the incidence should reflect the net coverage from 12 days ago.
+# lagged_cov[] <- delay(cov[i], dE)
+# dim(lagged_cov) <- num_int
+
 dim(prev0to59) <- c(age59,nh,num_int)
-prev0to59[1:age59,,] <- T[i,j,k] + D[i,j,k] + A[i,j,k] * p_det[i,j,k]
+prev0to59[1:age59,,] <- T[i,j,k]*cov[k]/pop_split[k] + D[i,j,k]*cov[k]/pop_split[k]  + A[i,j,k]*cov[k]/pop_split[k]*p_det[i,j,k]
 output(prev) <- sum(prev0to59[,,])/sum(den[1:age59])
+output(prev1) <- sum(prev0to59[,,1])/(sum(den[1:age59])*cov[1])
+output(prev2) <- sum(prev0to59[,,2])/(sum(den[1:age59])*cov[2])
 
+# slide positivity in 0 -5 year age bracket
+dim(weighted_clin_inc) <- c(na,nh,num_int)
+weighted_clin_inc[,,] <- clin_inc[i,j,k] * cov[k]/pop_split[k]
 dim(clin_inc0to5) <- c(age05,nh,num_int)
-clin_inc0to5[1:age05,,] <- clin_inc[i,j,k]
+clin_inc0to5[1:age05,,] <- weighted_clin_inc[i,j,k]
 output(inc05) <- sum(clin_inc0to5)/sum(den[1:age05])
-output(inc) <- sum(clin_inc[,,])
-
-dim(outEIR) <- na
-outEIR[] <- sum(EIR[i,,])
-dim(eir_sum) <- na
-eir_sum[1:na] <- outEIR[i]/den[i]
-output(outEIR2) <- sum(eir_sum[])
-output(outEIRall) <- sum(EIR[,,1])
+output(inc) <- sum(weighted_clin_inc[,,])
 
 # Param checking outputs
 output(mu) <- mu
-output(fv) <- fv
 output(beta_larval) <- beta_larval
 output(KL) <- KL
 output(mv) <- mv
@@ -545,9 +549,6 @@ output(s_ITN) <- s_ITN
 output(d_IRS) <- d_IRS
 output(r_IRS) <- r_IRS
 output(s_IRS) <- s_IRS
-dim(cov_now) <- 4
-output(cov_now[1:4]) <- cov[i]
-dim(av_now) <- 4
-output(av_now[1:4]) <- av_human[i]
+output(cov[]) <- cov[i]
 output(K0) <- K0
-output(eff_ITN_IRS_on) <- eff_ITN_IRS_on
+output(av_human[]) <- av_human[i]

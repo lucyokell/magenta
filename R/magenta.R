@@ -1,14 +1,14 @@
-#' MAGENTA: Individual-based simulation model of malaria epidemiology and genomics.
+#' magenta: Individual-based simulation model of malaria epidemiology and genomics.
 #'
 #' @description 
-#' MAGENTA is an individual-based simulation model of malaria epidemiology and genomics. 
-#' MAGENTA extends the imperial malaria model by tracking the infection history of individuals. 
+#' magenta is an individual-based simulation model of malaria epidemiology and genomics. 
+#' magenta extends the imperial malaria model by tracking the infection history of individuals. 
 #' With this additional genetic characteristics of the parasite can be assessed.
 #'
 #' @docType package
-#' @name MAGENTA
+#' @name magenta
 #' 
-#' @useDynLib MAGENTA
+#' @useDynLib magenta
 #' @importFrom stats rlnorm heatmap runif qt sd
 #' @importFrom utils adist read.csv tail
 #' @importFrom ggplot2 ggplot

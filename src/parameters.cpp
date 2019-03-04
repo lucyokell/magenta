@@ -119,12 +119,23 @@ Parameters::Parameters() {
   g_cost_of_resistance = {1.0};
   g_prob_of_lpf = { {1.0,0.0} }; // late parasitological failure
   
+  // mutation parameters
+  g_mutation_flag = false;
+  g_mutation_occurence = 0.0000001;
+  g_mutations_today = std::vector<unsigned int> {0,0};
+  g_mutation_pos_allocator = 0;
+  
   // drug related parameters
   g_mft_flag = false;
   g_drug_choice = 0;
   g_number_of_drugs = 0;
   g_partner_drug_ratios = {0.0};
   g_dur_SPC = 10;
+  
+  // mosquito strain interaction params
+  g_vector_adaptation_flag = false;
+  g_local_oocyst_advantage = 0.8;
+  g_gametocyte_non_sterilisation = 0.2;
   
   // non malaria fever parameters
   g_nmf_flag = false;

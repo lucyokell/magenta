@@ -4,10 +4,10 @@
 \alias{population_get_genetics_ibd_df_n}
 \title{Returns the population's parasite genetics for ibd style summarised by pibd for given sample size and state}
 \usage{
-population_get_genetics_ibd_df_n(paramList)
+population_get_genetics_ibd_df_n(param_list)
 }
 \arguments{
-\item{paramList}{paramList containing statePtr, sample_size, and sample_states}
+\item{param_list}{param_list containing statePtr, sample_size, and sample_states}
 }
 \value{
 list of population information

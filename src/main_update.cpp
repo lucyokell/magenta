@@ -1,5 +1,5 @@
 //
-//  MAGENTA
+//  magenta
 //  main_update.cpp
 //
 //  Created: OJ Watson on 06/12/2015
@@ -43,13 +43,13 @@ struct Universe {
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // START: MAIN
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//' Continues simulation forward for as long as specified in paramList
+//' Continues simulation forward for as long as specified in param_list
 //'
-//' @param paramList parameter list generated with \code{Param_List_Simulation_Update_Create}
+//' @param param_list parameter list generated with \code{Param_List_Simulation_Update_Create}
 //' @return list with ptr to model state and loggers describing the current model state
 //' @export
 // [[Rcpp::export]]
-Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
+Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
 {
   
  
@@ -60,24 +60,24 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   // START: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  // Create universe pointer from paramList statePtr
-  Rcpp::XPtr<Universe> u_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (paramList["statePtr"]);
+  // Create universe pointer from param_list statePtr
+  Rcpp::XPtr<Universe> u_ptr = Rcpp::as<Rcpp::XPtr<Universe> > (param_list["statePtr"]);
   
   // prove that C++ code is being run
   rcpp_out(u_ptr->parameters.g_h_quiet_print, "Rcpp function is working!\n");
   
   // Initialise all the universal variables from the statePtr provided
-  u_ptr->parameters.g_years = Rcpp::as<double>(paramList["years"]);
-  u_ptr->parameters.g_ft = Rcpp::as<double>(paramList["ft"]);
-  Rcpp::List spatial_list = paramList["spatial_list"];
-  Rcpp::List drug_list = paramList["drug_list"];
+  u_ptr->parameters.g_years = Rcpp::as<double>(param_list["years"]);
+  u_ptr->parameters.g_ft = Rcpp::as<double>(param_list["ft"]);
+  Rcpp::List spatial_list = param_list["spatial_list"];
+  Rcpp::List drug_list = param_list["drug_list"];
   
   // Spatial updates
   if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
     
     // convert R vector
-    std::vector<std::vector<bool> > x = (Rcpp::as<std::vector<std::vector<bool> > >(paramList["imported_barcodes"]));
+    std::vector<std::vector<bool> > x = (Rcpp::as<std::vector<std::vector<bool> > >(param_list["imported_barcodes"]));
     
     // prep import barcode parameters and fill accordingly 
     u_ptr->parameters.g_spatial_imported_barcodes.reserve(x.size());
@@ -104,6 +104,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     u_ptr->parameters.g_spatial_total_imported_human_infections = u_ptr->parameters.g_percentage_imported_human_infections * u_ptr->parameters.g_total_human_infections;
     u_ptr->parameters.g_spatial_total_imported_mosquito_infections = u_ptr->parameters.g_percentage_imported_mosquito_infections * u_ptr->parameters.g_total_mosquito_infections;
   }
+  u_ptr->parameters.g_plaf = Rcpp::as<std::vector<double> >(spatial_list["plaf"]);
   
   // Resistance updates
   if (drug_list["g_resistance_flag"]) {
@@ -119,8 +120,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
   
   // Initialise the mosquito intervention parameter vectors
   // These vectors detail how interventions have had an effect on mosquito behaviour for the update length considered
-  std::vector<double> mosquito_death_rates = Rcpp::as<vector<double> >(paramList["mu_vec"]);
-  std::vector<double> mosquito_biting_rates = Rcpp::as<vector<double> >(paramList["fv_vec"]);
+  std::vector<double> mosquito_death_rates = Rcpp::as<vector<double> >(param_list["mu_vec"]);
+  std::vector<double> mosquito_biting_rates = Rcpp::as<vector<double> >(param_list["fv_vec"]);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // END: R -> C++ CONVERSIONS
@@ -226,6 +227,15 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     }
     u_ptr->parameters.g_spatial_imported_human_infection_counter = 0;
     u_ptr->parameters.g_spatial_imported_mosquito_infection_counter = 0;
+    
+    // Reset mutation counters
+    if(u_ptr->parameters.g_mutation_flag){
+      u_ptr->parameters.g_mutation_pos_allocator = 0;
+      // mutation updates
+        for(unsigned int l = 0; l < u_ptr->parameters.g_num_loci; l++){
+          u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_occurence * u_ptr->parameters.g_total_human_infections);
+        }
+      }
     
     // Reset age dependent biting rate sum
     psi_sum = 0;
@@ -563,7 +573,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List paramList)
     
     // Ages and immunity 
     // TODO: Figure out the best way of standardising this logging 
-    // Something like passing in a function name within the paramList which is the 
+    // Something like passing in a function name within the param_list which is the 
     // name for a logger written else where which then returns the Loggers obeject below
     Infection_States[element] = static_cast<int>(u_ptr->population[element].get_m_infection_state());
     u_ptr->population[element].update_immunities_to_today(u_ptr->parameters);
