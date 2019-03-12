@@ -17,8 +17,4 @@ inst/include
 ^TODO\.md$
 scripts
 ^.*\.zip
-~.so
-src/*.o
-src/*.so
-src/*.dll
-~.o
+checklog.txt

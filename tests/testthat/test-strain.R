@@ -31,7 +31,8 @@ test_that("ibd recombinants", {
 
 test_that("ibd next generation", {
   
-  z <- test_generate_next_ibd(bl = 96,nl = 24,ib = 2,pc = rep(1,24),id = 2)
+  z <- test_generate_next_ibd(bl = 48,nl = 24,ib = 2,pc = rep(1,24),id = 2)
+  y <- rep(intToBits(2)[1:2],24)
   expect_identical(y,z)
   
 })
