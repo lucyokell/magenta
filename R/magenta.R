@@ -9,6 +9,7 @@
 #' @name magenta
 #' 
 #' @useDynLib magenta
+#' @importFrom Rcpp sourceCpp
 #' @importFrom stats rlnorm heatmap runif qt sd
 #' @importFrom utils adist read.csv tail
 #' @importFrom ggplot2 ggplot
