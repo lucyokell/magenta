@@ -55,7 +55,7 @@ bootstrap <- function(sim = "M:/OJ/magenta_Results/scripts/fig3_r1.rds", year0 =
   if(!(metric %in% metrics)) stop ("Wrong metric")
   
   # tabulation function
-  tab_func <- function(thing, l_factor_i){(tabulate(thing,l_factor_i)[-1])/length(thing)}
+  tab_func <- function(thing, l_factor_i){(tabulate(thing,l_factor_i))/length(thing)}
   #tab_func <- table
   
   # read in the sim
