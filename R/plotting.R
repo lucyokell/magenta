@@ -223,8 +223,15 @@ COI_age_plot_sample_x <- function(Sample_COI_out,x,span=0.6,ylimmax=NULL,xlimmax
 #' @param ibd Were we collecting info on IBD
 #' 
 summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 35,
-                                          age_breaks = list(1,2,3),
+                                          age_breaks = list(1,2,3),coi_detect=FALSE,
                                           ibd = FALSE){
+  
+  
+  if(coi_detect) {
+    coi_det_var <- "summary_coi_detected"
+  } else {
+    coi_det_var <- "summary_coi"
+  }
   
   age_breaks_all <- c("(-0.001,5]","(5,15]","(15,100]")
   states_all <- c("Clinical","Asymptomatic")
@@ -307,10 +314,10 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 3
     list_res$mean_polygenomic_Clinical <- mean_over_time(res_list, a="mean",c="summary_polygenom",full_time_length=full_time_length,states=c("Clinical"))
     list_res$mean_polygenomic_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_polygenom",full_time_length=full_time_length,states=c("Asymptomatic"))
     
-    list_res$meancoi <- mean_over_time(res_list, a="mean",c="summary_coi_detected",full_time_length=full_time_length)
-    list_res$meancoi_ages <- mean_over_time(res_list, a="mean",c="summary_coi_detected",full_time_length=full_time_length,age_breaks=age_breaks)
-    list_res$meancoi_Clinical <- mean_over_time(res_list, a="mean",c="summary_coi_detected",full_time_length=full_time_length,states=c("Clinical"))
-    list_res$meancoi_Asymptomatic <- mean_over_time(res_list, a="mean",c="summary_coi_detected",full_time_length=full_time_length,states=c("Asymptomatic"))
+    list_res$meancoi <- mean_over_time(res_list, a="mean",c=coi_det_var,full_time_length=full_time_length)
+    list_res$meancoi_ages <- mean_over_time(res_list, a="mean",c=coi_det_var,full_time_length=full_time_length,age_breaks=age_breaks)
+    list_res$meancoi_Clinical <- mean_over_time(res_list, a="mean",c=coi_det_var,full_time_length=full_time_length,states=c("Clinical"))
+    list_res$meancoi_Asymptomatic <- mean_over_time(res_list, a="mean",c=coi_det_var,full_time_length=full_time_length,states=c("Asymptomatic"))
     
     list_res$mean_unique <- mean_over_time(res_list, a="mean",c="summary_unique",full_time_length=full_time_length,states = NA,age_breaks = NA) %>% unlist
     list_res$mean_unique_ages <- mean_over_time(res_list, a="mean",c="summary_unique",full_time_length=full_time_length,age_breaks=age_breaks,states=NA)
@@ -416,7 +423,9 @@ plot_prevalence <- function(res, age_bin = NULL, states=c("D","A","U","T")){
     for(i in 1:(l-1)){
       prev[i] <-  sum(res[[i]]$InfectionStates %in% (inf_states-1) &
                         res[[i]]$Ages > age_bin[1] & 
-                        res[[i]]$Ages < age_bin[2] )/n
+                        res[[i]]$Ages < age_bin[2] )/
+        sum(res[[i]]$Ages > age_bin[1] & 
+              res[[i]]$Ages < age_bin[2])
     }
     
   } else {

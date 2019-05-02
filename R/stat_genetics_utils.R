@@ -112,7 +112,7 @@ clonality_from_barcode_list <- function(barcode_list){
   tbl <- table(table(unlist(lapply(barcode_list,unique))))
   
   if ("1" %in% names(tbl)){
-    return(tbl[1]/sum(tbl))
+    return(tbl[1]/sum(tbl*as.numeric(names(tbl))))
   } else {
     return(0)
   }
@@ -126,6 +126,19 @@ cou_from_barcode_list <- function(barcode_list){
   z <- sum((tbl/samp_size)^2)
   return((z - (1/samp_size))/(1-(1/samp_size)))
   
+}
+
+pibd_from_barcode_list <- function(barcode_list){
+  l_factor_i <- attr(r[[year0]],"l") + attr(r[[year]],"l") 
+  if(!unphased){
+    t <- rbind(data.table::rbindlist(r[[year0]][["ints"]][samp[pos<=ss]]),data.table::rbindlist(r[[year]][["ints"]][samp[pos>ss]]))
+    z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
+    return((z - (1/ss))/(1-(1/ss)))
+  } else {
+    t <- rbind(data.table::rbindlist(r[[year0]][["ints_max"]][samp[pos<=ss]]),data.table::rbindlist(r[[year]][["ints_max"]][samp[pos>ss]]))
+    z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
+    return((z - (1/ss))/(1-(1/ss)))
+  }
 }
 
 convert_ibd_barcode <- function(b, nl){

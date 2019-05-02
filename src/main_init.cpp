@@ -197,6 +197,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
       infection_sum += Dmat(a_i,h_i) + Amat(a_i,h_i) + Tmat(a_i,h_i) + Umat(a_i,h_i); 
     }  
   }
+  
+  // Draw barcodes as needed
   unsigned int expected_infections = static_cast<unsigned int>(parameters.g_N*infection_sum);
   rcpp_out(parameters.g_h_quiet_print, "expected = " + std::to_string(expected_infections));
   double starting_ibd = Rcpp::as<double>(barcode_params["starting_ibd"]);

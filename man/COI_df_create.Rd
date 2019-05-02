@@ -4,16 +4,16 @@
 \alias{COI_df_create}
 \title{Create COI dataframe}
 \usage{
-COI_df_create(sim_save, groupvars = c("Age_Bin", "State"),
-  barcodes = FALSE, mpl = model_param_list_create(), ibd = 0,
-  nl = 24, n = Inf, sample_group = c("T", "D", "A", "U"), reps = 1)
+COI_df_create(df, groupvars = c("age_bin", "clinical"),
+  breaks = c(-0.001, 5, 15, 100.1), barcodes = FALSE, ibd = 0,
+  nl = 24, n = Inf, reps = 1, mean_only = TRUE)
 }
 \arguments{
-\item{sim_save}{Output of a simulation save}
-
 \item{groupvars}{Grouping vars for summarySE. Default = c("Age_Bin","State")}
 
 \item{barcodes}{Boolean whether to return tabled barcodes. Default = FALSE}
+
+\item{sim_save}{Output of a simulation save}
 }
 \description{
 Create COI dataframe

@@ -38,6 +38,7 @@ public:
   };
   
   // spatially relevant variables
+  // metapopulation related
   Parameters::g_spatial_type_enum g_spatial_type;
   std::vector<int> g_spatial_imported_cotransmission_frequencies;
   std::vector<int> g_spatial_imported_oocyst_frequencies;
@@ -56,6 +57,7 @@ public:
   std::vector<boost::dynamic_bitset<> > g_spatial_exported_oocysts;
   std::vector<boost::dynamic_bitset<> > g_spatial_imported_oocysts;
   
+  // island related
   unsigned int g_total_human_infections;
   unsigned int g_total_mosquito_infections;
   double g_percentage_imported_human_infections;
@@ -157,6 +159,7 @@ public:
   bool g_resistance_flag;
   unsigned int g_number_of_resistance_loci;
   std::vector<double> g_cost_of_resistance;
+  std::vector<double> g_resistance_dur_P;
   std::vector<std::vector<double> > g_prob_of_lpf; // late parasitological failure
   
   // mutation parameters

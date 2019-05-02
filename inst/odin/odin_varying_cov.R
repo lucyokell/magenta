@@ -385,10 +385,10 @@ dim(pop_split) <- num_int
 pop_split[] <- user() # proporion of people in each intervention compartment
 
 # cov_mat is a matrix of coverages for each intervention category to be interpolated
-# cov_mat[,] <- user()
-# dim(cov_mat) <- c(length(int_times),num_int)
-cov_mat[] <- user()
-dim(cov_mat) <- user()
+cov_mat[,] <- user()
+dim(cov_mat) <- c(length(int_times),num_int)
+#cov_mat[] <- user()
+#dim(cov_mat) <- user()
 
 # timing of the interventions
 int_times[] <- user()
@@ -397,15 +397,15 @@ il <- user()
 il2 <- (2*il)-1
 
 # interpolate our coverages
-# cov_interp[] <- interpolate(int_times, cov_mat)
-# dim(cov_interp) <- num_int
-# cov[] <- cov_interp[i]
-# dim(cov) <- num_int
-cov_interp <- interpolate(int_times, cov_mat)
-cov_init[] <- user()
-dim(cov_init) <- user()
-cov[] <- cov_init[i] * cov_interp
+cov_interp[] <- interpolate(int_times, cov_mat)
+dim(cov_interp) <- num_int
+cov[] <- cov_interp[i]
 dim(cov) <- num_int
+#cov_interp <- interpolate(int_times, cov_mat)
+#cov_init[] <- user()
+#dim(cov_init) <- user()
+#cov[] <- cov_init[i] * cov_interp
+#dim(cov) <- num_int
 
 int_itn_irs_on <- interpolate(int_times, int_times, "linear")
 eff_ITN_IRS_on <- if (t < ITN_IRS_on) ITN_IRS_on else int_itn_irs_on

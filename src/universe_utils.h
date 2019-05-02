@@ -4,7 +4,7 @@
 
 #include <Rcpp.h>
 #include "person.h"
-
+#include <algorithm>
 
 // Returns the population's parasite genetics for ibd style summarised by pibd for given sample size and state
 Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List param_list);

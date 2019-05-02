@@ -4,10 +4,10 @@
 unique_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_func){
   if(!unphased){
     t <- c(unlist(r[[year0]][["ints"]][samp[pos<=ss]]), unlist(r[[year]][["ints"]][samp[pos>ss]]))
-    return(sum(!duplicated(t))/length(t)) 
+    return(sum(!(duplicated(t) | duplicated(t, fromLast = TRUE)))/length(t)) 
   } else {
     t <- c(unlist(r[[year0]][["ints_max"]][samp[pos<=ss]]), unlist(r[[year]][["ints_max"]][samp[pos>ss]]))
-    return(sum(!duplicated(t))/ss)
+    return(sum(!(duplicated(t) | duplicated(t, fromLast = TRUE)))/ss)
   }
 }
 

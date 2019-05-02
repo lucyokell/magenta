@@ -153,7 +153,7 @@ country_seasonal_profiles <- function(country) {
   }))
   
   ret <- sapply(admins, function(x) {
-    invisible(plot(magenta:::seasonal_profile(country, x),
+    invisible(plot(magenta:::seasonal_profile(x, country),
                    main = x,
                    ylim = c(0, max_ses + 0.2),
                    ylab = "Seasonal",

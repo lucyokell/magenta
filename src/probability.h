@@ -11,8 +11,8 @@
 //
 // ---------------------------------------------------------------------------
 
-#ifndef __magenta__PROBABILITY__
-#define __magenta__PROBABILITY__
+#ifndef PROBABILITY_H
+#define PROBABILITY_H
 
 #include <vector>
 #include <Rcpp.h>

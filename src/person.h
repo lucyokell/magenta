@@ -60,10 +60,13 @@ private:
   int m_person_ID;            // member variable ID - fine to be public as constant
   int m_person_age;           // Person's age
   unsigned int m_nmf_age_band = 0;      // what age bandare they in for nmf
+  
   InfectionStatus m_infection_state;    // Infection Status enum
   InfectionStatus m_temp_infection_state;    // Infection Status temp enum
+  
   TreatmentOutcome m_treatment_outcome = NOT_TREATED;
   bool m_slow_parasite_clearance_bool = false; // Flag for whether they are currently SPC
+  int m_drug_choice = 0; // Flag for what drug they last received (i.e. so we know their prophylactic length)
   
   // Person's age dependent biting rate (psi) - See Griffin 2010 S1 for this specific origin
   double m_age_dependent_biting_rate;
@@ -145,7 +148,6 @@ private:
   int m_day_last_treated = 0;                                                 // Day last treated
   int m_temp_strain_to_next_change = 0;                                       // temp variable so we know what strain is changing next
   int m_day_of_nmf = std::numeric_limits<int>::max();                         // Day of nmf
-  
   int m_temp_int = 0;                                                         // Temp integer for individual. This rather than a static int or new declaration so that it's thread safe and only one construct (?)
   
   std::vector<int> m_infection_time_realisation_vector{};         // First pending infection time in position 0 to handle multiple infections times that have not been realised yet
@@ -181,6 +183,9 @@ public:
   
   // Get person's treatment outcome
   TreatmentOutcome get_m_treatment_outcome() { return(m_treatment_outcome); }
+  
+  // Get person's drug choice
+  int get_m_drug_choice() { return(m_drug_choice); }
   
   // Get person's age-dependent immunity
   double get_m_age_dependent_biting_rate() { return(m_age_dependent_biting_rate); }
@@ -300,6 +305,9 @@ public:
   
   // Set person's treatment outcome
   void set_m_treatment_outcome(TreatmentOutcome x) { m_treatment_outcome = x; }
+  
+  // Get person's drug choice
+  void set_m_drug_choice(int x) { m_drug_choice = x; }
   
   // Set person's individual biting rate
   void set_m_individual_biting_rate(double x) { m_individual_biting_rate = x; };
@@ -475,6 +483,9 @@ public:
   
   // Clear all strains from an individual
   void all_strain_clearance();
+  
+  // Clear the last strain if it would have been cleared by prophylaxis
+  void clear_strain_if_prophylactic(const Parameters &parameters);
   
   // Recover to being susceptible, i.e. clearing all infections and strains and associated timings
   void recover(const Parameters &parameters);

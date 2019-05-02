@@ -50,9 +50,9 @@ PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
     if(!is.null(PfPR)){
       diff <- PR - (1 - sum(eqInit$init_S) - sum(eqInit$init_P))
     }  else if ((!is.null(PfPR_micro)))  {
-      diff <- PR - (sum(eqInit$init_D[eqInit$age2years: eqInit$age10years,,] + 
-                          eqInit$init_T[eqInit$age2years: eqInit$age10years,,] + 
-                          eqInit$init_A[eqInit$age2years: eqInit$age10years,,] *eqInit$p_det_eq[eqInit$age2years: eqInit$age10years,,]) / 
+      diff <- PR - (sum(eqInit$init_D[eqInit$age2years: eqInit$age10years,,1]/0.25 + 
+                          eqInit$init_T[eqInit$age2years: eqInit$age10years,,1]/0.25 + 
+                          eqInit$init_A[eqInit$age2years: eqInit$age10years,,1] * eqInit$p_det_eq[eqInit$age2years: eqInit$age10years,] /0.25) / 
                       sum(eqInit$den[eqInit$age2years: eqInit$age10years]))
     } else {
       diff <- PR - eqInit$mv0

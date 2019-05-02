@@ -72,7 +72,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   Rcpp::List spatial_list = param_list["spatial_list"];
   Rcpp::List drug_list = param_list["drug_list"];
   
-  // Spatial updates
+  // Spatial updates 
+  // Metapopulation not fully implemented yet
   if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
     

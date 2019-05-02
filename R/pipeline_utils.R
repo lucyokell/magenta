@@ -369,13 +369,13 @@ housekeeping_list_create <- function(quiet = TRUE,
 #' @param drug_choice What's the default drug choice to begin. Default = 0
 #' @param partner_drug_ratios Numeric vector for ratio of first line drugs used
 #' 
-#' 
+#' @export
 
 drug_list_create <- function(resistance_flag = FALSE,
                              number_of_resistance_loci = 3,
                              resistance_costs = c(1,0.99,0.98,0.97),
                              prob_of_lpf = list(c(1.0,0.97,0.80,0.55),
-                                                c(1,0,0.98,0.7,0.51)),
+                                                c(1.0,0.98,0.7,0.51)),
                              mft_flag = FALSE,
                              temporal_cycling = -1,
                              sequential_cycling = -1,
@@ -588,12 +588,12 @@ update_saves <- function(res, i, sim.out, sample_states,
       } else {
         
         if(i%%12 == 0 && i >= (length(res)-180)){
-          res[[i]] <- COI_df_create2(df, barcodes=TRUE, nl=num_loci, 
+          res[[i]] <- COI_df_create(df, barcodes=TRUE, nl=num_loci, 
                                      ibd = barcode_params$barcode_type,
                                      n = sample_size, reps = sample_reps, 
                                      mean_only = mean_only)
         } else {
-          res[[i]] <- COI_df_create2(df, barcodes=FALSE, nl=num_loci, 
+          res[[i]] <- COI_df_create(df, barcodes=FALSE, nl=num_loci, 
                                      ibd = barcode_params$barcode_type,
                                      n = sample_size, reps = sample_reps, 
                                      mean_only = mean_only)

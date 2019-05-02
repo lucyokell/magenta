@@ -6,7 +6,7 @@
 \usage{
 drug_list_create(resistance_flag = FALSE,
   number_of_resistance_loci = 3, resistance_costs = c(1, 0.99, 0.98,
-  0.97), prob_of_lpf = list(c(1, 0.97, 0.8, 0.55), c(1, 0, 0.98, 0.7,
+  0.97), prob_of_lpf = list(c(1, 0.97, 0.8, 0.55), c(1, 0.98, 0.7,
   0.51)), mft_flag = FALSE, temporal_cycling = -1,
   sequential_cycling = -1, sequential_update = 3,
   number_of_drugs = 2, drug_choice = 0,
