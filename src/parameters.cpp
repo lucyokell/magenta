@@ -117,8 +117,6 @@ Parameters::Parameters() {
   g_resistance_flag = false;
   g_number_of_resistance_loci = 0;
   g_cost_of_resistance = {1.0};
-  g_resistance_dur_P = {25.0};
-  g_prob_of_lpf = { {1.0,0.0} }; // late parasitological failure
   
   // mutation parameters
   g_mutation_flag = false;

@@ -19,6 +19,7 @@
 #include <queue>
 #include <bitset>
 #include <boost/dynamic_bitset.hpp>
+#include "drug.h"
 
 class Parameters {
   
@@ -159,8 +160,8 @@ public:
   bool g_resistance_flag;
   unsigned int g_number_of_resistance_loci;
   std::vector<double> g_cost_of_resistance;
-  std::vector<double> g_resistance_dur_P;
-  std::vector<std::vector<double> > g_prob_of_lpf; // late parasitological failure
+  std::vector<Drug> g_drugs;
+
   
   // mutation parameters
   bool g_mutation_flag;

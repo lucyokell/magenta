@@ -115,6 +115,9 @@ public:
   // to_ulong but for range within a bitset
   unsigned long to_ulong_range(unsigned int start_bit, unsigned int end_bit);
   
+  // to_ulong but for positions in a bitset
+  unsigned long bitset_positions_to_ulong(const std::vector<unsigned int> &bit_positions);
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SETTERS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -4,20 +4,28 @@
 \alias{drug_list_create}
 \title{Create drug list}
 \usage{
-drug_list_create(resistance_flag = FALSE,
-  number_of_resistance_loci = 3, resistance_costs = c(1, 0.99, 0.98,
-  0.97), prob_of_lpf = list(c(1, 0.97, 0.8, 0.55), c(1, 0.98, 0.7,
-  0.51)), mft_flag = FALSE, temporal_cycling = -1,
-  sequential_cycling = -1, sequential_update = 3,
-  number_of_drugs = 2, drug_choice = 0,
+drug_list_create(resistance_flag = FALSE, number_of_drugs = 2,
+  number_of_resistance_loci = 3, resistance_costs = c(0.99, 0.99,
+  0.98), epistatic_logic = NULL, prob_of_lpf = list(c(1, 0.97, 0.8,
+  0.55), c(1, 0.98, 0.7, 0.51)), barcode_res_pos = list(c(1, 2), c(1,
+  3)), dur_P = rep(25, number_of_drugs), dur_SPC = rep(5,
+  number_of_drugs), mft_flag = FALSE, temporal_cycling = -1,
+  sequential_cycling = -1, sequential_update = 3, drug_choice = 0,
   partner_drug_ratios = rep(1/number_of_drugs, number_of_drugs))
 }
 \arguments{
 \item{resistance_flag}{Boolean are we simulating resistance}
 
+\item{number_of_drugs}{Numeric for number of drugs used}
+
 \item{number_of_resistance_loci}{Numeric for number of res. loci}
 
 \item{resistance_costs}{Numeric vector for costs of res. Should be 2^res.loci}
+
+\item{epistatic_logic}{Is there compensatory relationships. i.e. what loci 
+need to be true for resistance cost to exist. Default of NULL means that 
+this becomes seq_len(number_of_resistance_loci), i.e. only dependent on 
+their own loci. (TODO: Change this to be a list of length norl)}
 
 \item{prob_of_lpf}{Numeric vector for lpf, Should be 2^res.loci * num_drugs}
 
@@ -28,8 +36,6 @@ drug_list_create(resistance_flag = FALSE,
 \item{sequential_cycling}{Numeric for what perc. treatment failure before switch}
 
 \item{sequential_update}{How long does it take in years for sequential to be implemented}
-
-\item{number_of_drugs}{Numeric for number of drugs used}
 
 \item{drug_choice}{What's the default drug choice to begin. Default = 0}
 

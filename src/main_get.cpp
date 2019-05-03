@@ -394,14 +394,22 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
   );
   
   // Create Rcpp Parameters list
+  
+  // drugs list
+  std::vector<Rcpp::List> drugs;
+  drugs.reserve(universe_ptr->parameters.g_number_of_drugs);
+  for (auto d : universe_ptr->parameters.g_drugs) {
+   drugs.emplace_back(d.drug_to_rcpp_list()); 
+  }
+  
   Rcpp::List parameters_List = Rcpp::List::create(
     Rcpp::Named("g_current_time")=universe_ptr->parameters.g_current_time,
+    Rcpp::Named("g_calendar_day")=universe_ptr->parameters.g_calendar_day,
+    Rcpp::Named("g_theta")=universe_ptr->parameters.g_theta,
     Rcpp::Named("g_mean_maternal_immunity")=universe_ptr->parameters.g_mean_maternal_immunity,
     Rcpp::Named("g_sum_maternal_immunity")=universe_ptr->parameters.g_sum_maternal_immunity,
     Rcpp::Named("g_total_mums")=universe_ptr->parameters.g_total_mums,
     Rcpp::Named("g_N")=universe_ptr->parameters.g_N,
-    Rcpp::Named("g_theta")=universe_ptr->parameters.g_theta,
-    Rcpp::Named("g_calendar_day")=universe_ptr->parameters.g_calendar_day,
     Rcpp::Named("g_mosquito_deficit")=universe_ptr->parameters.g_mosquito_deficit,
     Rcpp::Named("g_scourge_today")=universe_ptr->parameters.g_scourge_today,
     Rcpp::Named("g_mean_mv")=universe_ptr->parameters.g_mean_mv,
@@ -415,7 +423,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     Rcpp::Named("g_barcode_type")=static_cast<unsigned int>(universe_ptr->parameters.g_barcode_type),
     Rcpp::Named("g_spatial_type")=static_cast<unsigned int>(universe_ptr->parameters.g_spatial_type),
     // housekeeping
-    Rcpp::Named("g_h_quiet_print")=universe_ptr->parameters.g_h_quiet_print
+    Rcpp::Named("g_h_quiet_print")=universe_ptr->parameters.g_h_quiet_print,
+    Rcpp::Named("g_drugs")=drugs
   );
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

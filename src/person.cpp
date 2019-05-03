@@ -187,7 +187,7 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   // assign this drug choice to them
   m_drug_choice = drug_choice;
   
-  //loop through the final m_numbers_of_last_passed as these have to be the relevant treatment strains
+  // loop through strains and work out which will survive treatment (if any)
   for(int ts = 0; ts < m_number_of_strains ; ts++){
     
     prob_of_lpf = m_active_strains[ts].late_paristological_failure_prob(parameters, drug_choice);
@@ -544,7 +544,7 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     }
     
     // TODO: add here a function call to remove this strain if it would have been cleared by prophylaxis
-    clear_strain_if_prophylactic(parameters);
+    //clear_strain_if_prophylactic(parameters);
     
   }
   
@@ -576,7 +576,7 @@ int Person::draw_m_day_of_InfectionStatus_change(const Parameters &parameters)
   case TREATED:
     return(rexpint1(parameters.g_dur_T) + parameters.g_current_time + 1);
   case PROPHYLAXIS:
-    return(rexpint1(parameters.g_dur_P) + parameters.g_current_time + 1);
+    return(rexpint1(parameters.g_drugs[m_drug_choice].get_m_dur_P()) + parameters.g_current_time + 1);
   default:
     assert(NULL && "Schedule Infection Status Change Error - person's infection status not D, A, U, T or P");
   return(-1);
@@ -698,7 +698,8 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
    if (m_infection_state == PROPHYLAXIS) {
      
      // is the strain resistant to partner drug
-     if (m_infection_barcode_realisation_vector[m_infection_barcode_realisation_vector.size()-1][m_drug_choice+1]) {
+     if (m_infection_barcode_realisation_vector[m_infection_barcode_realisation_vector.size()-1]
+           [(parameters.g_drugs[m_drug_choice].get_m_barcode_positions())[1]]) {
        
        // and if it is, is the person over half way through their prophylaxis
        if (parameters.g_current_time > 
@@ -958,7 +959,7 @@ void Person::event_handle(const Parameters &parameters) {
     if (m_day_of_next_strain_state_change == m_day_of_next_event) {
       
       // if we have flagged that more than one strain is changing strain state today then loop through all the strains
-      if (true)
+      if (m_more_than_one_strain_to_change_today_bool)
       {
         for (int n = 0 ; n < m_number_of_strains ; n++)
         {
@@ -989,8 +990,10 @@ void Person::event_handle(const Parameters &parameters) {
                   m_active_strains[n].set_m_day_of_strain_infection_status_change(rexpint1(parameters.g_dur_U) + parameters.g_current_time + 1);
                 }
                 break;
+              
               case Strain::SUBPATENT:
                 
+                // if more than one strain  then we can clear it
                 if(m_number_of_strains > 1) {
                   // If strain is subpatent to change then we clear it.
                   // Swap the strain pointer and strain acquisition date at that position to the back
@@ -1002,7 +1005,11 @@ void Person::event_handle(const Parameters &parameters) {
                   // Lower strain counter and decrease n so that we check the strain we just put here
                   m_number_of_strains--;
                   n--;
-                  if(m_number_of_strains==0) rcpp_out(parameters.g_h_quiet_print, "removed last strain\n!");
+                  if(m_number_of_strains==0) rcpp_out(parameters.g_h_quiet_print, "error: removed last strain\n!");
+                  
+                // if not then set the strain state change to the human's 
+                } else {
+                  m_active_strains[n].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change);
                 }
                 break;
               default:
@@ -1052,7 +1059,7 @@ void Person::event_handle(const Parameters &parameters) {
           }
           break;
         default:
-          assert(NULL && "Strain state change equested on strain that is not diseasod or asymptomatic or subpatent");
+          assert(NULL && "Strain state change requested on strain that is not diseasod or asymptomatic or subpatent");
         break;
         }
         set_m_day_of_next_strain_state_change();
@@ -1153,7 +1160,7 @@ void Person::event_handle(const Parameters &parameters) {
             
             // Update the day of next strain state change and the position to the most recent strain i.e the end
             m_day_of_next_strain_state_change = m_temp_int;
-            m_temp_strain_to_next_change = m_number_of_strains;
+            m_temp_strain_to_next_change = m_number_of_strains-1;
             
           }
           

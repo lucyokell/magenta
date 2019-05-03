@@ -65,14 +65,14 @@ double Strain::relative_contribution(const Parameters &parameters){
 // Work out if the strain caused late parasitological failure
 double Strain::late_paristological_failure_prob(const Parameters &parameters, int drug_choice){
   
-  return(1 - parameters.g_prob_of_lpf[to_ulong_range(0,parameters.g_number_of_resistance_loci)][drug_choice]);
+  return(1 - parameters.g_drugs[drug_choice].get_prob_of_lpf_barcode(m_barcode));
+  
 }
 
 // Work out if the strain is resistant at all for the drug given
 bool Strain::resistant_boolean(const Parameters &parameters, int drug_choice){
   
-  double prob_of_no_failure = parameters.g_prob_of_lpf[to_ulong_range(0,parameters.g_number_of_resistance_loci)][drug_choice];
-  if(prob_of_no_failure == 1.0) { 
+  if(parameters.g_drugs[drug_choice].get_prob_of_lpf_barcode(m_barcode) == 1.0) { 
     return(false);
   } else {
     return(true);
@@ -96,6 +96,21 @@ for (;start_bit < end_bit; ++ start_bit) {
 }
 return result;
 
+}
+
+// to_ulong but for positions in a bitset
+unsigned long Strain::bitset_positions_to_ulong(const std::vector<unsigned int> &bit_positions){
+  
+  unsigned long mask = 1;
+  unsigned long result = 0;
+  for (unsigned int start_bit = 0 ; start_bit < bit_positions.size(); start_bit++) {
+    if (m_barcode[bit_positions[start_bit]]) {
+      result |= mask;
+    }
+    mask <<= 1;
+  }
+  return result;
+  
 }
 
 // Work out if the strain is vector adapted

@@ -481,11 +481,17 @@ Pipeline <- function(EIR = 120,
         }
       }
     }
+    
+    
+    # last one may not occupy a full update length
+    temp_mu <- out$mu[1:update_length + ((i) * update_length)]
+    abridged_length <- sum(!is.na(temp_mu))
+    
     # final run
     pl2 <- param_list_simulation_update_create(
-      years = update_length / 365, ft = ft_now,
-      mu_vec = out$mu[1:update_length + ((i) * update_length)],
-      fv_vec = out$fv[1:update_length + ((i) * update_length)],
+      years = abridged_length / 365, ft = ft_now,
+      mu_vec = out$mu[1:abridged_length + ((i) * update_length)],
+      fv_vec = out$fv[1:abridged_length + ((i) * update_length)],
       spatial_list = spatial_list,
       drug_list = drug_list,
       statePtr = sim.out$Ptr

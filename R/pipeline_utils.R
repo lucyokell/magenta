@@ -360,6 +360,10 @@ housekeeping_list_create <- function(quiet = TRUE,
 #' @param resistance_flag Boolean are we simulating resistance
 #' @param number_of_resistance_loci Numeric for number of res. loci
 #' @param resistance_costs Numeric vector for costs of res. Should be 2^res.loci
+#' @param epistatic_logic Is there compensatory relationships. i.e. what loci 
+#'   need to be true for resistance cost to exist. Default of NULL means that 
+#'   this becomes seq_len(number_of_resistance_loci), i.e. only dependent on 
+#'   their own loci. (TODO: Change this to be a list of length norl)
 #' @param prob_of_lpf Numeric vector for lpf, Should be 2^res.loci * num_drugs
 #' @param mft_flag Boolean are we doing mft
 #' @param temporal_cycling Numeric for when in years a drug switch occurs
@@ -372,15 +376,20 @@ housekeeping_list_create <- function(quiet = TRUE,
 #' @export
 
 drug_list_create <- function(resistance_flag = FALSE,
+                             number_of_drugs = 2,
                              number_of_resistance_loci = 3,
-                             resistance_costs = c(1,0.99,0.98,0.97),
+                             resistance_costs = c(0.99,0.99,0.98),
+                             epistatic_logic = NULL, 
                              prob_of_lpf = list(c(1.0,0.97,0.80,0.55),
                                                 c(1.0,0.98,0.7,0.51)),
+                             barcode_res_pos = list(c(1,2),
+                                                    c(1,3)),
+                             dur_P = rep(25, number_of_drugs),
+                             dur_SPC = rep(5, number_of_drugs),
                              mft_flag = FALSE,
                              temporal_cycling = -1,
                              sequential_cycling = -1,
                              sequential_update = 3,
-                             number_of_drugs = 2,
                              drug_choice = 0,
                              partner_drug_ratios = rep(1/number_of_drugs,number_of_drugs)) {
   
@@ -388,17 +397,18 @@ drug_list_create <- function(resistance_flag = FALSE,
     stop ("Both sequential and temporal cycling can't be greater than 0")
   }
   
-  prob_of_lpf <- matrix(lpf_table_create(number_of_drugs, prob_of_lpf),
-                        nrow = number_of_drugs, byrow=TRUE)
-  
   resistance_costs <- resistance_cost_table_create(number_of_resistance_loci, 
-                                                   resistance_costs)
+                                                   resistance_costs,
+                                                   epistatic_logic)
   
   
   l <- list("g_resistance_flag" = resistance_flag,
             "g_number_of_resistance_loci" = number_of_resistance_loci,
             "g_cost_of_resistance" = resistance_costs,
             "g_prob_of_lpf" = prob_of_lpf,
+            "g_barcode_res_pos" = barcode_res_pos,
+            "g_dur_P" = dur_P,
+            "g_dur_SPC" = dur_SPC,
             "g_mft_flag" = mft_flag,
             "g_temporal_cycling" = temporal_cycling,
             "g_next_temporal_cycle" = temporal_cycling,
@@ -431,7 +441,13 @@ lpf_table_create <- function(number_of_drugs, drug_tables){
   
 }
 
-resistance_cost_table_create <- function(number_of_resistance_loci, resistance_costs){
+resistance_cost_table_create <- function(number_of_resistance_loci, 
+                                         resistance_costs, 
+                                         epistatic_logic=NULL){
+  
+  if (is.null(epistatic_logic)) {
+    epistatic_logic <- seq_len(number_of_resistance_loci)
+  }
   
   max_bits <- (2^(number_of_resistance_loci))-1
   barcode_poss <- matrix(intToBits(0:max_bits),ncol=32,byrow=T)[,1:(number_of_resistance_loci)]
@@ -439,7 +455,10 @@ resistance_cost_table_create <- function(number_of_resistance_loci, resistance_c
   count <- 1
   
   for(j in 1:nrow(barcode_poss)){
-    results[count] <- resistance_costs[sum(as.numeric(barcode_poss[j,]))+1]
+    comp <- epistatic_logic[as.logical(barcode_poss[j,])]
+    res <- as.logical(barcode_poss[j,])
+    res[which(res)] <- comp %in% which(res)
+    results[count] <- prod(resistance_costs[res])
     count <- count+1
   }
   

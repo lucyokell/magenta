@@ -75,6 +75,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   rcpp_out(parameters.g_h_quiet_print, "Rcpp function is working!\n");
   
   // Un pack barcode parms
+  // -------------------------------------------------
+  
   parameters.g_num_loci = Rcpp::as<unsigned int>(barcode_params["num_loci"]);
   parameters.g_ibd_length = Rcpp::as<unsigned int>(barcode_params["ibd_length"]);
   parameters.g_barcode_length = static_cast<int>(parameters.g_num_loci * parameters.g_ibd_length);
@@ -86,20 +88,32 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   parameters.g_mutations_today = std::vector<unsigned int>(parameters.g_num_loci,0);
   
   // Un pack drug parameters
+  // -------------------------------------------------
+  
   // barcode drug related parameters
   parameters.g_resistance_flag = Rcpp::as<bool>(drug_list["g_resistance_flag"]);
   parameters.g_number_of_resistance_loci= Rcpp::as<unsigned int>(drug_list["g_number_of_resistance_loci"]);
   parameters.g_cost_of_resistance = Rcpp::as<std::vector<double> >(drug_list["g_cost_of_resistance"]);
-  Rcpp::NumericMatrix problpfmat(Rcpp::as<Rcpp::NumericMatrix>(drug_list["g_prob_of_lpf"]));
-  parameters.g_prob_of_lpf = rcpp_matrix_doubles_to_vec_of_vec(problpfmat);
   
   // drug related parameters
   parameters.g_mft_flag = Rcpp::as<bool>(drug_list["g_mft_flag"]);
   parameters.g_number_of_drugs = Rcpp::as<unsigned int>(drug_list["g_number_of_drugs"]);
   parameters.g_drug_choice = Rcpp::as<int>(drug_list["g_drug_choice"]);
   parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["g_partner_drug_ratios"]);
+  parameters.g_drugs.reserve(parameters.g_number_of_drugs);
+  
+  for (unsigned int i = 0; i < parameters.g_number_of_drugs ; i++) {
+    parameters.g_drugs.emplace_back(
+        Rcpp::as<std::vector<double> >(Rcpp::as<Rcpp::List>(drug_list["g_prob_of_lpf"])[i]),
+        Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["g_barcode_res_pos"])[i]),     
+        Rcpp::as<std::vector<double> >(drug_list["g_dur_P"])[i],
+        Rcpp::as<std::vector<double> >(drug_list["g_dur_SPC"])[i]                                                    
+    );
+  }
   
   // vector adaptation parameters
+  // -------------------------------------------------
+  
   parameters.g_vector_adaptation_flag = Rcpp::as<bool>(vector_adaptation_list["g_vector_adaptation_flag"]);
   parameters.g_local_oocyst_advantage = Rcpp::as<double>(vector_adaptation_list["g_local_oocyst_advantage"]);
   parameters.g_gametocyte_non_sterilisation = Rcpp::as<double>(vector_adaptation_list["g_gametocyte_non_sterilisation"]);

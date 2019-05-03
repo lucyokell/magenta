@@ -167,11 +167,6 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   int daily_incidence_return = 0;
   int daily_bite_counters = 0;
   
-  // For loop preallocations
-  unsigned int human_update_i = 0;
-  unsigned int mosquito_update_i = 0;
-  unsigned int num_bites_i = 0;
-  
   // Maternal 
   double mean_psi = 0;
   double pi_sum = 0;
@@ -220,6 +215,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     u_ptr->parameters.g_sum_maternal_immunity = 0;
     u_ptr->parameters.g_total_mums = 0;
     
+    // Second reset counters
+    // --------------------------------------------------------------------------------------------------------------------------------------------------
+    
     // Reset import counters
     if (u_ptr->parameters.g_spatial_type == Parameters::ISLAND) 
     {
@@ -245,7 +243,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     u_ptr->parameters.g_total_human_infections = 0;
     u_ptr->parameters.g_total_mosquito_infections = 0;
     
-    // Second calculate the average biting rate and mosquito mortality for today given interventions
+    // Third calculate the average biting rate and mosquito mortality for today given interventions
     // --------------------------------------------------------------------------------------------------------------------------------------------------
     
     // mortality changes due to interventions so we set it each day
@@ -274,7 +272,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     // Human update loop
     // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Human loop" + "\n"); 
     // #pragma omp parallel for schedule(static,1)
-    for (human_update_i = 0; human_update_i < u_ptr->parameters.g_N; human_update_i++)
+    for (unsigned int human_update_i = 0; human_update_i < u_ptr->parameters.g_N; human_update_i++)
     {
       psi_sum += u_ptr->psi_vector[human_update_i] = u_ptr->population[human_update_i].update(u_ptr->parameters);
     }
@@ -298,7 +296,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // loop through the mosquitos up to the number that should be active today
     // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Mosquito loop" + "\n"); 
-    for (mosquito_update_i = 0; mosquito_update_i < temp_deficit; mosquito_update_i++)
+    for (unsigned int mosquito_update_i = 0; mosquito_update_i < temp_deficit; mosquito_update_i++)
     {
       // if the mosquito considered is more than needed then set to off season
       if (mosquito_update_i >= u_ptr->parameters.g_scourge_today) 
@@ -345,8 +343,6 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     // First calculate mean age dependent biting heterogeneity (psi)
     // --------------------------------------------------------------------------------------------------------------------------------------------------
     
-    
-    
     // Calculate mean age dependent biting rate
     mean_psi = psi_sum / u_ptr->parameters.g_N;
     
@@ -372,47 +368,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     // START: BITE ALLOCATIONS
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    // Random Walk Style Alternative Step //
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    /*
-     // create cdf of pi
-     std::partial_sum(u_ptr->pi_vector.begin(), u_ptr->pi_vector.end(), u_ptr->pi_vector.begin());
-     
-     // Create normalised pi by dividing by the mean age dependent biting rate
-     std::transform(u_ptr->pi_vector.begin(), u_ptr->pi_vector.end(), u_ptr->pi_vector.begin(),
-     std::bind1st(std::multiplies<double>(), 1 / pi_sum));
-     
-     // sort necessary randoms
-     std::partial_sort(bite_randoms.begin(), bite_randoms.begin() + num_bites, bite_randoms.begin() + num_bites);
-     //boost::sort::spreadsort::float_sort(bite_randoms.begin(), bite_randoms.begin() + num_bites);
-     
-     // set this bite random to >1 so that we definitely stop at the right point
-     bite_randoms[num_bites]++;
-     
-     // do sampling
-     samplerandoms(bite_randoms, u_ptr->pi_vector, num_bites, bite_storage_queue);
-     
-     // reset the bite random to what it was before (quicker than generating another new random)
-     bite_randoms[num_bites]--;
-     
-     // regenerate enough randomness
-     std::generate_n(bite_randoms.begin(), num_bites, runif0_1);
-     
-     */
-    
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // END: BITE ALLOCATION SAMPLING
-    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    // ALLOCATE BITES
-    // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
     // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Bite allocation" + "\n"); 
     // PARALLEL_TODO: Don't know how this could be parallelised yet - come back to with mosquitos in.
-    for (num_bites_i = 0; num_bites_i < num_bites; num_bites_i++)
+    for (unsigned int num_bites_i = 0; num_bites_i < num_bites; num_bites_i++)
     {
       
       // allocate bite to human if mosquito is infected
