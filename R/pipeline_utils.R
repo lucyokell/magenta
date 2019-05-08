@@ -250,7 +250,8 @@ mu_fv_create <- function(eqInit,
                          irs_cov = irs_cov,
                          int_times = NULL,
                          years = years,
-                         full = FALSE) {
+                         full = FALSE,
+                         complete = TRUE) {
   
   if (identical(irs_cov, 0) && identical(itn_cov, 0)) {
     out <- data.frame("mu"=rep(0.132, length(seq_len(years*365)+1)),
@@ -284,16 +285,22 @@ mu_fv_create <- function(eqInit,
       for(i in seq_len(l-1)){
         
         cov_mat[i+1, ] <- cov_mat[i, ]
-        cov_mat[i+1, 1] <- (1 - itn_cov[i+1]) * (1 - irs_cov[i+1])
+        cov_mat[i+1, 1] <- (1 - itn_cov[i]) * (1 - irs_cov[i])
         range <- (2 + ((i-1) * 3)) : ((3*i)+1)
-        itn_diff <- (itn_cov[i+1]-itn_cov[i])*(1-sum(cov_mat[i,-1]))
-        irs_diff <- (irs_cov[i+1]-irs_cov[i])*(1-sum(cov_mat[i,-1]))
-        cov_mat[i+1, range] <- c(itn_cov[i+1] * (1 - irs_cov[i+1]), (1 - itn_cov[i+1]) * irs_cov[i+1], itn_cov[i+1] * irs_cov[i+1]) - cumulative
-        cumulative <- cumulative + cov_mat[i+1, range]
+        if(i > 1) {
+          itn_diff <- (itn_cov[i]-itn_cov[i-1])
+          irs_diff <- (irs_cov[i]-irs_cov[i-1])
+        }
+        
+        cov_mat[i+1, range] <- c(itn_cov[i] * (1 - irs_cov[i]), (1 - itn_cov[i]) * irs_cov[i], itn_cov[i] * irs_cov[i])
+        if(sum(cov_mat[i+1, 2:range[3]])>0){
+          cov_mat[i+1, 2:range[3]] <- (cov_mat[i+1, 2:range[3]] / sum(cov_mat[i+1, 2:range[3]])) * (1-cov_mat[i+1,1])
+        }
         
       }
       
       cov_mat <- cov_mat[,c(1,seq(2,num_split-2,3),seq(3,num_split-1,3),seq(4,num_split,3))]
+      
       return(list("cov_mat"=cov_mat, 
                   "cov_breaks"=c(l,(2*l)-1),
                   "num_int"=num_split))
@@ -306,18 +313,45 @@ mu_fv_create <- function(eqInit,
     
     # set up the intervetnion times
     if (is.null(int_times)) {
-      int_times <- seq(0,by=365,length.out = years+1)
+      int_times <- c(-330,seq(0,by=365,length.out = years))
     }
     eqInit$int_times <- int_times
-    eqInit$ITN_IRS_on <- 0
+    eqInit$ITN_IRS_on <- -300
+    
     
     # create odin model
+    if (complete) {
+      
+    coverage <- intervention_odin_create(eqInit$int_times, eqInit$itn_cov, eqInit$irs_cov)
+    eqInit$cov_mat <- coverage$cov_mat
+    eqInit$num_int <- coverage$num_int
+    eqInit$il <- coverage$cov_breaks[1]
+    eqInit$ft_vec <- eqInit$ft
+    eqInit$pop_split <- rep(1, eqInit$num_int)
+    eqInit$num_intervention_times <- length(eqInit$int_times)
+    
+      extensions <- which(unlist(lapply(eqInit, function(x) {(length(dim(x))==3)})))
+      mat <- matrix(0, eqInit$na, eqInit$nh)
+      for(e in names(extensions)) {
+        if(grepl("_I",e)){
+        eqInit[[e]] <- array(eqInit[[e]][,,1] , c(eqInit$na, eqInit$nh, coverage$num_int))
+        } else {
+        eqInit[[e]] <-  vapply(rep(1,coverage$num_int), FUN = function(x) { x * eqInit[[e]][,,1]}, mat)
+        }
+      }
+      odin_model_path <- system.file("odin/odin_varying_cov.R",package="magenta")
+      
+    } else { 
+    
     odin_model_path <- system.file("extdata/odin.R",package="magenta")
-    gen <- odin::odin(odin_model_path,verbose=FALSE,build = TRUE)
+    
+    }
+    
+    gen <- odin::odin(odin_model_path,verbose=FALSE)
     model <- gen(user=eqInit,use_dde=TRUE)
     
     #create model and simulate
-    tt <- seq(0,years*365,1)
+    tt <- seq(1,years*365,1)
     mod_run <- model$run(tt)
     out <- model$transform_variables(mod_run)
     
@@ -382,8 +416,9 @@ drug_list_create <- function(resistance_flag = FALSE,
                              epistatic_logic = NULL, 
                              prob_of_lpf = list(c(1.0,0.97,0.80,0.55),
                                                 c(1.0,0.98,0.7,0.51)),
-                             barcode_res_pos = list(c(1,2),
-                                                    c(1,3)),
+                             barcode_res_pos = list(c(0,1),
+                                                    c(0,2)),
+                             prophylactic_pos = list(c(1),c(2)),
                              dur_P = rep(25, number_of_drugs),
                              dur_SPC = rep(5, number_of_drugs),
                              mft_flag = FALSE,
@@ -392,6 +427,9 @@ drug_list_create <- function(resistance_flag = FALSE,
                              sequential_update = 3,
                              drug_choice = 0,
                              partner_drug_ratios = rep(1/number_of_drugs,number_of_drugs)) {
+  
+  
+  # TODO: More check for formatting here that you have enough prophylactic etc
   
   if(temporal_cycling > 0 && sequential_cycling > 0) {
     stop ("Both sequential and temporal cycling can't be greater than 0")
@@ -407,6 +445,7 @@ drug_list_create <- function(resistance_flag = FALSE,
             "g_cost_of_resistance" = resistance_costs,
             "g_prob_of_lpf" = prob_of_lpf,
             "g_barcode_res_pos" = barcode_res_pos,
+            "g_prophylactic_pos" = prophylactic_pos,
             "g_dur_P" = dur_P,
             "g_dur_SPC" = dur_SPC,
             "g_mft_flag" = mft_flag,
