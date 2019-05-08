@@ -6,7 +6,7 @@
 \usage{
 model_param_list_create(eta = 0.0001305, rho = 0.85, a0 = 2920,
   sigma2 = 1.67, max_age = 100 * 365, rA = 0.00512821, rT = 0.2,
-  rD = 0.2, rU = 0.00906627, rP = 1/15, dE = 12, delayGam = 12.5,
+  rD = 0.2, rU = 0.00906627, rP = 1/25, dE = 12, delayGam = 12.5,
   cD = 0.0676909, cT = 0.322 * cD, cU = 0.006203, gamma1 = 1.82425,
   d1 = 0.160527, dID = 3650, ID0 = 1.577533, kD = 0.476614,
   uD = 9.44512, aD = 8001.99, fD0 = 0.007055, gammaD = 4.8183,

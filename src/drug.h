@@ -111,9 +111,22 @@ public:
       }
       mask <<= 1;
     }
-    return m_lpf[result];
+    return (m_lpf[result]);
     
     }
+  
+  // Does the provided barcode have resistant loci
+  bool resistance_to_drug(boost::dynamic_bitset<> &x) const { 
+    
+    // start as true and then and assign AND
+    bool resistant = true;
+    for (unsigned int p : m_prophylactic_positions) {
+      resistant = resistant && x[p];
+    }
+    
+    return(resistant);
+    
+  }
   
   // Get early reinfection
   bool early_reinfection(boost::dynamic_bitset<> &x,
@@ -122,24 +135,23 @@ public:
                          unsigned int day_treated) const { 
     
     // start as true and then and assign AND
-    bool resistant = true;
-    for (unsigned int p : m_prophylactic_positions) {
-      resistant = resistant && x[p];
-    }
+    bool resistant = resistance_to_drug(x);
     
     // if it was resistant then check for early infetction
     if (resistant) {
       
       if (current_time > (day_of_change - ((day_of_change - day_treated)/2))) {
-        return true;
+        return(true);
       } else {
-        return false;
+        return(false);
       }
     } else {
-      return false;
+      return(false);
     }
-
+    
   }
+  
+  
   
   //
   
@@ -153,6 +165,7 @@ public:
       Rcpp::List::create(
         Rcpp::Named("m_lpf")=m_lpf, 
         Rcpp::Named("m_barcode_positions")=m_barcode_positions,
+        Rcpp::Named("m_prophylactic_positions")=m_prophylactic_positions,
         Rcpp::Named("m_dur_P")=m_dur_P,
         Rcpp::Named("m_dur_SPC")=m_dur_SPC
       )
@@ -164,6 +177,7 @@ public:
     
     m_lpf(Rcpp::as<std::vector<double> >(list["m_lpf"])), 
     m_barcode_positions(Rcpp::as<std::vector<unsigned int> >(list["m_barcode_positions"])), 
+    m_prophylactic_positions(Rcpp::as<std::vector<unsigned int> >(list["m_prophylactic_positions"])), 
     m_dur_P(Rcpp::as<double>(list["dur_P"])),
     m_dur_SPC(Rcpp::as<double>(list["dur_SPC"]))
     

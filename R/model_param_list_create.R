@@ -93,7 +93,7 @@ model_param_list_create <- function(
   rT = 0.2,
   rD = 0.2,
   rU = 0.00906627,
-  rP = 1/15,
+  rP = 1/25,
   #  human latent period and time lag from asexual parasites to
   dE  = 12,
   delayGam = 12.5,

@@ -171,6 +171,7 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   int drug_choice = parameters.g_drug_choice;
   int time_ago = 0;
   double prob_of_lpf = 0.0;
+  double temp_prob_lpf = 0.0;
   
   // set up our post treatment vectors
   m_post_treatment_strains.clear();
@@ -187,21 +188,42 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   // assign this drug choice to them
   m_drug_choice = drug_choice;
   
-  // loop through strains and work out which will survive treatment (if any)
+  // loop through strains and work out the individuals prob of lpf
   for(int ts = 0; ts < m_number_of_strains ; ts++){
     
-    prob_of_lpf = m_active_strains[ts].late_paristological_failure_prob(parameters, drug_choice);
-    if(prob_of_lpf != 0.0) { 
+    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, drug_choice);
+    prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
+    
+  }
+  
+  // did they clear
+  if (rbernoulli1(prob_of_lpf)){
+    
+    bool at_least_one = true;
+    
+    // if so then loop through backwards and work out which strains survived
+    // we loop through backwards as it makes more sense to ensure the strain
+    // that we pick to definitely survived should be the most recent
+    for(int ts = (m_number_of_strains-1); ts >=0  ; ts--){
       
-      m_resistant_strains.emplace_back(m_active_strains[ts]);
+      // what is this strains lpf
+      temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, drug_choice);
       
-      // if infection was more than dur_A ago then it is cleared for sure
-      time_ago = ((parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
-        m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition());
-      
-      if( time_ago < 1 ) {
-        if(rbernoulli1(prob_of_lpf * (1 - time_ago))) {
-          m_post_treatment_strains.emplace_back(m_active_strains[ts]);
+      // is this the same lpf as for the human and is this the first occurrence
+      if (at_least_one && (temp_prob_lpf == prob_of_lpf)) {
+        m_post_treatment_strains.emplace_back(m_active_strains[ts]);
+        at_least_one = false;
+      } 
+      else 
+      {
+        // if infection was more than dur_A ago then it is cleared for sure
+        time_ago = ((parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
+          m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition());
+        
+        if( time_ago < 1 ) {
+          if(rbernoulli1(prob_of_lpf * (1 - time_ago))) {
+            m_post_treatment_strains.emplace_back(m_active_strains[ts]);
+          }
         }
       }
       
@@ -468,13 +490,6 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     // if it is the first sporozoite then it is always taken. For successive sporozoites, we probabilistically decide based on their immunity
     if(cotransmission == 0 || rbernoulli1(m_biting_success_rate)) {
       
-      if(!cotransmission){
-        m_cotransmission_realisation_vector.emplace_back(false);
-      } else {
-        m_cotransmission_realisation_vector.back() = true;
-        m_cotransmission_realisation_vector.emplace_back(true);
-      }
-      
       // Push the resultant state of infection
       m_infection_state_realisation_vector.emplace_back(m_temp_infection_state);
       
@@ -686,11 +701,10 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
 {
   
   // are we doing mutation modelling
-  if (parameters.g_mutation_flag) {
+  if (parameters.g_resistance_flag) {
     
     // are they prophylactic
     if (m_infection_state == PROPHYLAXIS) {
-      
       
       if (parameters.g_drugs[m_drug_choice].early_reinfection(
           m_infection_barcode_realisation_vector.back(),
@@ -804,10 +818,18 @@ void Person::treatment_outcome(const Parameters &parameters) {
       }
     }
   } else {
+    
+    // did they fail due to the drug failing (regardless of resistance)
+    if(rbernoulli1(1 - parameters.g_drugs[m_drug_choice].get_prob_of_lpf_x(0))) {
+      m_post_treatment_strains = m_active_strains;
+      late_paristological_failure(parameters);
+      m_treatment_outcome = LPF;
+    } else {
     m_treatment_outcome = SUCCESFULLY_TREATED;
     m_infection_state = PROPHYLAXIS;
     schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
     all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+    }
   }
   
 }

@@ -152,11 +152,15 @@ Pipeline <- function(EIR = 120,
     # Create age brackets, either geometric or evenly spaced
     age_vector <- age_brackets(100, 20, TRUE)
 
+    # check to change the ft for the initial and odin to reflect 28 day failure rates
+    lpfs <- unlist(lapply(drug_list$g_prob_of_lpf[seq_len(drug_list$g_number_of_drugs)],"[[",1))
+    ft_odin <- ft * weighted.mean(lpfs, drug_list$g_partner_drug_ratios)
+    
     # Create a near equilibirum initial condition
     eqInit <- equilibrium_init_create(
       age_vector = age_vector,
       het_brackets = 5,
-      ft = ft[1],
+      ft = ft_odin[1],
       EIR = EIR,
       country = country,
       admin = admin,
@@ -346,7 +350,7 @@ Pipeline <- function(EIR = 120,
 
   # DETERMINISTIC MOSQUITO PRE-SIMULATION ---------- #####
   out <- mu_fv_create(
-    eqInit = eqInit, ft = ft, itn_cov = itn_cov,
+    eqInit = eqInit, ft = ft_odin, itn_cov = itn_cov,
     irs_cov = irs_cov, years = years
   )
   if (length(ft) == 1) ft <- rep(ft, years)

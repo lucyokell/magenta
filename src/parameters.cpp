@@ -72,9 +72,9 @@ Parameters::Parameters() {
   g_dur_E = 12;
   g_dur_T = 5;
   g_dur_D = 5;
-  g_dur_U = 110;
+  g_dur_U = 110.29;
   g_dur_P = 25;
-  g_dur_A = 200;
+  g_dur_A = 195;
   g_dur_AU = g_dur_A + g_dur_U;
   // Pre-erythrocytic immunity parameters
   g_d1 = 0.160527;

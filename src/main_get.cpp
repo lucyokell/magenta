@@ -179,7 +179,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     // Pending Infection time vector
     Infection_time_realisation_vectors[element] = universe_ptr->population[element].get_m_infection_time_realisation_vector();
     
-    // rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Prepending working!" + std::to_string(element) "\n");
+     rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Prepending working!" + std::to_string(element) + "\n");
     
     // Pending Infection barcode and state vector
     // ---------------------------------------
@@ -187,14 +187,12 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     Infection_barcode_realisation_vectors[element].reserve(temp_infection_barcode_realisation_vector.size());
     
     temp_infection_state_realisation_vector = universe_ptr->population[element].get_m_infection_state_realisation_vector();
-    temp_cotransmission_vector = universe_ptr->population[element].get_m_cotransmission_realisation_vector();
-
     Infection_state_realisation_vectors[element].reserve(temp_infection_state_realisation_vector.size());
-
+    
+    rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Prestatus  working!" + std::to_string(element) + "\n");
     for(temp_status_iterator = 0 ; temp_status_iterator < static_cast<unsigned int>(temp_infection_state_realisation_vector.size()) ; )
     {
       Infection_state_realisation_vectors[element].emplace_back(temp_infection_state_realisation_vector[temp_status_iterator]);
-      Strain_cotransmission[element].emplace_back(temp_cotransmission_vector[temp_status_iterator]);
 
       for(temp_barcode_iterator = 0; temp_barcode_iterator < universe_ptr->parameters.g_barcode_length ; temp_barcode_iterator++ )
       {
@@ -245,7 +243,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
       }
     }
     
-    // rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Poststrains loop working!\n");
+     rcpp_out(universe_ptr->parameters.g_h_quiet_print, "Poststrains loop working!\n");
     
   }
     

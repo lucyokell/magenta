@@ -509,9 +509,13 @@ fd <- function(age, fD0, aD, gammaD) {
 }
 
 # convert allele frequencies
-pop_alf <- function(nums,nl){ 
+pop_alf <- function(nums,nl,weighted=TRUE){ 
   if(class(nums %>% unlist)=="raw") {
+    if(weighted) {
+    res <- colSums(do.call(rbind,lapply(nums,function(x){colMeans(matrix(as.numeric(x),ncol = nl))})))/length(nums)
+    } else {
     res <- colMeans(matrix(as.numeric(do.call(rbind,nums)),ncol=nl))
+    }
   } else {
     res <- rep(NA,nl)
   }
