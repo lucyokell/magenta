@@ -251,7 +251,8 @@ mu_fv_create <- function(eqInit,
                          int_times = NULL,
                          years = years,
                          full = FALSE,
-                         complete = TRUE) {
+                         complete = TRUE,
+                         odin_model = system.file("extdata/odin_model_itn_irs.R",package="magenta")) {
   
   if (identical(irs_cov, 0) && identical(itn_cov, 0)) {
     out <- data.frame("mu"=rep(0.132, length(seq_len(years*365)+1)),
@@ -273,80 +274,34 @@ mu_fv_create <- function(eqInit,
       return(c(x[1],x))
     }
     
-    intervention_odin_create <- function(int_times, itn_cov, irs_cov){
-      
-      l <- length(int_times)
-      num_split <- 4 + 3*(l-2)
-      cov <- rep(0,num_split)
-      cov[1] <- 1
-      cov_mat <- matrix(cov,nrow = l,ncol=length(cov), byrow = TRUE)
-      cumulative <- c(0,0,0)
-      
-      for(i in seq_len(l-1)){
-        
-        cov_mat[i+1, ] <- cov_mat[i, ]
-        cov_mat[i+1, 1] <- (1 - itn_cov[i]) * (1 - irs_cov[i])
-        range <- (2 + ((i-1) * 3)) : ((3*i)+1)
-        if(i > 1) {
-          itn_diff <- (itn_cov[i]-itn_cov[i-1])
-          irs_diff <- (irs_cov[i]-irs_cov[i-1])
-        }
-        
-        cov_mat[i+1, range] <- c(itn_cov[i] * (1 - irs_cov[i]), (1 - itn_cov[i]) * irs_cov[i], itn_cov[i] * irs_cov[i])
-        if(sum(cov_mat[i+1, 2:range[3]])>0){
-          cov_mat[i+1, 2:range[3]] <- (cov_mat[i+1, 2:range[3]] / sum(cov_mat[i+1, 2:range[3]])) * (1-cov_mat[i+1,1])
-        }
-        
-      }
-      
-      cov_mat <- cov_mat[,c(1,seq(2,num_split-2,3),seq(3,num_split-1,3),seq(4,num_split,3))]
-      
-      return(list("cov_mat"=cov_mat, 
-                  "cov_breaks"=c(l,(2*l)-1),
-                  "num_int"=num_split))
-    }
-    
     # check interventions parm lengths
-    eqInit$ft <- length_check(ft)
+    eqInit$ft_vec <- length_check(ft)
     eqInit$itn_cov <- length_check(itn_cov)
     eqInit$irs_cov <- length_check(irs_cov)
     
     # set up the intervetnion times
     if (is.null(int_times)) {
-      int_times <- c(-330,seq(0,by=365,length.out = years))
+      int_times <- c(-30,seq(0,by=365,length.out = years))
     }
     eqInit$int_times <- int_times
-    eqInit$ITN_IRS_on <- -300
+    eqInit$ITN_IRS_on <- -30
     
     
-    # create odin model
-    if (complete) {
-      
-    coverage <- intervention_odin_create(eqInit$int_times, eqInit$itn_cov, eqInit$irs_cov)
-    eqInit$cov_mat <- coverage$cov_mat
-    eqInit$num_int <- coverage$num_int
-    eqInit$il <- coverage$cov_breaks[1]
-    eqInit$ft_vec <- eqInit$ft
-    eqInit$pop_split <- rep(1, eqInit$num_int)
-    eqInit$num_intervention_times <- length(eqInit$int_times)
+    # split pop accordingly
+    eqInit$pop_split <- rep(1/eqInit$num_int, eqInit$num_int)
     
-      extensions <- which(unlist(lapply(eqInit, function(x) {(length(dim(x))==3)})))
-      mat <- matrix(0, eqInit$na, eqInit$nh)
-      for(e in names(extensions)) {
-        if(grepl("_I",e)){
-        eqInit[[e]] <- array(eqInit[[e]][,,1] , c(eqInit$na, eqInit$nh, coverage$num_int))
-        } else {
-        eqInit[[e]] <-  vapply(rep(1,coverage$num_int), FUN = function(x) { x * eqInit[[e]][,,1]}, mat)
-        }
+    extensions <- which(unlist(lapply(eqInit, function(x) {(length(dim(x))==3)})))
+    mat <- matrix(0, eqInit$na, eqInit$nh)
+    for(e in names(extensions)) {
+      if(grepl("_I",e)){
+        eqInit[[e]] <- array(eqInit[[e]][,,1] , c(eqInit$na, eqInit$nh, eqInit$num_int))
+      } else {
+        eqInit[[e]] <-  vapply(rep(1/eqInit$num_int,eqInit$num_int), FUN = function(x) { x * eqInit[[e]][,,1]}, mat)
       }
-      odin_model_path <- system.file("odin/odin_varying_cov.R",package="magenta")
-      
-    } else { 
-    
-    odin_model_path <- system.file("extdata/odin.R",package="magenta")
-    
     }
     
+    # build model 
+    odin_model_path <- odin_model
     gen <- odin::odin(odin_model_path,verbose=FALSE)
     model <- gen(user=eqInit,use_dde=TRUE)
     
@@ -647,14 +602,14 @@ update_saves <- function(res, i, sim.out, sample_states,
         
         if(i%%12 == 0 && i >= (length(res)-180)){
           res[[i]] <- COI_df_create(df, barcodes=TRUE, nl=num_loci, 
-                                     ibd = barcode_params$barcode_type,
-                                     n = sample_size, reps = sample_reps, 
-                                     mean_only = mean_only)
+                                    ibd = barcode_params$barcode_type,
+                                    n = sample_size, reps = sample_reps, 
+                                    mean_only = mean_only)
         } else {
           res[[i]] <- COI_df_create(df, barcodes=FALSE, nl=num_loci, 
-                                     ibd = barcode_params$barcode_type,
-                                     n = sample_size, reps = sample_reps, 
-                                     mean_only = mean_only)
+                                    ibd = barcode_params$barcode_type,
+                                    n = sample_size, reps = sample_reps, 
+                                    mean_only = mean_only)
         }
         
         res[[i]]$Prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))

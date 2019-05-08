@@ -5,7 +5,7 @@
 \title{Create mosquito death and feeding vector}
 \usage{
 mu_fv_create(eqInit, ft = ft, itn_cov = itn_cov, irs_cov = irs_cov,
-  int_times = NULL, years = years, full = FALSE)
+  int_times = NULL, years = years, full = FALSE, complete = TRUE)
 }
 \arguments{
 \item{eqInit}{Equilibrium Inititial Conditions}

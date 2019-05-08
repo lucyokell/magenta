@@ -5,12 +5,14 @@
 #'   Default = NULL
 #' @param admin Character for admin region. Some fuzzy logic will be used to 
 #'   match. If not provided then no seasonality is introduced. Default = NULL
-#'
+#' @param quiet Whether function should be quiet. If FALSE (default) the 
+#'   returned country and admin are printed. 
+#' 
 #' @return Row number of the matching region in 
 #'   \code{magenta::admin_units_seasonal}
 #'
 
-admin_match <- function(admin = NULL, country = NULL) {
+admin_match <- function(admin = NULL, country = NULL, quiet = FALSE) {
   ads <- magenta::admin_units_seasonal
   
   match_clean <- function(a,b, quiet=TRUE){

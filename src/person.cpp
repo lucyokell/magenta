@@ -109,7 +109,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
         m_active_strain_contribution.emplace_back(parameters.g_cD);
         break;
       case Strain::ASYMPTOMATIC:
-        // We might need to recalculate the contribution from an asymptomatic for the first time here if the person is clinically diseased but is also conifecte with asymptomatic strains
+        // We might need to recalculate the contribution from an asymptomatic for the first time here if the person is clinically diseased but is also conifected with asymptomatic strains
         if (m_cA_counter)
         {
           // double fD = (1 - ((1 - parameters.g_fD0) / (1 + (pow((m_person_age / parameters.g_aD), parameters.g_gD)))));
@@ -325,13 +325,6 @@ void Person::set_m_day_of_next_event() {
       }
     }
     
-    // Compare against strain clearance day
-    /*
-     if (m_day_of_next_event > m_day_of_strain_clearance && m_day_of_strain_clearance != 0) {
-     m_day_of_next_event = m_day_of_strain_clearance;
-     }
-     */
-    
     // Compare against infection status change day
     if (m_day_of_next_event > m_day_of_InfectionStatus_change && m_day_of_InfectionStatus_change != 0) {
       m_day_of_next_event = m_day_of_InfectionStatus_change;
@@ -384,12 +377,13 @@ void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
     // Work out if the bite has led to an infection
     
     // Firstly if the human is susceptible, asymptomatic or subpatent they could be infected
-    // or in prophylaxis or is prophylactic but mosquito has resistant strains.
+    // or in prophylaxis or and we're doing resistance modelling
+    
     // Or if they are diseased currently (i.e. sufficiently high blood stage parasitaemia to block liver stage)
     if (m_infection_state == SUSCEPTIBLE ||
         m_infection_state == ASYMPTOMATIC || 
         m_infection_state == SUBPATENT || 
-        (parameters.g_resistance_flag ? m_infection_state == PROPHYLAXIS && mosquito.check_resistance() : false)
+        (parameters.g_resistance_flag && m_infection_state == PROPHYLAXIS)
     )
     {
       
@@ -544,7 +538,7 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     }
     
     // TODO: add here a function call to remove this strain if it would have been cleared by prophylaxis
-    //clear_strain_if_prophylactic(parameters);
+    clear_strain_if_prophylactic(parameters);
     
   }
   
@@ -690,34 +684,33 @@ void Person::all_strain_clearance() {
 // Clear the last strain if it would have been cleared by prophylaxis
 void Person::clear_strain_if_prophylactic(const Parameters &parameters)
 {
- 
- // are we doing mutation modelling
- if (parameters.g_mutation_flag) {
-   
-   // are they prophylactic
-   if (m_infection_state == PROPHYLAXIS) {
-     
-     // is the strain resistant to partner drug
-     if (m_infection_barcode_realisation_vector[m_infection_barcode_realisation_vector.size()-1]
-           [(parameters.g_drugs[m_drug_choice].get_m_barcode_positions())[1]]) {
-       
-       // and if it is, is the person over half way through their prophylaxis
-       if (parameters.g_current_time > 
-              (m_day_of_InfectionStatus_change - ((m_day_of_InfectionStatus_change - m_day_last_treated)/2) ) ) {
-         
-         // if so then remove the last strain added
-         m_infection_barcode_realisation_vector.pop_back();
-         m_infection_state_realisation_vector.pop_back();
-         m_infection_time_realisation_vector.pop_back();
-       }
-       
-     }
-     
-   }
-   
- }
+  
+  // are we doing mutation modelling
+  if (parameters.g_mutation_flag) {
+    
+    // are they prophylactic
+    if (m_infection_state == PROPHYLAXIS) {
+      
+      
+      if (parameters.g_drugs[m_drug_choice].early_reinfection(
+          m_infection_barcode_realisation_vector.back(),
+          parameters.g_current_time,
+          m_day_of_InfectionStatus_change,
+          m_day_last_treated) ) {
+        
+        // if so then remove the last strain added
+        m_infection_barcode_realisation_vector.pop_back();
+        m_infection_state_realisation_vector.pop_back();
+        m_infection_time_realisation_vector.pop_back();
+      }
+      
+    }
+    
+  }
   
 }
+
+
 
 // Kill person, i.e. reset age to 0, infections to 0, state to susceptible, immunities reset etc
 void Person::die(const Parameters &parameters)

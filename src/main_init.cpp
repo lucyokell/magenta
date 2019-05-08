@@ -106,6 +106,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
     parameters.g_drugs.emplace_back(
         Rcpp::as<std::vector<double> >(Rcpp::as<Rcpp::List>(drug_list["g_prob_of_lpf"])[i]),
         Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["g_barcode_res_pos"])[i]),     
+        Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["g_prophylactic_pos"])[i]),     
         Rcpp::as<std::vector<double> >(drug_list["g_dur_P"])[i],
         Rcpp::as<std::vector<double> >(drug_list["g_dur_SPC"])[i]                                                    
     );

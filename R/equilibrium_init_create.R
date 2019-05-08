@@ -16,6 +16,8 @@
 #' @param ft Numeric for the frequency of people seeking treatment.
 #' @param EIR Numeric for desired annual EIR.
 #' @param model_param_list List of epidemiological parameters created by
+#' @param quiet Whether function should be quiet. If FALSE (default) the 
+#'   returned country and admin are printed. 
 #'
 #' @importFrom stringi stri_trans_general
 #' @importFrom statmod gauss.quad.prob
@@ -23,9 +25,14 @@
 #'
 #' @export
 
-equilibrium_init_create <- function(age_vector, het_brackets,
-                                    country = NULL, admin = NULL, ft,
-                                    EIR, model_param_list)
+equilibrium_init_create <- function(age_vector, 
+                                    het_brackets,
+                                    ft,
+                                    EIR, 
+                                    model_param_list,
+                                    country = NULL, 
+                                    admin = NULL, 
+                                    quiet = FALSE)
 {
   
   # mpl is shorter :)
@@ -64,6 +71,7 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   }
   age_rate[na] = 0
   
+  
   den <- 1/(1 + age_rate[1]/mpl$eta)
   for (i in 1:(na-1))
   {
@@ -72,8 +80,6 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   
   age59 <- which(age_vector * 12 > 59)[1] - 1  # index of age vector before age is >59 months
   age05 <- which(age_vector > 5)[1] - 1  # index of age vector before age is 5 years
-  age2years <- which(age_vector > 2)[1] - 1  # index of age vector before age is 2 years
-  age10years <- which(age_vector > 10)[1] - 1  # index of age vector before age is 10 years
   
   ## force of infection
   foi_age <- c()
@@ -105,15 +111,14 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   
   # maternal immunity begins at a level proportional to the clinical
   # immunity of a 20 year old, this code finds that level
-  
   age20i <- rep(0, na)
   for (i in 2:na)
   {
     age20i[i] <- ifelse(age[i] >= (20 * mpl$DY) & age[i - 1] < (20 * mpl$DY),
                         i, age20i[i - 1])
   }
-  age20u <- age20i[na]
-  age20l <- age20u - 1
+  age20u <- as.integer(age20i[na])
+  age20l <- as.integer(age20u - 1)
   age_20_factor <- (20 * mpl$DY - age[age20l] - 0.5 * age_width[age20l]) *
     2/(age_width[age20l] + age_width[age20u])
   
@@ -181,25 +186,24 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   {
     for (i in 2:na)
     {
-      Z_eq[i, j, 1] <- (den_het[i, j] - delta[i] * 
-                          (Z_eq[i - 1, j, 2]/betaT[i, j] +
-                             Z_eq[i - 1, j, 3]/betaD[i, j] +
-                             (mpl$rT *  Z_eq[i - 1, j, 2]/betaT[i, j]
-                              + Z_eq[i - 1, j, 4])/betaP[i, j]))/(1 + aT[i, j] + aD[i, j] + aP[i, j])
-      Z_eq[i, j, 2] <- aT[i, j] * Z_eq[i, j, 1] + delta[i] *
-        Z_eq[i - 1, j, 2]/betaT[i, j]
-      Z_eq[i, j, 3] <- aD[i, j] * Z_eq[i, j, 1] + delta[i] * 
-        Z_eq[i - 1, j, 3]/betaD[i, j]
-      Z_eq[i, j, 4] <- aP[i, j] * Z_eq[i, j, 1] + delta[i] * 
-        (mpl$rT * Z_eq[i - 1, j, 2]/betaT[i, j] + Z_eq[i - 1, j, 4])/betaP[i,j]
+      Z_eq[i, j, 1] <- (den_het[i, j] - delta[i] * (Z_eq[i - 1, j, 2]/betaT[i, j] +
+                                                      Z_eq[i - 1, j, 3]/betaD[i, j] +
+                                                      (mpl$rT *  Z_eq[i - 1, j, 2]/betaT[i, j]
+                                                       + Z_eq[i - 1, j, 4])/betaP[i, j]))/(1 + aT[i, j] + aD[i, j] + aP[i, j])
+      Z_eq[i, j, 2] <- aT[i, j] * Z_eq[i, j, 1] + delta[i] * Z_eq[i -
+                                                                    1, j, 2]/betaT[i, j]
+      Z_eq[i, j, 3] <- aD[i, j] * Z_eq[i, j, 1] + delta[i] * Z_eq[i -
+                                                                    1, j, 3]/betaD[i, j]
+      Z_eq[i, j, 4] <- aP[i, j] * Z_eq[i, j, 1] + delta[i] * (mpl$rT *
+                                                                Z_eq[i - 1, j, 2]/betaT[i, j] + Z_eq[i - 1, j, 4])/betaP[i,j]
       
     }
   }
   
-  Y_eq <- Z_eq[, , 1]
-  T_eq <- Z_eq[, , 2]
-  D_eq <- Z_eq[, , 3]
-  P_eq <- Z_eq[, , 4]
+  Y_eq <- matrix(Z_eq[, , 1], nrow = na, ncol=nh)
+  T_eq <- matrix(Z_eq[, , 2], nrow = na, ncol=nh)
+  D_eq <- matrix(Z_eq[, , 3], nrow = na, ncol=nh)
+  P_eq <- matrix(Z_eq[, , 4], nrow = na, ncol=nh)
   
   betaS <- apply(FOI_eq, MARGIN = 2, FUN = function(x, y)
   {
@@ -217,6 +221,7 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   A_eq <- matrix(ncol = nh, nrow = na)
   U_eq <- matrix(ncol = nh, nrow = na)
   S_eq <- matrix(ncol = nh, nrow = na)
+  
   for (i in 1:na)
   {
     for (j in 1:nh)
@@ -227,8 +232,8 @@ equilibrium_init_create <- function(age_vector, het_brackets,
       U_eq[i, j] <- (mpl$rA * A_eq[i, j] + delta[i] * ifelse(i == 1,
                                                              0, U_eq[i - 1, j]))/betaU[i, j]
       S_eq[i, j] <- Y_eq[i, j] - A_eq[i, j] - U_eq[i, j]
-      FOIvij_eq[i, j] <- foi_age[i] * mpl$av0 * 
-        (mpl$cT * T_eq[i, j] + mpl$cD * D_eq[i, j] + cA_eq[i, j] * A_eq[i, j] + mpl$cU * U_eq[i, j]) * rel_foi[j]/omega
+      FOIvij_eq[i, j] <- foi_age[i] * mpl$av0 * (mpl$cT * T_eq[i, j] + mpl$cD *
+                                                   D_eq[i, j] + cA_eq[i, j] * A_eq[i, j] + mpl$cU * U_eq[i, j]) * rel_foi[j]/omega
     }
   }
   
@@ -242,40 +247,39 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   mv0 <- omega * EIRd_eq/(Iv_eq * mpl$av0)
   
   # larval states
-  K0 <- 2 * mv0 * mpl$dLL * mpl$mu0 * (1 + mpl$dPL * mpl$muPL) * 
-    mpl$gammaL * (mpl$lambda + 1)/(mpl$lambda/(mpl$muLL * mpl$dEL) - 1/(mpl$muLL * mpl$dLL) - 1)
+  K0 <- 2 * mv0 * mpl$dLL * mpl$mu0 * (1 + mpl$dPL * mpl$muPL) * mpl$gammaL * (mpl$lambda + 1)/(mpl$lambda/(mpl$muLL *
+                                                                                                              mpl$dEL) - 1/(mpl$muLL * mpl$dLL) - 1)
   PL_eq <- 2 * mpl$dPL * mpl$mu0 * mv0
   LL_eq <- mpl$dLL * (mpl$muPL + 1/mpl$dPL) * PL_eq
-  EL_eq <- (LL_eq/mpl$dLL + mpl$muLL* LL_eq * 
-              (1 + mpl$gammaL * LL_eq/K0))/(1/mpl$dEL - mpl$muLL * mpl$gammaL * LL_eq/K0)
+  EL_eq <- (LL_eq/mpl$dLL + mpl$muLL* LL_eq * (1 + mpl$gammaL * LL_eq/K0))/(1/mpl$dEL - mpl$muLL * mpl$gammaL * LL_eq/K0)
   
   # add in final dimension - interventions
   num_int <- mpl$num_int
-  pop_split <- mpl$pop_split
+  cov <- mpl$cov
   
   mat <- matrix(0, na, nh)
   
-  S_eq <- vapply(pop_split, FUN = function(x)
+  S_eq <- vapply(cov, FUN = function(x)
   {
     x * S_eq
   }, mat)
-  T_eq <- vapply(pop_split, FUN = function(x)
+  T_eq <- vapply(cov, FUN = function(x)
   {
     x * T_eq
   }, mat)
-  D_eq <- vapply(pop_split, FUN = function(x)
+  D_eq <- vapply(cov, FUN = function(x)
   {
     x * D_eq
   }, mat)
-  A_eq <- vapply(pop_split, FUN = function(x)
+  A_eq <- vapply(cov, FUN = function(x)
   {
     x * A_eq
   }, mat)
-  U_eq <- vapply(pop_split, FUN = function(x)
+  U_eq <- vapply(cov, FUN = function(x)
   {
     x * U_eq
   }, mat)
-  P_eq <- vapply(pop_split, FUN = function(x)
+  P_eq <- vapply(cov, FUN = function(x)
   {
     x * P_eq
   }, mat)
@@ -285,28 +289,8 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   ICA_eq = array(ICA_eq, c(na, nh, num_int))
   ICM_eq = array(ICM_eq, c(na, nh, num_int))
   
-  # TODO: Remove this part and put it as an edit to the equilibrium solution
-  if(!is.null(mpl$ncc)){
-    IB_eq = array(IB_eq, c(na, nh, num_int, mpl$ncc))
-    ID_eq = array(ID_eq, c(na, nh, num_int, mpl$ncc))
-    ICA_eq = array(ICA_eq, c(na, nh, num_int, mpl$ncc))
-    ICM_eq = array(ICM_eq, c(na, nh, num_int, mpl$ncc))
-    
-    # add in final dimension - interventions
-    all_rounds = mpl$MDA_grp_prop*mpl$MDA_cov
-    ccov = c(all_rounds, 1-all_rounds)
-    
-    mat2 <- array(0, c(na,nh, num_int))
-    S_eq <- vapply(ccov,FUN = function(x){x * S_eq},mat2)
-    T_eq <- vapply(ccov,FUN = function(x){x * T_eq},mat2)
-    D_eq <- vapply(ccov,FUN = function(x){x * D_eq},mat2)
-    A_eq <- vapply(ccov,FUN = function(x){x * A_eq},mat2)
-    U_eq <- vapply(ccov,FUN = function(x){x * U_eq},mat2)
-    P_eq <- vapply(ccov,FUN = function(x){x * P_eq},mat2)
-  }
-  
   # find database seasonal parameters
-  admin_matches <- admin_match(admin, country)
+  admin_matches <- admin_match(admin, country, quiet)
   admins_seasonal <- magenta::admin_units_seasonal
   
   if(admin_matches!=0){
@@ -337,6 +321,7 @@ equilibrium_init_create <- function(age_vector, het_brackets,
   het_bounds <- sort(zetas)[wt_cuts]
   het_bounds[length(het_bounds)] <- (mpl$max_age/365)+1
   
+  
   ## collate init
   res <- list(init_S = S_eq, init_T = T_eq, init_D = D_eq, init_A = A_eq, init_U = U_eq,
               init_P = P_eq, init_Y = Y_eq, init_IB = IB_eq, init_ID = ID_eq, init_ICA = ICA_eq,
@@ -345,20 +330,15 @@ equilibrium_init_create <- function(age_vector, het_brackets,
               age_width = age_width, age_rate = age_rate, het_wt = het_wt, het_x = het_x,
               omega = omega, foi_age = foi_age, rel_foi = rel_foi,
               K0 = K0, mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I,
-              FOI = FOI_eq, EIR = EIR_eq, cA_eq = cA_eq,p_det_eq=p_det_eq,
-              den = den, age59 = age59, age05 = age05, age2years = age2years,
-              age10years = age10years, ssa0 = ssa0, ssa1 = ssa1,
+              FOI = FOI_eq, EIR_eq = EIR_eq, cA_eq = cA_eq,
+              den = den, age59 = age59, age05 = age05, ssa0 = ssa0, ssa1 = ssa1,
               ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3,
               theta_c = theta_c, age = age_vector*mpl$DY, ft = ft, FOIv_eq = FOIv_eq,
               betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,
               age_mid_point = age_mid_point, het_bounds = het_bounds, pi = pi,
-              country = country, admin = admin)
+              age20l = age20l, age20u = age20u, age_20_factor = age_20_factor)
   
   res <- append(res,mpl)
   
   return(res)
 }
-
-
-
-

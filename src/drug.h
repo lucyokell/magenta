@@ -14,6 +14,7 @@
 
 #ifndef DRUG_H
 #define DRUG_H
+
 #include <vector>
 #include <queue>
 #include <bitset>
@@ -30,6 +31,7 @@ private:
   
   std::vector<double> m_lpf; // prob of lpf for each bitset combination related to this drug moda
   std::vector<unsigned int> m_barcode_positions; // which positions in the barcode correspond to this drug
+  std::vector<unsigned int> m_prophylactic_positions; // which positions in the barcode correspond to the prophylactic
   double m_dur_P;					// duration of prophylaxis
   double m_dur_SPC;					// duration of slow parasite clearance
   
@@ -40,10 +42,14 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Class constructor using required parameters
-  Drug(std::vector<double> lpf, std::vector<unsigned int> barcode_positions, double dur_P = 25, double m_dur_SPC = 5) : 
+  Drug(std::vector<double> lpf, 
+       std::vector<unsigned int> barcode_positions, 
+       std::vector<unsigned int> prophylactic_positions, 
+       double dur_P = 25, double m_dur_SPC = 5) : 
   
   m_lpf(lpf), 
   m_barcode_positions(barcode_positions),
+  m_prophylactic_positions(prophylactic_positions),
   m_dur_P(dur_P),
   m_dur_SPC(m_dur_SPC)
   
@@ -58,6 +64,9 @@ public:
   
   // Get barcode positions
   std::vector<unsigned int> get_m_barcode_positions() const { return(m_barcode_positions); }
+  
+  // Get prophylactic positions
+  std::vector<unsigned int> get_m_prophylactic_positions() const { return(m_prophylactic_positions); }
   
   // Get drug duration of prophylaxis
   double get_m_dur_P() const { return(m_dur_P); }		
@@ -74,6 +83,9 @@ public:
   
   // Set barcode positions
   void set_m_barcode_positions(std::vector<unsigned int> x) { m_barcode_positions = x; }
+  
+  // Set prophylactic positions
+  void set_m_prophylactic_positions(std::vector<unsigned int> x) { m_prophylactic_positions = x; }
   
   // Set drug duration of prophylaxis
   void set_m_dur_P(double x) { m_dur_P = x; }
@@ -102,6 +114,34 @@ public:
     return m_lpf[result];
     
     }
+  
+  // Get early reinfection
+  bool early_reinfection(boost::dynamic_bitset<> &x,
+                         unsigned int current_time,
+                         unsigned int day_of_change,
+                         unsigned int day_treated) const { 
+    
+    // start as true and then and assign AND
+    bool resistant = true;
+    for (unsigned int p : m_prophylactic_positions) {
+      resistant = resistant && x[p];
+    }
+    
+    // if it was resistant then check for early infetction
+    if (resistant) {
+      
+      if (current_time > (day_of_change - ((day_of_change - day_treated)/2))) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+
+  }
+  
+  //
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // RcppList Conversion

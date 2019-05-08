@@ -7,10 +7,11 @@
 drug_list_create(resistance_flag = FALSE, number_of_drugs = 2,
   number_of_resistance_loci = 3, resistance_costs = c(0.99, 0.99,
   0.98), epistatic_logic = NULL, prob_of_lpf = list(c(1, 0.97, 0.8,
-  0.55), c(1, 0.98, 0.7, 0.51)), barcode_res_pos = list(c(1, 2), c(1,
-  3)), dur_P = rep(25, number_of_drugs), dur_SPC = rep(5,
-  number_of_drugs), mft_flag = FALSE, temporal_cycling = -1,
-  sequential_cycling = -1, sequential_update = 3, drug_choice = 0,
+  0.55), c(1, 0.98, 0.7, 0.51)), barcode_res_pos = list(c(0, 1), c(0,
+  2)), prophylactic_pos = list(c(1), c(2)), dur_P = rep(25,
+  number_of_drugs), dur_SPC = rep(5, number_of_drugs),
+  mft_flag = FALSE, temporal_cycling = -1, sequential_cycling = -1,
+  sequential_update = 3, drug_choice = 0,
   partner_drug_ratios = rep(1/number_of_drugs, number_of_drugs))
 }
 \arguments{

@@ -109,7 +109,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   
   // Resistance updates
   if (drug_list["g_resistance_flag"]) {
-    u_ptr->parameters.g_resistance_flag = Rcpp::as<int>(drug_list["g_resistance_flag"]);
+    u_ptr->parameters.g_resistance_flag = Rcpp::as<bool>(drug_list["g_resistance_flag"]);
     u_ptr->parameters.g_drug_choice = Rcpp::as<int>(drug_list["g_drug_choice"]);
     u_ptr->parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["g_partner_drug_ratios"]);
   }

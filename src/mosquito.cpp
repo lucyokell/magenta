@@ -22,7 +22,7 @@ int m_oocyst_pick = 0;
 // CHECKERS
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Function to quickly check if mosquito carries resistant sporozoites
+// Function to quickly check if mosquito could carry resistant sporozoites
 bool Mosquito::check_resistance(){
   
   // check the spz already we know about
