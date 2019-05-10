@@ -104,11 +104,11 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   
   for (unsigned int i = 0; i < parameters.g_number_of_drugs ; i++) {
     parameters.g_drugs.emplace_back(
-        Rcpp::as<std::vector<double> >(Rcpp::as<Rcpp::List>(drug_list["g_prob_of_lpf"])[i]),
-        Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["g_barcode_res_pos"])[i]),     
-        Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["g_prophylactic_pos"])[i]),     
-        Rcpp::as<std::vector<double> >(drug_list["g_dur_P"])[i],
-        Rcpp::as<std::vector<double> >(drug_list["g_dur_SPC"])[i]                                                    
+      Rcpp::as<std::vector<double> >(Rcpp::as<Rcpp::List>(drug_list["g_prob_of_lpf"])[i]),
+      Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["g_barcode_res_pos"])[i]),     
+      Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["g_prophylactic_pos"])[i]),     
+      Rcpp::as<std::vector<double> >(drug_list["g_dur_P"])[i],
+                                                          Rcpp::as<std::vector<double> >(drug_list["g_dur_SPC"])[i]                                                    
     );
   }
   
@@ -175,13 +175,15 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   Rcpp::NumericMatrix Umat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Umat"]));
   Rcpp::NumericMatrix Tmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Tmat"]));
   Rcpp::NumericMatrix Pmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["Pmat"]));
+  Rcpp::NumericMatrix FOImat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["FOI"]));
+  Rcpp::NumericMatrix phimat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["phi"]));
   Rcpp::NumericMatrix IBmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["IBmat"]));
   Rcpp::NumericMatrix ICAmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["ICAmat"]));
   Rcpp::NumericMatrix ICMmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["ICMmat"]));
   Rcpp::NumericMatrix IDmat(Rcpp::as<Rcpp::NumericMatrix>(eqSS["IDmat"]));
   vector<double> age_brackets = Rcpp::as<vector<double> >(eqSS["age_brackets"]);
   vector<double> het_brackets = Rcpp::as<vector<double> >(eqSS["het_brackets"]);
-  double ICM_Init = Rcpp::as<double>(eqSS["MaternalImmunity"]);
+  std::vector<double>  ICM_Init = Rcpp::as<std::vector<double> >(eqSS["ICM_Init"]);
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: HUMAN INITIALISATION FROM EQUILIBRIUM
@@ -291,15 +293,15 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
     population[n].set_m_infection_state(static_cast<Person::InfectionStatus>(sample1(infection_state_probability, std::accumulate(infection_state_probability.begin(), infection_state_probability.end(),0.0))));
     population[n].set_m_IB(IBmat(age_bracket_in, het_bracket_in));
     population[n].set_m_ICA(ICAmat(age_bracket_in, het_bracket_in));
-    population[n].set_m_ICM_init(ICM_Init);
+    population[n].set_m_ID(IDmat(age_bracket_in, het_bracket_in));
+    population[n].set_m_ICM_init(ICM_Init[het_bracket_in]);
     if(population[n].get_m_person_age() == 0){
-      population[n].set_m_ICM(ICM_Init); 
+      population[n].set_m_ICM(ICM_Init[het_bracket_in]); 
     }
     else
     {
-      population[n].set_m_ICM(ICM_Init * exp(-population[n].get_m_person_age() / parameters.g_dCM));
+      population[n].set_m_ICM(ICM_Init[het_bracket_in] * exp(-population[n].get_m_person_age() / parameters.g_dCM));
     }
-    population[n].set_m_ID(IDmat(age_bracket_in, het_bracket_in));
     
     // Schedule change for those who are not susceptible
     if (population[n].get_m_infection_state() != Person::SUSCEPTIBLE)
@@ -334,13 +336,20 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
             Strain::temp_barcode = Strain::generate_next_barcode();
           }
           
+          // draw the likely time if this is the first time at treated
+          int temp_t_acquistion = 0 - runiform_int_1(0,static_cast<int>(parameters.g_dur_T));
+          
+          // then work out if this is likely not the first time clinically infected
+          if (rbernoulli1(parameters.g_ft)) {
+            temp_t_acquistion = -13;
+          }
           
           temp_strains.push_back( 
             Strain(
               Strain::temp_barcode,
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
                                          0,
-                                         -13
+                                         temp_t_acquistion
             )
           );
         }
@@ -356,37 +365,77 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
             Strain::temp_barcode = Strain::generate_next_barcode();
           }
           
+          // somewhat complicated to work out the chance that the strains they have
+          // will be producing gametocytes
+          
+          // first draw the likely time that they would have been acquired
+          int temp_acquisition = -population[n].draw_m_day_of_InfectionStatus_change(parameters);
+          
+          // if they are diseased draw whether this is the first time they are in this state
+          // if it is not the first they likely have older strains so just set to -13 
+          // This probability relates to the frequency of treatment
+          if (population[n].get_m_infection_state() == Person::DISEASED) {
+            if (rbernoulli1(parameters.g_ft)) {
+              temp_acquisition = -13;
+            }
+          }
+          
+          // and assign the strain
           temp_strains.push_back(
             Strain(
               Strain::temp_barcode,
               Strain::m_transition_vector[static_cast<int>(population[n].get_m_infection_state())],
                                          population[n].get_m_day_of_InfectionStatus_change(),
-                                         -13
+                                         temp_acquisition
             )
           );
         }
       }
       
-      // Set infection time,state and barcode realisations
-      for (int s = 0; s < population[n].get_m_number_of_strains(); s++)
-      {
-        temp_infection_time_realisation_vector.emplace_back(parameters.g_current_time);
-        temp_infection_state_realisation_vector.emplace_back(population[n].get_m_infection_state());
-        temp_infection_barcode_realisation_vector.emplace_back(temp_strains[s].get_m_barcode());
-      }
       
       // Set human strains and associated times of strain state changing and clearing
       population[n].set_m_active_strains(temp_strains); 
       population[n].set_m_day_of_next_strain_state_change();
-      population[n].set_m_infection_time_realisation_vector_from_vector(temp_infection_time_realisation_vector);
-      population[n].set_m_infection_state_realisation_vector(temp_infection_state_realisation_vector);
-      population[n].set_m_infection_barcode_realisation_vector_from_vector(temp_infection_barcode_realisation_vector);
-      temp_strains.clear();
-      temp_infection_time_realisation_vector.clear();
-      temp_infection_state_realisation_vector.clear();
-      temp_infection_barcode_realisation_vector.clear();
       infected_human_count.push_back(n);
       
+      // clear strains
+      temp_strains.clear();
+      
+    }
+    
+    std::vector<double> trans_prob = {0.0, 0.0, 0.0};
+    
+    // Set infection time,state and barcode realisations if they are likely to be harbouring an infection 
+    if (population[n].get_m_infection_state() != Person::DISEASED && population[n].get_m_infection_state() != Person::PROPHYLAXIS) {
+      if (rbernoulli1(1.0-exp(-parameters.g_dur_E*FOImat(age_bracket_in, het_bracket_in)))){
+        
+        // N -> D
+        trans_prob[0] = phimat(age_bracket_in, het_bracket_in) * (1 - parameters.g_ft);
+        // N -> T
+        trans_prob[1] = phimat(age_bracket_in, het_bracket_in) * parameters.g_ft;
+        // N -> A
+        trans_prob[2] = 1 - phimat(age_bracket_in, het_bracket_in);
+        
+        // Set outcome probability sum 
+        double m_sum_transition_probabilities = trans_prob[0] + trans_prob[1] + trans_prob[2];
+        
+        // Draw what infection state they move to 
+        Person::InfectionStatus m_temp_infection_state = Person::m_transition_vector[sample1(trans_prob, m_sum_transition_probabilities)];
+        
+        temp_infection_time_realisation_vector.emplace_back(runiform_int_1(parameters.g_current_time, parameters.g_current_time+parameters.g_dur_E));
+        temp_infection_state_realisation_vector.emplace_back(m_temp_infection_state);
+        temp_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());
+        
+        population[n].set_m_infection_time_realisation_vector_from_vector(temp_infection_time_realisation_vector);
+        population[n].set_m_infection_state_realisation_vector(temp_infection_state_realisation_vector);
+        population[n].set_m_infection_barcode_realisation_vector_from_vector(temp_infection_barcode_realisation_vector);
+        
+        // clear temps
+        temp_infection_time_realisation_vector.clear();
+        temp_infection_state_realisation_vector.clear();
+        temp_infection_barcode_realisation_vector.clear();
+        
+      }
     }
     
     // Set the next event day
@@ -485,10 +534,16 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
       // Pick a random human for the source of the strain
       parent_source = runiform_int_1(0, infected_human_count.size() - 1);
       
+      int possible_pending = rexpint1(parameters.g_mean_mosquito_age);
+      while (possible_pending > parameters.g_delay_mos) {
+        possible_pending = rexpint1(parameters.g_mean_mosquito_age);
+      }
+      
       // If human has only one strain then assign the first strain
       if (population[infected_human_count[parent_source]].get_m_number_of_strains() == 1)
       {
-        pending_oocyst_time[0] = runiform_int_1(parameters.g_current_time, static_cast<int>(parameters.g_delay_mos)-7);
+  
+        pending_oocyst_time[0] = parameters.g_current_time + parameters.g_delay_mos - possible_pending;
         pending_oocyst_barcode_male[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode();
         pending_oocyst_barcode_female[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode();
         scourge[n].set_m_oocyst_rupture_time_vector(pending_oocyst_time);
@@ -500,7 +555,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
       else
       {
         
-        pending_oocyst_time[0] = runiform_int_1(parameters.g_current_time, static_cast<int>(parameters.g_delay_mos)) + 1;
+        pending_oocyst_time[0] = parameters.g_delay_mos - possible_pending;
         pending_oocyst_barcode_male[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode();
         pending_oocyst_barcode_female[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode();
         scourge[n].set_m_oocyst_rupture_time_vector(pending_oocyst_time);
@@ -509,6 +564,22 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
       }
       
     }
+    
+    // adjust the mosquito death day based on what infection state they are in
+    // switch (scourge[n].get_m_mosquito_infection_state())
+    // {
+    // case Mosquito::SUSCEPTIBLE:
+    //   break;
+    // case Mosquito::EXPOSED :
+    //   scourge[n].set_m_day_of_death(rexpint1(6.0)+parameters.g_current_time);  
+    //   break;
+    // case Mosquito::INFECTED:
+    //   scourge[n].set_m_day_of_death(rexpint1(5.0)+parameters.g_current_time);  
+    //   break;
+    // default:
+    //   assert(NULL && "Update mosquito death by infection state error - mosquito's infection status not S, E, I");
+    // break;
+    // }
     
     // schedule mosquito's next day of event
     scourge[n].schedule_m_day_of_next_event();

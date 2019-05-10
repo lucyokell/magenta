@@ -40,18 +40,20 @@ const std::vector<Person::InfectionStatus> Person::m_transition_vector{ DISEASED
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Work out if reciprocal infection happened. 1 if yes, 0 if no
-bool Person::reciprocal_infection_boolean(const Parameters &parameters)
+bool Person::reciprocal_infection_boolean(const Parameters &pars)
 {
   
   if (m_cA_counter)
   {
-    // double fD = (1 - ((1 - parameters.g_fD0) / (1 + (pow((m_person_age / parameters.g_aD), parameters.g_gD)))));
-    // double q = (parameters.g_d1 + ((1 - parameters.g_d1) / (1 + fD *(pow((m_ID / parameters.g_ID0), parameters.g_kD)))));
-    m_cA = (parameters.g_cU + (parameters.g_cD - parameters.g_cU) * (pow((parameters.g_d1 + ((1 - parameters.g_d1) / (1 + (1 - ((1 - parameters.g_fD0) / (1 + (pow((m_person_age / parameters.g_aD), parameters.g_gD))))) * (pow((m_ID / parameters.g_ID0), parameters.g_kD))))), parameters.g_gamma1)));
+    double fD = (1 - ((1 - pars.g_fD0) / (1 + (pow((m_person_age / pars.g_aD), pars.g_gD)))));
+    double q = (pars.g_d1 + ((1 - pars.g_d1) / (1 + fD *(pow((m_ID / pars.g_ID0), pars.g_kD)))));
+    m_cA = pars.g_cU + ((pars.g_cD - pars.g_cU) * pow(q, pars.g_gamma1));
+    // m_cA = (pars.g_cU + (pars.g_cD - pars.g_cU) * 
+    //   (pow((pars.g_d1 + ((1 - pars.g_d1) / (1 + (1 - ((1 - pars.g_fD0) / (1 + (pow((m_person_age / pars.g_aD), pars.g_gD))))) * (pow((m_ID / pars.g_ID0), pars.g_kD))))), pars.g_gamma1)));
     m_cA_counter = false;
     // work out the number of strains that are gametocytogenic, i.e. they were realised more than delay_gam time earlier
     for(int n = 0 ; n < m_number_of_strains ; n++){
-      if(m_active_strains[n].get_m_day_of_strain_acquisition() < parameters.g_current_time - parameters.g_delay_gam){
+      if(m_active_strains[n].get_m_day_of_strain_acquisition() < (pars.g_current_time - pars.g_delay_gam)){
         m_gametocytogenic_strains.emplace_back(n);
         m_gametocytogenic_infections++;
       }
@@ -70,7 +72,6 @@ bool Person::reciprocal_infection_boolean(const Parameters &parameters)
     case DISEASED:
       return(rbernoulli_cD());
     case ASYMPTOMATIC:
-      /*return(rbinomial1(1,m_cA));*/
       return(rbernoulli1(m_cA));
     case SUBPATENT:
       return(rbernoulli_cU());
@@ -369,9 +370,9 @@ void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
   // so if it is not less than that, or in fact today (i.e. they were bitten today)
   // then bite is not possible due to short lives IFN response (we assume you can
   // get multiple bites on the same day though)
-  if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB || 
-      static_cast<int>(m_IB_last_boost_time) == parameters.g_current_time) 
-  {
+  // if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB ||
+  //     static_cast<int>(m_IB_last_boost_time) == parameters.g_current_time)
+  // {
     
     // If we have already allocated a bite to this indivdual in this time step then we know we won't need to assess the immunity boosting again
     if (static_cast<int>(m_IB_last_boost_time) != parameters.g_current_time)
@@ -402,12 +403,12 @@ void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
     // or in prophylaxis or and we're doing resistance modelling
     
     // Or if they are diseased currently (i.e. sufficiently high blood stage parasitaemia to block liver stage)
-    if (m_infection_state == SUSCEPTIBLE ||
-        m_infection_state == ASYMPTOMATIC || 
-        m_infection_state == SUBPATENT || 
-        (parameters.g_resistance_flag && m_infection_state == PROPHYLAXIS)
-    )
-    {
+    // if (m_infection_state == SUSCEPTIBLE ||
+    //     m_infection_state == ASYMPTOMATIC || 
+    //     m_infection_state == SUBPATENT || 
+    //     (parameters.g_resistance_flag && m_infection_state == PROPHYLAXIS)
+    // )
+    // {
       
       // Random draw to see if the bite led to an infection
       
@@ -417,16 +418,16 @@ void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
         parameters.g_total_human_infections++;
         allocate_infection(parameters, mosquito);
       }
-    }
+    // }
     
-  }
+   // }
   
   // Increase number of bites 
   m_number_of_bites++;
   
 }
 
-// Allocate an infection to person, i.e. individuals who return >0 from allocate_force_of_infection()
+// Allocate an infection to person
 void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
 {
   // Only need to calculate this once per day step
@@ -482,6 +483,24 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
   
   // Increase number of succesful bites
   m_number_of_succesful_bites++;
+  
+  // Will the infectious bit actually lead to an infection
+  
+  // Firstly can they be infected again
+  if (m_infection_state == SUSCEPTIBLE ||
+      m_infection_state == ASYMPTOMATIC || 
+      m_infection_state == SUBPATENT || 
+      (parameters.g_resistance_flag && m_infection_state == PROPHYLAXIS)
+  )
+  {
+    
+    // secondly the delay to boosting by definition defines whether an infection is possible
+    // so if it is not less than that, or in fact today (i.e. they were bitten today)
+    // then bite is not possible due to short lives IFN response (we assume you can
+    // get multiple bites on the same day though)
+    if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB ||
+        static_cast<int>(m_IB_last_boost_time) == parameters.g_current_time)
+    {
   
   // Allocate strains being passed on
   for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
@@ -564,6 +583,9 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
   
   // Set next event date as may have changed as a result of the bite
   set_m_day_of_next_event();
+  
+    }
+  }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -743,7 +765,7 @@ void Person::die(const Parameters &parameters)
   m_ID_last_boost_time -= parameters.g_uD;
   
   // Set maternal immunity
-  m_ICM = m_ICM_init = parameters.g_PM * parameters.g_mean_maternal_immunity;
+  m_ICM = m_ICM_init = parameters.g_PM * parameters.g_mean_maternal_immunity * m_individual_biting_rate;
   
   // Schedule death
   schedule_m_day_of_death(parameters);
@@ -1071,6 +1093,8 @@ void Person::event_handle(const Parameters &parameters) {
             
             // Lower strain counter
             m_number_of_strains--;
+          } else {
+            m_active_strains[m_temp_strain_to_next_change].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change);
           }
           break;
         default:
@@ -1114,7 +1138,11 @@ void Person::event_handle(const Parameters &parameters) {
             // if you are now diseased this is a treatment failure
             if (m_infection_state == DISEASED){
               m_treatment_outcome = NOT_TREATED;
-            }
+            } 
+            if (m_infection_state == TREATED){
+              m_day_last_treated = parameters.g_current_time;
+            } 
+            
           }
           
         }
@@ -1124,10 +1152,15 @@ void Person::event_handle(const Parameters &parameters) {
         // and currently you would move to U in 100 days, it is not right that this additonal
         // infection could produce a change to U sooner, however, greater than does. 
         m_temp_int = draw_m_day_of_InfectionStatus_change(parameters);
+        
+        if (m_infection_state == Person::ASYMPTOMATIC) {
         if (m_temp_int > m_day_of_InfectionStatus_change) {
           m_day_of_InfectionStatus_change = m_temp_int;
         } else {
           m_temp_int = m_day_of_InfectionStatus_change;
+        }
+        } else {
+          m_day_of_InfectionStatus_change = m_temp_int;
         }
         
         // Reset this catch variable which ensiures multiple infections on the same day can be realised
@@ -1247,6 +1280,10 @@ double Person::update(Parameters &parameters)
   
   // Throw if the next event date is still today
   assert(m_day_of_next_event != parameters.g_current_time &&
+    "Update function failed to handle event update as next event is still today");
+  
+  // Throw if the next event date is still today
+  assert(m_day_of_next_event >= parameters.g_current_time &&
     "Update function failed to handle event update as next event is still today");
   
   // Throw if the next event date is still today

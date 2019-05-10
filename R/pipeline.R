@@ -106,6 +106,7 @@ Pipeline <- function(EIR = 120,
                      mu_vec = NULL,
                      fv_vec = NULL,
                      full_save = FALSE,
+                     full_update_save=FALSE,
                      human_only_full_save = FALSE,
                      human_only_full_summary_save = FALSE,
                      update_save = FALSE,
@@ -130,6 +131,7 @@ Pipeline <- function(EIR = 120,
   # PRE-SET UP HOUSEKEEPING ------------------------ ####
   # if no seed is specified then save the seed
   set.seed(seed)
+  message("huh")
   message(paste0("Seed set to ", seed))
   message("magenta test1 v", packageVersion("magenta"))
 
@@ -150,7 +152,7 @@ Pipeline <- function(EIR = 120,
     mpl <- model_param_list_create()
 
     # Create age brackets, either geometric or evenly spaced
-    age_vector <- age_brackets(100, 20, TRUE)
+    age_vector <- age_brackets(100, 40, TRUE)
 
     # check to change the ft for the initial and odin to reflect 28 day failure rates
     lpfs <- unlist(lapply(drug_list$g_prob_of_lpf[seq_len(drug_list$g_number_of_drugs)],"[[",1))
@@ -216,7 +218,7 @@ Pipeline <- function(EIR = 120,
     # handle drug parms
     resistance_flags <- drug_list$g_resistance_flag
     if (length(resistance_flags) == 1) {
-      resistance_flags <- rep(resistance_flags, years)
+      resistance_flags <- rep(resistance_flags, ceiling(years))
     }
     drug_list$g_resistance_flag <- resistance_flags[1]
 
@@ -430,7 +432,7 @@ Pipeline <- function(EIR = 120,
           barcode_params, num_loci,
           genetics_df_without_summarising, save_lineages,
           human_update_save, summary_saves_only,
-          only_allele_freqs, mpl, seed
+          only_allele_freqs, mpl, seed,full_update_save=full_update_save
         )
 
         # spatial export

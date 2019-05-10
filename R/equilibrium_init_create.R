@@ -307,19 +307,12 @@ equilibrium_init_create <- function(age_vector,
   }
   
   # better het bounds for equilbirum initialisation in individual model
-  zetas <- rlnorm(n = 1e5,meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
-  while(sum(zetas>100)>0){
-    zetas[zetas>100] <- rlnorm(n = sum(zetas>100),meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
-  }
+  het_bounds <- qlnorm(cumsum(het_wt),meanlog = -mpl$sigma2/2, sdlog = sqrt(mpl$sigma2))
+  het_bounds[length(het_bounds)] <- 1000
   
-  wt_cuts <- round(cumsum(het_wt)*1e5)
-  zeros <- which(wt_cuts==0)
-  wt_cuts[zeros] <- 1:length(zeros)
-  larges <- which(wt_cuts==1e5)
-  wt_cuts[larges] <- (1e5 - (length(larges)-1)):1e5
-  wt_cuts <- c(0,wt_cuts)
-  het_bounds <- sort(zetas)[wt_cuts]
-  het_bounds[length(het_bounds)] <- (mpl$max_age/365)+1
+  # better age bounds
+  age_bounds <- suppressWarnings(qexp(cumsum(den),rate = mpl$eta))
+  age_bounds[length(age_bounds)] <- mpl$max_age
   
   
   ## collate init
@@ -328,9 +321,9 @@ equilibrium_init_create <- function(age_vector,
               init_ICM = ICM_eq, ICM_init_eq = ICM_init_eq, init_Iv = Iv_eq, init_Sv = Sv_eq,
               init_Ev = Ev_eq, init_PL = PL_eq, init_LL = LL_eq, init_EL = EL_eq,
               age_width = age_width, age_rate = age_rate, het_wt = het_wt, het_x = het_x,
-              omega = omega, foi_age = foi_age, rel_foi = rel_foi,
+              omega = omega, foi_age = foi_age, rel_foi = rel_foi,phi_eq=phi_eq,
               K0 = K0, mv0 = mv0, na = na, nh = nh, ni = num_int, x_I = x_I,
-              FOI = FOI_eq, EIR_eq = EIR_eq, cA_eq = cA_eq,
+              FOI = FOI_eq, EIR_eq = EIR_eq, cA_eq = cA_eq,age_bounds=age_bounds,
               den = den, age59 = age59, age05 = age05, ssa0 = ssa0, ssa1 = ssa1,
               ssa2 = ssa2, ssa3 = ssa3, ssb1 = ssb1, ssb2 = ssb2, ssb3 = ssb3,
               theta_c = theta_c, age = age_vector*mpl$DY, ft = ft, FOIv_eq = FOIv_eq,

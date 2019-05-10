@@ -3,7 +3,7 @@
 
 // Non class constructor which will inialise a random strain
 Mosquito::Mosquito(const Parameters &parameters) :
-  m_day_of_death(rexpint1(parameters.g_mean_mosquito_age) + parameters.g_current_time + 1),
+  m_day_of_death(rexpint1(parameters.g_mean_mosquito_age) + parameters.g_current_time ),
   m_day_of_next_blood_meal(runiform_int_1(0,2) + parameters.g_current_time)
 {
   // Reserve vector memory
@@ -211,13 +211,13 @@ bool Mosquito::schedule_m_day_of_death(const Parameters &parameters)
   // and return true so we don't bother resetting anything else about the mosquito in the die function
   m_day_of_death = rexpint1(parameters.g_mean_mosquito_age);
   
-  if (m_day_of_death < 11) {
-    m_day_of_next_blood_meal = parameters.g_current_time + 12;
-    
-    m_day_of_death += parameters.g_current_time + 1;
-    m_day_of_next_event = m_day_of_death;
-    return(false);
-  }
+  // if (m_day_of_death < 11) {
+  //   m_day_of_next_blood_meal = parameters.g_current_time + 12;
+  //   
+  //   m_day_of_death += parameters.g_current_time + 1;
+  //   m_day_of_next_event = m_day_of_death;
+  //   return(false);
+  // }
   
   m_day_of_death += parameters.g_current_time + 1;
   return(true);
@@ -284,9 +284,8 @@ bool Mosquito::die(Parameters & parameters)
   m_generated_sporozoite_count = 0;
   m_day_of_next_event = 0;
   m_mosquito_infected = false;
-  m_mosquito_biting_today = true;
   
-  // Clear vectors
+    // Clear vectors
   m_oocyst_rupture_time_vector.clear();
   m_oocyst_barcode_male_vector.clear();
   m_oocyst_barcode_female_vector.clear();
@@ -295,15 +294,25 @@ bool Mosquito::die(Parameters & parameters)
   // Make mosquito susceptible again
   m_mosquito_infection_state = SUSCEPTIBLE;
   
-  // Schedule next blood meal
-  // schedule_m_day_of_blood_meal(parameters);
-  schedule_m_day_of_blood_meal(parameters);
-  
+  if (m_day_of_next_blood_meal == parameters.g_current_time)
+  {
+    
+    // Schedule next blood meal
+    schedule_m_day_of_blood_meal(parameters);
+    
+    // Set to biting today
+    m_mosquito_biting_today = true;
+ 
+  }
   
   // Schedule next event
   schedule_m_day_of_next_event();
   
-  return(true);
+  // Schedule next blood meal
+  // schedule_m_day_of_blood_meal(parameters);
+  // schedule_m_day_of_blood_meal(parameters);
+
+  return(m_mosquito_biting_today);
 }
 
 

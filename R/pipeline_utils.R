@@ -103,14 +103,14 @@ spl_grab <- function(country, admin, year_range) {
 spl_matrix_check <- function(matrix, years) {
   
   if(is.matrix(matrix)){
-    if(dim(matrix)[1] != years){
-      matrix <- rbind(matrix(rep(matrix[1,],years - dim(matrix)[1]),ncol=dim(matrix)[2],byrow=TRUE),matrix)
+    if(dim(matrix)[1] != ceiling(years)){
+      matrix <- rbind(matrix(rep(matrix[1,],ceiling(years) - dim(matrix)[1]),ncol=dim(matrix)[2],byrow=TRUE),matrix)
     }
   }
   
   if(is.vector(matrix)) {
-    if(length(matrix) != years){
-      matrix <- c(rep(matrix[1],years - length(matrix)),matrix)
+    if(length(matrix) != ceiling(years)){
+      matrix <- c(rep(matrix[1],ceiling(years) - length(matrix)),matrix)
     }
     matrix <- as.matrix(matrix)
   }
@@ -128,14 +128,15 @@ spl_matrix_check <- function(matrix, years) {
 plaf_matrix_check <- function(matrix, years) {
   
   if(is.matrix(matrix)){
-    if(dim(matrix)[1] != years){
-      matrix <- rbind(matrix,matrix(rep(matrix[2,],years - dim(matrix)[1]),ncol=dim(matrix)[2],byrow=TRUE))
+    if(dim(matrix)[1] != ceiling(years)){
+      matrix <- rbind(matrix,matrix(rep(matrix[2,],ceiling(years) - dim(matrix)[1]),ncol=dim(matrix)[2],byrow=TRUE))
     }
   }
   
   if(is.vector(matrix)) {
+    
     matrix <- c(rep(matrix,years - 1),matrix)
-    matrix <- matrix(matrix,nrow=years,byrow=TRUE)
+    matrix <- matrix(matrix,nrow=ceiling(years),byrow=TRUE)
   }
   
   return(matrix)
@@ -255,8 +256,8 @@ mu_fv_create <- function(eqInit,
                          odin_model = system.file("extdata/odin_model_itn_irs.R",package="magenta")) {
   
   if (identical(irs_cov, 0) && identical(itn_cov, 0)) {
-    out <- data.frame("mu"=rep(0.132, length(seq_len(years*365)+1)),
-                      "fv"=rep(0.333, length(seq_len(years*365)+1)))
+    out <- data.frame("mu"=rep(0.132, length(seq_len(round(years*365))+1)),
+                      "fv"=rep(0.333, length(seq_len(round(years*365))+1)))
   } else {
     
     message("\nRunning Deterministic Model for ", years, " years")
@@ -306,7 +307,7 @@ mu_fv_create <- function(eqInit,
     model <- gen(user=eqInit,use_dde=TRUE)
     
     #create model and simulate
-    tt <- seq(1,years*365,1)
+    tt <- seq(1,round(years*365),1)
     mod_run <- model$run(tt)
     out <- model$transform_variables(mod_run)
     
@@ -541,7 +542,7 @@ lineages <- function(nums,nl){
 # what to save in update_saves
 update_saves <- function(res, i, sim.out, sample_states,
                          sample_size, sample_reps, mean_only,
-                         barcode_params, num_loci, 
+                         barcode_params, num_loci, full_update_save=FALSE,
                          genetics_df_without_summarising, save_lineages = FALSE,
                          human_update_save, summary_saves_only,
                          only_allele_freqs, mpl, seed) {
@@ -633,10 +634,18 @@ update_saves <- function(res, i, sim.out, sample_states,
       pl3 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
       sim.save <- simulation_R(pl3, seed = seed)
       
+      if(full_update_save) {
+        res[[i]] <-sim.save
+      } else {
+      
       # and then store what's needed
       Strains <- sim.save$populations_event_and_strains_List[strain_vars]
-      Humans <- c(sim.save$population_List[human_vars],Strains)
+      Humans <- c(sim.save$population_List[human_vars],
+                  Strains,
+                  sim.save$scourge_List["Mosquito_Day_of_death"],
+                  sim.save$scourge_List["Mosquito_Infection_States"])
       res[[i]] <- Humans
+      }
     }
     
     # or are we just saving the loggers

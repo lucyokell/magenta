@@ -87,6 +87,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
   std::vector<double> IB(universe_ptr->parameters.g_N);
   std::vector<double> ICA(universe_ptr->parameters.g_N);
   std::vector<double> ICM(universe_ptr->parameters.g_N);
+  std::vector<double> cA(universe_ptr->parameters.g_N);
   std::vector<double> ID(universe_ptr->parameters.g_N);
   std::vector<double> IB_last_boost_time(universe_ptr->parameters.g_N);
   std::vector<double> ICA_last_boost_time(universe_ptr->parameters.g_N);
@@ -147,7 +148,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     ICA[element] = universe_ptr->population[element].get_m_ICA();
     ICM[element] = universe_ptr->population[element].get_m_ICM();
     ID[element] = universe_ptr->population[element].get_m_ID();
-    
+    cA[element] = universe_ptr->population[element].get_m_cA();
     // Boost times
     IB_last_boost_time[element] = universe_ptr->population[element].get_m_IB_last_boost_time();
     ICA_last_boost_time[element] = universe_ptr->population[element].get_m_ICA_last_boost_time();
@@ -349,6 +350,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     Rcpp::Named("ICA")=ICA,
     Rcpp::Named("ICM")=ICM,
     Rcpp::Named("ID")=ID,
+    Rcpp::Named("cA")=cA,
     Rcpp::Named("IB_last_boost_time")=IB_last_boost_time,
     Rcpp::Named("ICA_last_boost_time")=ICA_last_boost_time,
     Rcpp::Named("ID_last_boost_time")=ID_last_boost_time,

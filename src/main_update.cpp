@@ -160,12 +160,13 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   unsigned int unsuccesful_treatments_lpf = 0;
   unsigned int not_treated = 0;
   std::vector<double> status_eq = { 0,0,0,0,0,0 };
-  std::vector<double> mosq_status_eq = { 0,0,0,0,0,0 };
+  std::vector<double> mosq_status_eq = { 0,0,0 };
   unsigned int log_counter = 0;
   double total_incidence = 0;
   double total_incidence_05 = 0;
   int daily_incidence_return = 0;
   int daily_bite_counters = 0;
+  int daily_infectious_bite_counters = 0;
   
   // Maternal 
   double mean_psi = 0;
@@ -373,11 +374,13 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     for (unsigned int num_bites_i = 0; num_bites_i < num_bites; num_bites_i++)
     {
       
+      daily_bite_counters++;
       // allocate bite to human if mosquito is infected
       if (u_ptr->scourge[mosquito_biting_queue[num_bites_i]].get_m_mosquito_infection_state() == Mosquito::INFECTED) 
       {
         u_ptr->population[bite_storage_queue[num_bites_i]].allocate_bite(u_ptr->parameters, u_ptr->scourge[mosquito_biting_queue[num_bites_i]]);
-        if ( u_ptr->parameters.g_current_time > g_end_time - 7) daily_bite_counters++;
+        //if ( u_ptr->parameters.g_current_time > g_end_time - 7) 
+        daily_infectious_bite_counters++;
       }
       
       // if human would cause infection to mosquito then handle the bite gametocytes
@@ -555,7 +558,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
                                           Rcpp::Named("Treatments")=Rcpp::List::create(
                                             Rcpp::Named("Successful_Treatments")=succesful_treatments,
                                             Rcpp::Named("Unsuccesful_Treatments_LPF")=unsuccesful_treatments_lpf,
-                                            Rcpp::Named("Not_Treated")=not_treated
+                                            Rcpp::Named("Not_Treated")=not_treated,
+                                            Rcpp::Named("daily_bite_counters")=daily_bite_counters,
+                                            Rcpp::Named("daily_infectious_bite_counters")=daily_infectious_bite_counters
                                           ),
                                           Rcpp::Named("InfectionStates")=Infection_States, 
                                           Rcpp::Named("Ages")=Ages, 
@@ -563,7 +568,11 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
                                           Rcpp::Named("ICA")=ICA, 
                                           Rcpp::Named("ICM")=ICM, 
                                           Rcpp::Named("ID")=ID,
-                                          Rcpp::Named("Mos_S")=mosq_status_eq[0], Rcpp::Named("Mos_E")=mosq_status_eq[1], Rcpp::Named("Mos_I")=mosq_status_eq[2]);
+                                          Rcpp::Named("Mos_S")=mosq_status_eq[0]/log_counter, 
+                                          Rcpp::Named("Mos_E")=mosq_status_eq[1]/log_counter, 
+                                          Rcpp::Named("Mos_I")=mosq_status_eq[2]/log_counter,
+                                          Rcpp::Named("Time")=u_ptr->parameters.g_current_time
+                                          );
   
   
   rcpp_out(u_ptr->parameters.g_h_quiet_print, "\n Loggers Done \n");

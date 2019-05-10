@@ -34,7 +34,8 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
                   c("age_brackets","het_brackets","Smat",
                     "Dmat","Amat","Umat","Tmat","Pmat",
                     "IBmat","ICAmat","ICMmat","IDmat",
-                    "Sv","Ev","Iv","MaternalImmunity",
+                    "FOI", "phi",
+                    "Sv","Ev","Iv","ICM_Init",
                     "theta"))) stop("Incorrect variable names within equilibrium.steady.state")
   
   dims.1 <- lapply(eqSS,function(x){return(dim(x)[1])})

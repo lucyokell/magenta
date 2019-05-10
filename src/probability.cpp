@@ -19,9 +19,8 @@ bool rbernoulli_cT() {
 
 //------------------------------------------------
 // draw from binomial distribution for cU
-std::bernoulli_distribution bernoulli_dist_cU(0.0062);
 bool rbernoulli_cU() {
-    return(R::unif_rand()<0.0062);
+    return(R::unif_rand()<0.006203);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +40,7 @@ double runif1(double a, double b) {
 //------------------------------------------------
 // sample from uniform integer(a,b) distribution
 int runiform_int_1(int a, int b) {
-    return(static_cast<int>(R::runif(a,b) + 0.5));
+    return(static_cast<int>(R::runif(a,b+1)));
 }
 
 

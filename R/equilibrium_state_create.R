@@ -9,11 +9,11 @@
 
 equilibrium_ss_create <- function(eqInit){
   
-    maternal <- which.max(eqInit$age_brackets>=20)
+    maternal <- which.max(eqInit$age>=20)
     
     ## create equilibrium state for return
     Equilibrium_State <- list(
-      "age_brackets" = eqInit$age,
+      "age_brackets" = eqInit$age_bounds,
       "het_brackets" = eqInit$het_bounds,
       "Smat" = eqInit$init_S[,,1],
       "Dmat" = eqInit$init_D[,,1],
@@ -25,10 +25,12 @@ equilibrium_ss_create <- function(eqInit){
       "ICAmat" = eqInit$init_ICA[,,1],
       "ICMmat" = eqInit$init_ICM[,,1],
       "IDmat" = eqInit$init_ID[,,1],
+      "FOI" = eqInit$FOI,
+      "phi" = eqInit$phi_eq,
       "Sv" = eqInit$init_Sv * eqInit$mv0,
       "Ev" = eqInit$init_Ev * eqInit$mv0,
       "Iv" = eqInit$init_Iv * eqInit$mv0,
-      "MaternalImmunity" = sum(eqInit$init_ICA[maternal,,1] * (eqInit$het_wt))* eqInit$PM,
+      "ICM_Init" = eqInit$ICM_init_eq,
       "theta" = seasonal_profile(eqInit$admin, eqInit$country)
     )
   

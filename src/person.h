@@ -216,6 +216,9 @@ public:
   // Get person's ICM
   double get_m_ICM() { return (m_ICM); }
   
+  // Get person's cA
+  double get_m_cA() { return (m_cA); }
+  
   // Get person's ICM_init
   double get_m_ICM_init() { return (m_ICM_init); }
   
