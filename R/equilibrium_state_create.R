@@ -290,9 +290,9 @@ barcode_params_create <- function(num_loci = 24,
   
   # are we doing ibd or not
   if(ibd_length > 1){
-    barcode_type <- 1
+    barcode_type <- TRUE
   } else {
-    barcode_type <- 0
+    barcode_type <- FALSE
   }
   
   res <- list("num_loci" = num_loci,

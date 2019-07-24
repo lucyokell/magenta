@@ -27,11 +27,11 @@ cou_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_fu
 pibd_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_func){
   l_factor_i <- attr(r[[year0]],"l") + attr(r[[year]],"l") 
   if(!unphased){
-    t <- rbind(data.table::rbindlist(r[[year0]][["ints"]][samp[pos<=ss]]),data.table::rbindlist(r[[year]][["ints"]][samp[pos>ss]]))
+    t <- rbind(rbind_list_base(r[[year0]][["ints"]][samp[pos<=ss]]),rbind_list_base(r[[year]][["ints"]][samp[pos>ss]]))
     z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
     return((z - (1/ss))/(1-(1/ss)))
   } else {
-    t <- rbind(data.table::rbindlist(r[[year0]][["ints_max"]][samp[pos<=ss]]),data.table::rbindlist(r[[year]][["ints_max"]][samp[pos>ss]]))
+    t <- rbind(rbind_list_base(r[[year0]][["ints_max"]][samp[pos<=ss]]),rbind_list_base(r[[year]][["ints_max"]][samp[pos>ss]]))
     z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
     return((z - (1/ss))/(1-(1/ss)))
   }
@@ -97,7 +97,7 @@ bootstrap <- function(sim = "M:/OJ/magenta_Results/scripts/fig3_r1.rds", year0 =
     diff <- mean(alt-null)
     
     all <- c(samp0,samp1)
-    permute <- permute::shuffleSet(ss*2,nset = permutations)
+    permute <- t(replicate(permutations, sample(ss*2,size = ss*2,FALSE)))
     permuteds <- apply(permute,1,function(x) {
       null <- metric_func(r=r, year0 = year0, year = year, ss = ss, unphased = unphased, metric = metric, samp = all[x[1:ss]], pos = x[1:ss], tab_func=tab_func)
       alt <- metric_func(r=r, year0 = year0, year = year, ss = ss, unphased = unphased, metric = metric, samp = all[x[(ss+1):(2*ss)]], pos = x[(ss+1):(2*ss)], tab_func=tab_func)

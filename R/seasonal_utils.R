@@ -151,11 +151,11 @@ country_seasonal_profiles <- function(country) {
   }
   
   max_ses <- max(sapply(admins, function(x) {
-    max(magenta:::seasonal_profile(x, country))
+    max(seasonal_profile(x, country))
   }))
   
   ret <- sapply(admins, function(x) {
-    invisible(plot(magenta:::seasonal_profile(x, country),
+    invisible(plot(seasonal_profile(x, country),
                    main = x,
                    ylim = c(0, max_ses + 0.2),
                    ylab = "Seasonal",

@@ -1,19 +1,28 @@
 
 ###
-#' Creates data frame containing the strain genetics of the population using 
-#' the universe ptr. This data.frame is then passed to \code{COI_df_create}. 
-#'
-#' @param statePtr statePtr
-#' @param sample_size sample_size
-#' @param sample_states sample_states
-#' @param ibd ibd boolean.
+#' Get ppopulation strain information
 #' 
-pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5, 
-                           ibd = FALSE, seed, nl = 24, big_mat_test = TRUE){
+#' @details R side wrapper for c++ functions that  loop through the population 
+#'   retrieving information about their strains using the universe state ptr. 
+#'   The resulting data frame is then passed to \code{\link{COI_df_create}}. 
+#'
+#' @param statePtr Universe state pointer
+#' @param seed The random seed. Probably not needed but was here for debugging
+#'   radnomness. 
+#' @param sample_size Number of indiviudals to sample. Default = 0, which 
+#'   samples everyone.
+#' @param sample_states Numeric vector for which sample states are to be sampled
+#'   from Default = 0:5, which is all states. 
+#' @param ibd Boolean for whether the siulation is an IBD one.
+#' 
+#' 
+pop_strains_df <- function(statePtr, seed,
+                           sample_size = 0, sample_states =  0:5, 
+                           ibd = FALSE){
   
   param_list <- list("statePtr" = statePtr,
-                    "sample_size" = sample_size,
-                    "sample_states" = sample_states)
+                     "sample_size" = sample_size,
+                     "sample_states" = sample_states)
   #message("pop_strains\n")
   if(!ibd){
     
@@ -21,7 +30,7 @@ pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5,
     set.seed(seed)
     list <-  population_get_genetics_df_n(param_list)
     df <- as.data.frame.list(list[1:4])
-  
+    
   } else {
     
     # Get the info
@@ -41,12 +50,12 @@ pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5,
   length(nums) <- length(df$barcode_states)
   
   if(seqs[1] > 0){
-  nums[[1]] <- list$barcodes[1:breaks[1],, drop=FALSE]
+    nums[[1]] <- list$barcodes[1:breaks[1],, drop=FALSE]
   }
   
   for(i in 2:(length(breaks))) { 
     if(seqs[i] > 1){
-    nums[[i]] <- list$barcodes[(breaks[i-1]+1):breaks[i],]
+      nums[[i]] <- list$barcodes[(breaks[i-1]+1):breaks[i],]
     }
     if(seqs[i] == 1){
       nums[[i]] <- list$barcodes[(breaks[i-1]+1):breaks[i],,drop=FALSE]
@@ -55,7 +64,7 @@ pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5,
   
   df$nums <- nums
   return(df)
-
+  
 }
 
 
@@ -63,18 +72,29 @@ pop_strains_df <- function(statePtr, sample_size = 0, sample_states =  0:5,
 #---
 #' Create COI dataframe
 #'
-#' @param sim_save Output of a simulation save
-#' @param groupvars Grouping vars for summarySE. Default = c("Age_Bin","State")
+#' @param df Output of \code{\link{pop_strains_df}}
+#' @param groupvars Grouping vars for summarySE. 
+#'   Default = \code{c("age_bin","clinical")}
+#' @param breaks Numberic vector of age breaks. 
+#'   Default = \code{c(-0.001,5,15,100.1)}
 #' @param barcodes Boolean whether to return tabled barcodes. Default = FALSE
+#' @param ibd Boolean for ibd simulations or not. Default = FALSE
+#' @param n Number of individuals to sample when creating COI data frame. 
+#'   Default = Inf that means all individuals are included
+#' @param reps Numeric for number of population subsamples to make. Default = 1
+#' @param mean_only Boolean for whether to just return the mean when summarising
+#'   vs all summary statistics. Default = TRUE
 #' 
-COI_df_create <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0.001,5,15,100.1),
-                           barcodes=FALSE, ibd = 0, nl = 24, n = Inf, reps = 1,
-                           mean_only = TRUE){
+COI_df_create <- function(df, groupvars = c("age_bin","clinical"),
+                          breaks = c(-0.001,5,15,100.1),
+                          barcodes=FALSE, ibd = FALSE,  
+                          n = Inf, reps = 1,
+                          mean_only = TRUE){
   
   
   # handle df for either genetic type first
   infection_state <- c("S","D","A","U","T","P")
-  df$age_bin = cut(df$age/365,breaks = c(-0.001,5,15,100.1))
+  df$age_bin = cut(df$age/365,breaks = breaks)
   df$state <- df$clinical <- infection_state[df$state + 1]
   df$clinical[df$clinical %in% c("D", "T")] <- "Clinical"
   df$clinical[df$clinical %in% c("A", "U")] <- "Asymptomatic"
@@ -108,7 +128,7 @@ COI_df_create <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0.
     })
     ranges[[length(ranges)+1]] <- seq_len(nrow_df)
   }
-
+  
   
   # non ibd simulation summary
   if(!ibd){
@@ -203,7 +223,7 @@ COI_df_create <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0.
                   "mean_ibd_d"=mean(df$pibd_d[chosen], na.rm = TRUE),
                   "mean_within"=mean(df$pibd_within[chosen], na.rm = TRUE),
                   "mean_within_d"=mean(df$pibd_within_d[chosen], na.rm = TRUE))
-                  
+      
       results[[i]] <- res
     }
   }

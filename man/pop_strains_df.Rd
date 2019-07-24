@@ -2,22 +2,30 @@
 % Please edit documentation in R/universe_utils.R
 \name{pop_strains_df}
 \alias{pop_strains_df}
-\title{Creates data frame containing the strain genetics of the population using 
-the universe ptr. This data.frame is then passed to \code{COI_df_create}.}
+\title{Get ppopulation strain information}
 \usage{
-pop_strains_df(statePtr, sample_size = 0, sample_states = 0:5,
-  ibd = FALSE, seed, nl = 24, big_mat_test = TRUE)
+pop_strains_df(statePtr, seed, sample_size = 0, sample_states = 0:5,
+  ibd = FALSE)
 }
 \arguments{
-\item{statePtr}{statePtr}
+\item{statePtr}{Universe state pointer}
 
-\item{sample_size}{sample_size}
+\item{seed}{The random seed. Probably not needed but was here for debugging
+radnomness.}
 
-\item{sample_states}{sample_states}
+\item{sample_size}{Number of indiviudals to sample. Default = 0, which 
+samples everyone.}
 
-\item{ibd}{ibd boolean.}
+\item{sample_states}{Numeric vector for which sample states are to be sampled
+from Default = 0:5, which is all states.}
+
+\item{ibd}{Boolean for whether the siulation is an IBD one.}
 }
 \description{
-Creates data frame containing the strain genetics of the population using 
-the universe ptr. This data.frame is then passed to \code{COI_df_create}.
+Get ppopulation strain information
+}
+\details{
+R side wrapper for c++ functions that  loop through the population 
+  retrieving information about their strains using the universe state ptr. 
+  The resulting data frame is then passed to \code{\link{COI_df_create}}.
 }

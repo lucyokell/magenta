@@ -5,15 +5,31 @@
 \title{Create COI dataframe}
 \usage{
 COI_df_create(df, groupvars = c("age_bin", "clinical"),
-  breaks = c(-0.001, 5, 15, 100.1), barcodes = FALSE, ibd = 0,
+  breaks = c(-0.001, 5, 15, 100.1), barcodes = FALSE, ibd = FALSE,
   nl = 24, n = Inf, reps = 1, mean_only = TRUE)
 }
 \arguments{
-\item{groupvars}{Grouping vars for summarySE. Default = c("Age_Bin","State")}
+\item{df}{Output of \code{\link{pop_strains_df}}}
 
-\item{barcodes}{Boolean whether to return tabled barcodes. Default = FALSE}
+\item{groupvars}{Grouping vars for summarySE. 
+Default = \code{c("age_bin","clinical")}}
 
-\item{sim_save}{Output of a simulation save}
+\item{breaks}{Numberic vector of age breaks. 
+Default = \code{c(-0.001,5,15,100.1)}}
+
+\item{barcodes}{Boolean whether to return tabled barcodes. Default = \code{FALSE}}
+
+\item{ibd}{Boolean for ibd simulations or not. Default = \code{FALSE}}
+
+\item{nl}{Number of loci. Default = \code{24}}
+
+\item{n}{Number of individuals to sample when creating COI data frame. 
+Default = \code{Inf} that means all individuals are included}
+
+\item{reps}{Numeric for number of population subsamples to make. Default = \code{1}}
+
+\item{mean_only}{Boolean for whether to just return the mean when summarising
+vs all summary statistics. Default = \code{TRUE}}
 }
 \description{
 Create COI dataframe
