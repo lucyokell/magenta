@@ -136,7 +136,7 @@ Pipeline <- function(EIR = 120,
   set.seed(seed)
   message("huh")
   message(paste0("Seed set to ", seed))
-  message("magenta test1 v", packageVersion("magenta"))
+  message("magenta test1 v", utils::packageVersion("magenta"))
 
   # simulation save variables
   strain_vars <- c(

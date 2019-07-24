@@ -21,4 +21,4 @@
 #'
 "_PACKAGE"
 
-globalVariables(c("admin_units_seasonal","irs_2000_2015","itn_2000_2015",))
+globalVariables(c("admin_units_seasonal","irs_2000_2015","itn_2000_2015",""))

@@ -60,7 +60,10 @@ Heatmap_ordered_binary_plot <- function(sim.save, years, EIR, ordered = TRUE,sav
 #' @export
 
 
-Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd = FALSE, nl=24, COI_type = "old"){
+Convert_Barcode_Vectors <- function(sim.save, ID, 
+                                    sub_patents_included=TRUE, 
+                                    ibd = FALSE, nl=24, 
+                                    COI_type = "old"){
   
   
   

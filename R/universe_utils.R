@@ -162,7 +162,7 @@ COI_df_create <- function(df, groupvars = c("age_bin","clinical"),
       summary_moi_detected <- summarySE_mean_only_max_mean(df[chosen,],measurevar = "coi_detected_micro", groupvars = groupvars, mean_only = mean_only, max = 6)
       summary_polygenom <- summarySE_mean_only(df[chosen,],measurevar = "polygenom", groupvars = groupvars, mean_only = mean_only)
       
-      summary_unique1 <- dplyr::group_by(df[chosen,], age_bin) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]), mean = clonality_from_barcode_list(nums))
+      summary_unique1 <- dplyr::group_by(df[chosen,], .data$age_bin) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]), mean = clonality_from_barcode_list(nums))
       summary_unique2 <- dplyr::group_by(df[chosen,], clinical) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]),mean = clonality_from_barcode_list(nums))
       summary_unique3 <- dplyr::group_by(df[chosen,]) %>% dplyr::summarise(N=sum(!is.na(nums)),age = mean(age[!is.na(nums)]),mean = clonality_from_barcode_list(nums))
       summary_unique <- dplyr::bind_rows(list(summary_unique1,summary_unique2,summary_unique3))
