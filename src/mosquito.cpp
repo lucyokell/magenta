@@ -11,6 +11,7 @@ Mosquito::Mosquito(const Parameters &parameters) :
   m_oocyst_barcode_male_vector.reserve(10);
   m_oocyst_barcode_female_vector.reserve(10);
   m_generated_sporozoites_vector.reserve(10);
+  m_oocyst_remaining_spz_count.reserve(10);
   
 }
 
@@ -58,11 +59,12 @@ void Mosquito::allocate_gametocytes(const Parameters &parameters,
                                     boost::dynamic_bitset<> &gam_1,
                                     boost::dynamic_bitset<> &gam_2)
 {
-  // Push gametocyte barcodes and time of bursting
+  // Push gametocyte barcodes and time of bursting and spz count remaining, i.e. 4
   
   m_oocyst_barcode_male_vector.emplace_back(gam_1);
   m_oocyst_barcode_female_vector.emplace_back(gam_2);
   m_oocyst_rupture_time_vector.emplace_back(parameters.g_current_time + static_cast<int>(parameters.g_delay_mos));
+  m_oocyst_remaining_spz_count.emplace_back(4);
   
   // Update infection status if mosquito is susceptible
   if (m_mosquito_infection_state == SUSCEPTIBLE)
@@ -171,14 +173,20 @@ boost::dynamic_bitset<> Mosquito::sample_sporozoite() {
         get_m_oocyst_barcode_male_vector(0),
         get_m_oocyst_barcode_female_vector(0)
       );
+      
+      // decrease the remaining  spz from this oocyst
+      m_oocyst_remaining_spz_count[0]--;
     } 
     else 
     {
-      m_oocyst_pick = runiform_int_1(1, m_ruptured_oocyst_count - 1);
+      m_oocyst_pick = sample1_ints(m_oocyst_remaining_spz_count, (4*m_ruptured_oocyst_count)-m_generated_sporozoite_count);
       Strain::temp_barcode = Strain::generate_recombinant_barcode(
         m_oocyst_barcode_male_vector[m_oocyst_pick],
                                     m_oocyst_barcode_female_vector[m_oocyst_pick]
       );
+      
+      // decrease the number of remaining spz from this oocyst
+      m_oocyst_remaining_spz_count[m_oocyst_pick]--;
     }
   
   m_generated_sporozoite_count++;
@@ -290,6 +298,7 @@ bool Mosquito::die(Parameters & parameters)
   m_oocyst_barcode_male_vector.clear();
   m_oocyst_barcode_female_vector.clear();
   m_generated_sporozoites_vector.clear();
+  m_oocyst_remaining_spz_count.clear();
   
   // Make mosquito susceptible again
   m_mosquito_infection_state = SUSCEPTIBLE;

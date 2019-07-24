@@ -263,7 +263,8 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     std::vector<int> Mosquito_Day_of_next_blood_meal(scourge_size);	
     std::vector<bool> Mosquito_Off_Season(scourge_size);	
     std::vector<int> Mosquito_Day_of_death(scourge_size);
-    std::vector<int> Mosquito_Number_of_ruptured_oocysts (scourge_size);
+    std::vector<int> Mosquito_Number_of_ruptured_oocysts(scourge_size);
+    std::vector<std::vector<int> > Mosquito_Oocyst_remaining_spz_vectors(scourge_size);
     std::vector<std::vector<int> > Mosquito_Oocyst_rupture_time_vectors(scourge_size);
     std::vector<std::vector<std::vector<bool> > > Mosquito_Oocyst_barcode_male_vectors(scourge_size);
     std::vector<std::vector<std::vector<bool> > > Mosquito_Oocyst_barcode_female_vectors(scourge_size);
@@ -295,8 +296,11 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
       // Ruptured oocyst Numbers 
       Mosquito_Number_of_ruptured_oocysts[element] = static_cast<int>(universe_ptr->scourge[element].get_m_ruptured_oocyst_count());
 
-      // Pending Infection time vector
+      // Pending Rupture time vector
       Mosquito_Oocyst_rupture_time_vectors[element] = universe_ptr->scourge[element].get_m_oocyst_rupture_time_vector();
+      
+      // Pending Infection time vector
+      Mosquito_Oocyst_remaining_spz_vectors[element] = universe_ptr->scourge[element].get_m_oocyst_remaining_spz_count();
 
       // Pending oocyst barcode vector
       // ---------------------------------------
@@ -387,6 +391,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     Rcpp::Named("Mosquito_Off_Season")=Mosquito_Off_Season,
     Rcpp::Named("Mosquito_Day_of_death")=Mosquito_Day_of_death,
     Rcpp::Named("Mosquito_Number_of_ruptured_oocysts")=Mosquito_Number_of_ruptured_oocysts,
+    Rcpp::Named("Mosquito_Oocyst_remaining_spz_vectors")=Mosquito_Oocyst_remaining_spz_vectors,
     Rcpp::Named("Mosquito_Oocyst_rupture_time_vectors")=Mosquito_Oocyst_rupture_time_vectors,
     Rcpp::Named("Mosquito_Oocyst_barcode_male_vectors")=Mosquito_Oocyst_barcode_male_vectors,
     Rcpp::Named("Mosquito_Oocyst_barcode_female_vectors")=Mosquito_Oocyst_barcode_female_vectors,

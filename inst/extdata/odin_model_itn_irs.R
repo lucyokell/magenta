@@ -390,29 +390,32 @@ dim(pop_split) <- num_int
 pop_split[] <- user() # proporion of people in each intervention compartment
 
 # cov is a vector of coverages for each intervention category:
-dim(itn_cov) <- user()
-itn_cov[] <- user()
-dim(irs_cov) <- user()
-irs_cov[] <- user()
-dim(ft_vec) <- user() 
-ft_vec[] <- user()
+dim(itn_vector) <- user()
+itn_vector[] <- user()
 
-dim(int_times) <- length(itn_cov)
-int_times[] <- user()
+dim(irs_vector) <- user()
+irs_vector[] <- user()
 
+dim(ft_vector) <- user() 
+ft_vector[] <- user()
 
-ft <- interpolate(int_times, ft_vec, "constant")
-eff_itn_cov <- interpolate(int_times, itn_cov, "constant")
-eff_irs_cov <- interpolate(int_times, irs_cov, "constant")
+dim(t_vector) <- length(itn_vector)
+t_vector[] <- user()
 
-int_itn_irs_on <- interpolate(int_times, int_times, "constant")
+ft <- interpolate(t_vector, ft_vector, "constant")
+#ft <- 0.4
+
+eff_itn_vector <- interpolate(t_vector, itn_vector, "constant")
+eff_irs_vector <- interpolate(t_vector, irs_vector, "constant")
+
+int_itn_irs_on <- interpolate(t_vector, t_vector, "constant")
 eff_ITN_IRS_on <- if (t < ITN_IRS_on) ITN_IRS_on else int_itn_irs_on
 
 dim(cov_) <- 4
-cov_[1] <- (1-eff_itn_cov)*(1-eff_irs_cov)  # {No intervention}
-cov_[2] <- eff_itn_cov*(1-eff_irs_cov) # 	   {ITN only}
-cov_[3] <- (1-eff_itn_cov)*eff_irs_cov	#      {IRS only}
-cov_[4] <- eff_itn_cov*eff_irs_cov #	   {Both ITN and IRS}
+cov_[1] <- (1-eff_itn_vector)*(1-eff_irs_vector)  # {No intervention}
+cov_[2] <- eff_itn_vector*(1-eff_irs_vector) # 	   {ITN only}
+cov_[3] <- (1-eff_itn_vector)*eff_irs_vector	#      {IRS only}
+cov_[4] <- eff_itn_vector*eff_irs_vector #	   {Both ITN and IRS}
 cov[] <- cov_[i]
 dim(cov) <- num_int
 
@@ -556,5 +559,6 @@ output(d_IRS) <- d_IRS
 output(r_IRS) <- r_IRS
 output(s_IRS) <- s_IRS
 output(cov[]) <- TRUE
+output(ft) <- ft
 output(K0) <- K0
 output(av) <- av

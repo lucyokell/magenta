@@ -279,7 +279,7 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
       
       q_i = q_fun(u_ptr->parameters, ages[el], u_ptr->population[i].get_m_ID());
       std::sort(bitsets_not_u_i.begin(), bitsets_not_u_i.end());
-      coi_detected_micro[el] = std::min(1,static_cast<int>(ceil(q_i * (std::unique(bitsets_not_u_i.begin(), bitsets_not_u_i.end()) - bitsets_not_u_i.begin()))));
+      coi_detected_micro[el] = std::max(1,static_cast<int>(ceil(q_i * (std::unique(bitsets_not_u_i.begin(), bitsets_not_u_i.end()) - bitsets_not_u_i.begin()))));
       
       // similar for all
       std::sort(bitsets_u_i.begin(), bitsets_u_i.end());

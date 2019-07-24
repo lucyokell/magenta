@@ -329,6 +329,7 @@ equilibrium_init_create <- function(age_vector,
               theta_c = theta_c, age = age_vector*mpl$DY, ft = ft, FOIv_eq = FOIv_eq,
               betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,
               age_mid_point = age_mid_point, het_bounds = het_bounds, pi = pi,
+              p_det_eq = p_det_eq,
               age20l = age20l, age20u = age20u, age_20_factor = age_20_factor)
   
   res <- append(res,mpl)

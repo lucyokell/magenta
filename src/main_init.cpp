@@ -67,12 +67,18 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   Rcpp::List drug_list = param_list["drug_list"];
   Rcpp::List nmf_list = param_list["nmf_list"];
   Rcpp::List vector_adaptation_list = param_list["vector_adaptation_list"];
+  Rcpp::List core_parameter_list = param_list["core_parameter_list"];
   
   // Un pack housekeeping parms
   parameters.g_h_quiet_print = Rcpp::as<bool>(housekeeping_list["quiet_print"]);
   
   // prove that C++ code is being run
   rcpp_out(parameters.g_h_quiet_print, "Rcpp function is working!\n");
+  
+  // Un pack core parameters
+  // -------------------------------------------------
+  parameters.g_phi0 = Rcpp::as<double>(core_parameter_list["g_phi0"]);
+  
   
   // Un pack barcode parms
   // -------------------------------------------------
@@ -523,6 +529,12 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
       
       // Set the oocyst rupture count to 1
       scourge[n].set_m_ruptured_oocyst_count(1);
+      
+      // set the time of the rupture (less than today is fine)
+      scourge[n].set_m_oocyst_rupture_time_vector({0});
+      
+      // and set their spzs left to generate
+      scourge[n].set_m_oocyst_remaining_spz_count({4});
       scourge[n].m_mosquito_infected = true;
       
     }
@@ -547,6 +559,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
         pending_oocyst_barcode_male[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode();
         pending_oocyst_barcode_female[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(0).get_m_barcode();
         scourge[n].set_m_oocyst_rupture_time_vector(pending_oocyst_time);
+        scourge[n].set_m_oocyst_remaining_spz_count({4});
         scourge[n].set_m_oocyst_barcode_male_vector(pending_oocyst_barcode_male);
         scourge[n].set_m_oocyst_barcode_female_vector(pending_oocyst_barcode_female);
         
@@ -559,6 +572,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
         pending_oocyst_barcode_male[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode();
         pending_oocyst_barcode_female[0] = population[infected_human_count[parent_source]].get_m_person_strain_x(runiform_int_1(0, population[infected_human_count[parent_source]].get_m_number_of_strains() - 1)).get_m_barcode();
         scourge[n].set_m_oocyst_rupture_time_vector(pending_oocyst_time);
+        scourge[n].set_m_oocyst_remaining_spz_count({4});
         scourge[n].set_m_oocyst_barcode_male_vector(pending_oocyst_barcode_male);
         scourge[n].set_m_oocyst_barcode_female_vector(pending_oocyst_barcode_female);
       }

@@ -48,6 +48,7 @@ private:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   std::vector<int> m_oocyst_rupture_time_vector;	// First oocyst in mosquito at position 0 etc vector to store pending sporozoite times, i.e. day of biting + 10
+  std::vector<int> m_oocyst_remaining_spz_count;	// How many sporozoites are remaining to be generated from an oocyst
   std::vector<boost::dynamic_bitset<> > m_oocyst_barcode_male_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from male
   std::vector<boost::dynamic_bitset<> > m_oocyst_barcode_female_vector;	// First oocyst barcode male in mosquito at position 0 etc vector to handle pending sporozoite barcodes from female
   std::vector<boost::dynamic_bitset<> > m_generated_sporozoites_vector; // Sporozites that have already been simulated for this mosquito
@@ -111,6 +112,9 @@ public:
   
   // Get Mosquito's oocyst rupture time vector
   std::vector<int> get_m_oocyst_rupture_time_vector() { return(m_oocyst_rupture_time_vector); }
+  
+  // Get Mosquito's oocyst spz count
+  std::vector<int> get_m_oocyst_remaining_spz_count() { return(m_oocyst_remaining_spz_count); }
   
   // Get Mosquito's oocyst male barcode vector
   std::vector<boost::dynamic_bitset<>> get_m_oocyst_barcode_male_vector() { return(m_oocyst_barcode_male_vector); }
@@ -176,14 +180,11 @@ public:
   void set_m_oocyst_barcode_female_vector(std::vector<boost::dynamic_bitset<>> x) { m_oocyst_barcode_female_vector = x;}
   
   // Set mosquito's oocyst rupture time vector
-  void set_m_oocyst_rupture_time_vector(std::vector<int> x)  
-  { 
-    for (unsigned int i = 0; i < x.size(); i++) 
-    {
-      m_oocyst_rupture_time_vector.emplace_back(x[i]);
-    }
-    
-  }
+  void set_m_oocyst_rupture_time_vector(std::vector<int> x) { m_oocyst_rupture_time_vector = x; }
+  
+  // Set mosquito's oocyst spz count vector
+  void set_m_oocyst_remaining_spz_count(std::vector<int> x) { m_oocyst_remaining_spz_count = x; }
+  
   
   // Set mosquito's oocyst barcode male vector
   void set_m_oocyst_barcode_male_vector_from_vector_of_vector_bool(std::vector<std::vector<bool> > x)

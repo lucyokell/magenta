@@ -175,6 +175,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List param_list)
   std::vector<unsigned int> Mosquito_Number_of_ruptured_oocysts = Rcpp::as<vector<unsigned int> >(scourge_List["Mosquito_Number_of_ruptured_oocysts"]);
   
   Rcpp::List Mosquito_Oocyst_rupture_time_vectors = scourge_List["Mosquito_Oocyst_rupture_time_vectors"];
+  Rcpp::List Mosquito_Oocyst_remaining_spz_vectors = scourge_List["Mosquito_Oocyst_remaining_spz_vectors"];
   Rcpp::List Mosquito_Oocyst_barcode_male_vectors = scourge_List["Mosquito_Oocyst_barcode_male_vectors"];
   Rcpp::List Mosquito_Oocyst_barcode_female_vectors = scourge_List["Mosquito_Oocyst_barcode_female_vectors"];
 
@@ -328,6 +329,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List param_list)
     
     // Set vectors;
     scourge[n].set_m_oocyst_rupture_time_vector(Rcpp::as<std::vector<int> >(Mosquito_Oocyst_rupture_time_vectors[n]));
+    scourge[n].set_m_oocyst_remaining_spz_count(Rcpp::as<std::vector<int> >(Mosquito_Oocyst_remaining_spz_vectors[n]));
     scourge[n].set_m_oocyst_barcode_male_vector_from_vector_of_vector_bool(Rcpp::as<std::vector<std::vector<bool> > >(Mosquito_Oocyst_barcode_male_vectors[n]));
     scourge[n].set_m_oocyst_barcode_female_vector_from_vector_of_vector_bool(Rcpp::as<std::vector<std::vector<bool> > >(Mosquito_Oocyst_barcode_female_vectors[n]));
     

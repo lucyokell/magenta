@@ -8,7 +8,7 @@
 #' @param ... Any other params to be fed to the model parameter list
 #' 
 
-PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
+PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,age_range=NULL,all_a=FALSE,
                                   ft, ...){
   
   mpl <- model_param_list_create(eta = 1/(21*365),...)
@@ -36,6 +36,13 @@ PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
 
   
   not_found <- TRUE
+  if(is.null(age_range)) {
+    age_low <- 1
+    age_high <- length(age.vector)
+  } else {
+    age_low <- which(eqInit$age >  (age_range[1]*365))[1]
+    age_high <- which(eqInit$age >  (age_range[2]*365))[1]
+  }
   
   #while(not_found){
   for(i in 1:100){
@@ -48,12 +55,20 @@ PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
                                       model_param_list = mpl)
     
     if(!is.null(PfPR)){
-      diff <- PR - (1 - sum(eqInit$init_S) - sum(eqInit$init_P))
+      diff <- PR - (1 - sum(eqInit$init_S[age_low:age_high,,1] + eqInit$init_P[age_low:age_high,,1])/sum(eqInit$den[age_low:age_high]))
     }  else if ((!is.null(PfPR_micro)))  {
-      diff <- PR - (sum(eqInit$init_D[eqInit$age2years: eqInit$age10years,,1]/0.25 + 
-                          eqInit$init_T[eqInit$age2years: eqInit$age10years,,1]/0.25 + 
-                          eqInit$init_A[eqInit$age2years: eqInit$age10years,,1] * eqInit$p_det_eq[eqInit$age2years: eqInit$age10years,] /0.25) / 
-                      sum(eqInit$den[eqInit$age2years: eqInit$age10years]))
+      
+      if(all_a) {
+        diff <- PR - (sum(eqInit$init_D[age_low:age_high,,1] + 
+                            eqInit$init_T[age_low:age_high,,1] + 
+                            eqInit$init_A[age_low:age_high,,1]) / 
+                        sum(eqInit$den[age_low:age_high]))  
+      } else {
+      diff <- PR - (sum(eqInit$init_D[age_low:age_high,,1] + 
+                          eqInit$init_T[age_low:age_high,,1] + 
+                          eqInit$init_A[age_low:age_high,,1] * eqInit$p_det_eq[age_low:age_high,]) / 
+                      sum(eqInit$den[age_low:age_high]))
+      }
     } else {
       diff <- PR - eqInit$mv0
     }
@@ -93,6 +108,7 @@ PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,
     
   }
   
+  message(abs(diff))
   return(EIR)
   
 }

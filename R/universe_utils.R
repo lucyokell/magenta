@@ -131,6 +131,7 @@ COI_df_create <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0.
       }
       
       # create overall clonality by first converting our nums to integers for quick tabulation
+      barcode_freq <- apply(rbind_list_base(df$nums), 2, function(x){ mean(as.integer(x)) })
       df$nums[df$bs>0]  <- lapply(df$nums[df$bs>0],function(x) apply(x,1,bitsToInt))
       clonality <- table(table(unlist(df$nums[chosen])))
       barcodes_tab <- sort(table(unlist(df$nums[chosen])),decreasing=TRUE)
@@ -161,7 +162,9 @@ COI_df_create <- function(df, groupvars = c("age_bin","clinical"),breaks = c(-0.
                   "summary_ages"=summary_ages,
                   "summary_unique"=summary_unique,
                   "summary_cou"=summary_cou,
-                  "clonality"=clonality,"coi_table"=table(df$coi[chosen]))
+                  "clonality"=clonality,
+                  "coi_table"=table(df$coi[chosen]),
+                  "barcode_freq"=barcode_freq)
       
       if(barcodes){
         res$barcodes <- barcodes_tab[barcodes_tab>1]

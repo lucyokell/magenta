@@ -169,7 +169,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
 bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   
   // the default drug
-  int drug_choice = parameters.g_drug_choice;
+  m_drug_choice = parameters.g_drug_choice;
   int time_ago = 0;
   double prob_of_lpf = 0.0;
   double temp_prob_lpf = 0.0;
@@ -183,16 +183,13 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   
   // are we doing mft, and if so what drug did they get this time
   if(parameters.g_mft_flag) {
-    drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+    m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
   }
-  
-  // assign this drug choice to them
-  m_drug_choice = drug_choice;
   
   // loop through strains and work out the individuals prob of lpf
   for(int ts = 0; ts < m_number_of_strains ; ts++){
     
-    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, drug_choice);
+    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
     prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
     
   }
@@ -208,7 +205,7 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
     for(int ts = (m_number_of_strains-1); ts >=0  ; ts--){
       
       // what is this strains lpf
-      temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, drug_choice);
+      temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
       
       // is this the same lpf as for the human and is this the first occurrence
       if (at_least_one && (temp_prob_lpf == prob_of_lpf)) {
@@ -568,11 +565,11 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
           }
         }
       }
-      
-    }
     
     // TODO: add here a function call to remove this strain if it would have been cleared by prophylaxis
     clear_strain_if_prophylactic(parameters);
+      
+    }
     
   }
   
@@ -840,6 +837,11 @@ void Person::treatment_outcome(const Parameters &parameters) {
       }
     }
   } else {
+    
+    // are we doing mft, and if so what drug did they get this time
+    if(parameters.g_mft_flag) {
+      m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+    }
     
     // did they fail due to the drug failing (regardless of resistance)
     if(rbernoulli1(1 - parameters.g_drugs[m_drug_choice].get_prob_of_lpf_x(0))) {

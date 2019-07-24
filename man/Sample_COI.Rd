@@ -5,7 +5,8 @@
 \title{Sample x times from saved simulation and produce age COI data}
 \usage{
 Sample_COI(sim.save, ID, sample_size, age_densities, age_breaks = seq(0,
-  90 * 365, 2 * 365), sub_patents_included = FALSE, reps)
+  90 * 365, 2 * 365), sub_patents_included = FALSE, reps = 50,
+  COI_type = "old")
 }
 \arguments{
 \item{sim.save}{Saved output of simulation}
@@ -17,6 +18,8 @@ Sample_COI(sim.save, ID, sample_size, age_densities, age_breaks = seq(0,
 \item{age_breaks}{Corresponding vector of age breaks for the density}
 
 \item{reps}{How many samples are made}
+
+\item{COI_type}{type of COI calculation}
 }
 \description{
 \code{Sample_COI} samples from a human save according to some age distirbution

@@ -156,9 +156,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   int temp_biting_frequency_vector_iterator = 0;
   
   // status eq for logging and other logging variables
-  unsigned int succesful_treatments = 0;
-  unsigned int unsuccesful_treatments_lpf = 0;
   unsigned int not_treated = 0;
+  std::vector<unsigned int> succesful_treatments_by_drug(u_ptr->parameters.g_number_of_drugs,0);
+  std::vector<unsigned int> unsuccesful_treatments_by_drug(u_ptr->parameters.g_number_of_drugs,0);
   std::vector<double> status_eq = { 0,0,0,0,0,0 };
   std::vector<double> mosq_status_eq = { 0,0,0 };
   unsigned int log_counter = 0;
@@ -449,10 +449,10 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
         
         // log treatment outcomes
         if(element.get_m_treatment_outcome() == Person::SUCCESFULLY_TREATED){
-          succesful_treatments++;
+          succesful_treatments_by_drug[element.get_m_drug_choice()]++;
         } 
         if (element.get_m_treatment_outcome() == Person::LPF){
-          unsuccesful_treatments_lpf++;
+          unsuccesful_treatments_by_drug[element.get_m_drug_choice()]++;
         }
         if (element.get_m_treatment_outcome() == Person::NOT_TREATED){
           not_treated++;
@@ -556,8 +556,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
                                           Rcpp::Named("Incidence")=total_incidence/log_counter,
                                           Rcpp::Named("Incidence_05")=total_incidence_05/log_counter, 
                                           Rcpp::Named("Treatments")=Rcpp::List::create(
-                                            Rcpp::Named("Successful_Treatments")=succesful_treatments,
-                                            Rcpp::Named("Unsuccesful_Treatments_LPF")=unsuccesful_treatments_lpf,
+                                            Rcpp::Named("Successful_Treatments")=succesful_treatments_by_drug,
+                                            Rcpp::Named("Unsuccesful_Treatments_LPF")=unsuccesful_treatments_by_drug,
                                             Rcpp::Named("Not_Treated")=not_treated,
                                             Rcpp::Named("daily_bite_counters")=daily_bite_counters,
                                             Rcpp::Named("daily_infectious_bite_counters")=daily_infectious_bite_counters

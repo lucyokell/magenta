@@ -276,16 +276,17 @@ mu_fv_create <- function(eqInit,
     }
     
     # check interventions parm lengths
-    eqInit$ft_vec <- length_check(ft)
-    eqInit$itn_cov <- length_check(itn_cov)
-    eqInit$irs_cov <- length_check(irs_cov)
+    eqInit$ft_vector <- length_check(ft)
+    eqInit$itn_vector <- length_check(itn_cov)
+    eqInit$irs_vector <- length_check(irs_cov)
     
+  
     # set up the intervetnion times
     if (is.null(int_times)) {
-      int_times <- c(-30,seq(0,by=365,length.out = years))
+      int_times <- c(-25,seq(0,by=365,length.out = years))
     }
-    eqInit$int_times <- int_times
-    eqInit$ITN_IRS_on <- -30
+    eqInit$t_vector <- int_times
+    eqInit$ITN_IRS_on <- 0
     
     
     # split pop accordingly
@@ -304,11 +305,12 @@ mu_fv_create <- function(eqInit,
     # build model 
     odin_model_path <- odin_model
     gen <- odin::odin(odin_model_path,verbose=FALSE)
-    model <- gen(user=eqInit,use_dde=TRUE)
+    state <- eqInit[names(eqInit) %in% names(formals(gen))]
+    model <- gen(user=state,use_dde=TRUE)
     
     #create model and simulate
     tt <- seq(1,round(years*365),1)
-    mod_run <- model$run(tt)
+    mod_run <- model$run(t = tt,n_history = 1000)
     out <- model$transform_variables(mod_run)
     
     if(!full){
@@ -510,7 +512,7 @@ fd <- function(age, fD0, aD, gammaD) {
 }
 
 # convert allele frequencies
-pop_alf <- function(nums,nl,weighted=TRUE){ 
+pop_alf <- function(nums,nl,weighted=FALSE){ 
   if(class(nums %>% unlist)=="raw") {
     if(weighted) {
     res <- colSums(do.call(rbind,lapply(nums,function(x){colMeans(matrix(as.numeric(x),ncol = nl))})))/length(nums)
@@ -545,7 +547,7 @@ update_saves <- function(res, i, sim.out, sample_states,
                          barcode_params, num_loci, full_update_save=FALSE,
                          genetics_df_without_summarising, save_lineages = FALSE,
                          human_update_save, summary_saves_only,
-                         only_allele_freqs, mpl, seed) {
+                         only_allele_freqs, mpl, seed, weighted=FALSE) {
   
   
   # what are saving, does it include the humans
@@ -573,35 +575,13 @@ update_saves <- function(res, i, sim.out, sample_states,
         
         res[[i]] <- list()
         if(only_allele_freqs){
-          res[[i]]$af <- pop_alf(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci)
+          res[[i]]$af <- pop_alf(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci,weighted=weighted)
           if(save_lineages){
             res[[i]]$lineage <-lineages(df$nums[unlist(lapply(df$barcode_states,length))>0],num_loci)
           }
         } else {
           res[[i]]$df <- df
         }
-        
-        # treatment outcomes for resistance work
-        res[[i]]$succesfull_treatments <- sim.out$Loggers$Treatments$Successful_Treatments
-        res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Treatments$Unsuccesful_Treatments_LPF
-        res[[i]]$not_treated <- sim.out$Loggers$Treatments$Not_Treated
-        res[[i]]$treatment_failure <-  res[[i]]$unsuccesful_treatments_lpf / (res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments) 
-        
-        if(is.na(res[[i]]$treatment_failure)) {
-          res[[i]]$treatment_failure <- 0 
-        }
-        
-        # prevalence measures
-        two_ten <- sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720
-        dt_10 <- sum(sim.out$Loggers$InfectionStates %in% c(1, 4) & two_ten) / sum(two_ten)
-        
-        micro_det <- q_fun(mpl$d1,sim.out$Loggers$ID,mpl$ID0,mpl$kD,
-                           sapply(sim.out$Loggers$Ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
-        
-        a_10 <- sum(sim.out$Loggers$InfectionStates %in% 2 & two_ten ) / sum(two_ten) * mean(micro_det[two_ten])
-        res[[i]]$pcr_prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
-        res[[i]]$micro_2_10 <- dt_10 + a_10
-        
         
       } else {
         
@@ -617,8 +597,30 @@ update_saves <- function(res, i, sim.out, sample_states,
                                     mean_only = mean_only)
         }
         
-        res[[i]]$Prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
       }
+      
+      # treatment outcomes for resistance work
+      res[[i]]$succesfull_treatments <- sim.out$Loggers$Treatments$Successful_Treatments
+      res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Treatments$Unsuccesful_Treatments_LPF
+      res[[i]]$not_treated <- sim.out$Loggers$Treatments$Not_Treated
+      res[[i]]$treatment_failure <-  res[[i]]$unsuccesful_treatments_lpf / (res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments) 
+      res[[i]]$daily_pop_eir <-  sim.out$Loggers$Treatments$daily_infectious_bite_counters/sim.out$Loggers$Log_Counter*365
+      
+      if(any(is.na(res[[i]]$treatment_failure))) {
+        res[[i]]$treatment_failure[is.na(res[[i]]$treatment_failure)] <- 0 
+      }
+      
+      # prevalence measures
+      two_ten <- sim.out$Loggers$Ages < 3650 & sim.out$Loggers$Ages > 720
+      dt_10 <- sum(sim.out$Loggers$InfectionStates %in% c(1, 4) & two_ten) / sum(two_ten)
+      
+      micro_det <- q_fun(mpl$d1,sim.out$Loggers$ID,mpl$ID0,mpl$kD,
+                         sapply(sim.out$Loggers$Ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
+      
+      a_10 <- sum(sim.out$Loggers$InfectionStates %in% 2 & two_ten ) / sum(two_ten) * mean(micro_det[two_ten])
+      res[[i]]$pcr_prev <- sum(unlist(sim.out$Loggers[c("D","A","U","T")]))
+      res[[i]]$dat <- sum(unlist(sim.out$Loggers[c("D","A","T")]))
+      res[[i]]$micro_2_10 <- dt_10 + a_10
       
       # or do we want the full human popualation
     } else {

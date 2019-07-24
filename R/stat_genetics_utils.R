@@ -131,11 +131,11 @@ cou_from_barcode_list <- function(barcode_list){
 pibd_from_barcode_list <- function(barcode_list){
   l_factor_i <- attr(r[[year0]],"l") + attr(r[[year]],"l") 
   if(!unphased){
-    t <- rbind(data.table::rbindlist(r[[year0]][["ints"]][samp[pos<=ss]]),data.table::rbindlist(r[[year]][["ints"]][samp[pos>ss]]))
+    t <- rbind(rbind_list_base(r[[year0]][["ints"]][samp[pos<=ss]]),rbind_list_base(r[[year]][["ints"]][samp[pos>ss]]))
     z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
     return((z - (1/ss))/(1-(1/ss)))
   } else {
-    t <- rbind(data.table::rbindlist(r[[year0]][["ints_max"]][samp[pos<=ss]]),data.table::rbindlist(r[[year]][["ints_max"]][samp[pos>ss]]))
+    t <- rbind(rbind_list_base(r[[year0]][["ints_max"]][samp[pos<=ss]]),rbind_list_base(r[[year]][["ints_max"]][samp[pos>ss]]))
     z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
     return((z - (1/ss))/(1-(1/ss)))
   }
@@ -176,19 +176,5 @@ population_ibd_barcodes_c <- function(barcode_vec,bl,nl,ib){
       lapply(as.raw(tail(x[[1]],1)),test_ibd_conversion,bl,nl,ib) %>% unlist
     }
   )
-  
-}
-
-
-population_ibd_distances <- function(r=NULL,nl=NULL,mat=NULL){
-  
-  if(is.null(mat)){
-    mat <- unlist(population_ibd_barcodes(r,nl)) %>% matrix(nrow=length(r$population_List$Infection_States),byrow=TRUE)
-  }
-  
-  nl <- dim(mat)[2]
-  
-  return(list("p_ibd"=proxy::dist(mat,method = function(x,y) sum(x==y)/nl),
-              "pop" = mat))
   
 }

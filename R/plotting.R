@@ -60,7 +60,7 @@ Heatmap_ordered_binary_plot <- function(sim.save, years, EIR, ordered = TRUE,sav
 #' @export
 
 
-Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd = FALSE, nl=24 ){
+Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd = FALSE, nl=24, COI_type = "old"){
   
   
   
@@ -101,15 +101,48 @@ Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd
   
   int.out <- lapply(lapply(intout,function(x){return(unlist(x))}),unlist)
   
+  COI_old <- function(i){
+   a <- length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==1)]))
+    a <- a + round(length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==2)]))*(micro_det[i]^mpl$alphaA))
+    a <- a + round(length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==3)]))*(micro_det[i]^mpl$alphaU))
+    a <- a + length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==4)]))
+    return(a)
+  }
+  
+  COI_new <- function(i){
+    st <- sim.save$Strain_infection_state_vectors[[i]]
+    stch <- sim.save$Strain_day_of_infection_state_change_vectors[[i]]
+    staying <- st==1 | st == 4 | st == 2
+    staying[st==3] <- as.logical(rbinom(sum(st==3),size = 1,micro_det[i]^mpl$alphaU))
+    a <- length(unique(int.out[[i]][staying]))
+    return(a)
+  }
+  
+  COI_new_patent <- function(i){
+    st <- sim.save$Strain_infection_state_vectors[[i]]
+    stch <- sim.save$Strain_day_of_infection_state_change_vectors[[i]]
+    staying <- st==1 | st == 4 
+    staying[st==2] <- as.logical(rbinom(sum(st==2),size = 1,micro_det[i]))
+    a <- length(unique(int.out[[i]][staying]))
+    return(a)
+  }
+  
+  
+  
   if(!ibd){
     if(!sub_patents_included){
       COI <- rep(0,length(int.out))
       for(i in 1:length(int.out)){
-        COI[i] <- length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==1)]))
-        COI[i] <- COI[i] + round(length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==2)]))*(micro_det[i]^mpl$alphaA))
-        COI[i] <- COI[i] + round(length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==3)]))*(micro_det[i]^mpl$alphaU))
-        COI[i] <- COI[i] + length(unique(int.out[[i]][which(sim.save$Strain_infection_state_vectors[[i]]==4)]))
-        if(COI[i]==0) COI[i] <- 1
+        if(n.strains[i]!=0){
+          
+          if(COI_type=="old"){
+        COI[i] <- COI_old(i)
+          } else if (COI_type == "new"){
+            COI[i] <- COI_new(i)
+          } else {
+            COI[i] <- COI_new_patent(i)
+          }
+        }
       }
     } else {
       COI <- unlist(lapply(int.out,function(x){return(length(unique(x)))}))
@@ -133,18 +166,19 @@ Convert_Barcode_Vectors <- function(sim.save, ID, sub_patents_included=TRUE, ibd
 #' @param age_densities Densitvy vector for age distribution required
 #' @param age_breaks Corresponding vector of age breaks for the density
 #' @param reps How many samples are made
+#' @param COI_type type of COI calculation
 #' 
 #' 
 #' @export
 
 Sample_COI <- function(sim.save,ID,sample_size,age_densities,age_breaks=seq(0,90*365,2*365),
-                       sub_patents_included=FALSE,reps){
+                       sub_patents_included=FALSE,reps=50, COI_type="old"){
   
   
-  COI_out <- Convert_Barcode_Vectors(sim.save, ID, sub_patents_included = sub_patents_included)
+  COI_out <- Convert_Barcode_Vectors(sim.save, ID, sub_patents_included = sub_patents_included,COI_type=COI_type)
   
   grouped_ages_by_2 <- cut(sim.save$Ages,breaks = age_breaks,labels = 1:45)
-  sample_groups <- round(sample_size * (age_densities*(1/sum(age_densities))))
+  sample_groups <- round(sample_size * (age_densities*(1/sum(age_densities)))) 
   picks <- matrix(rep(rep(1:45,sample_groups),reps),ncol=reps)
   
   ids <- picks
@@ -277,11 +311,11 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,years = 3
   }) %>% unlist
   }
   
-  mean_prev <- function(res_list,full_time_length){
+  mean_prev <- function(res_list,full_time_length,prev="pcr_prev"){
     i = 1:(full_time_length); 
     lapply(i,function(y){
       lapply(res_list, function(x) {
-        ((x[[positions[y]]]$Prev))
+        ((x[[positions[y]]][[prev]]))
       })
     }) %>% unlist
   }
@@ -474,7 +508,7 @@ plot_x_loggers <- function(res, x, alpha = 1, scale = FALSE, extra = NULL ) {
   
 }
 
-plot_mean_summary <- function(res, x, states = c("D","A","T"),alpha = 1, scale = FALSE, extra = NULL ) {
+plot_mean_summary <- function(res, x, group = "clinical", groups = c("Asymptomatic","Clinical"),alpha = 1, scale = FALSE, extra = NULL ) {
   
   l <- list()
   length(l) <- length(x)
@@ -483,8 +517,8 @@ plot_mean_summary <- function(res, x, states = c("D","A","T"),alpha = 1, scale =
   
   for(i in 1:length(x)) { 
     l[[i]] <- lapply(res[want],function(y){
-      N <- y[[x]]$N[y[[x]]$state %in% states]
-      mean <- y[[x]]$mean[y[[x]]$state %in% states]
+      N <- y[[x]]$N[y[[x]][[group]] %in% groups]
+      mean <- y[[x]]$mean[y[[x]][[group]] %in% groups]
       return(sum(N*mean)/sum(N))
     }) %>% unlist
   }
@@ -495,10 +529,10 @@ plot_mean_summary <- function(res, x, states = c("D","A","T"),alpha = 1, scale =
   }
   df$time <- 1:length(l[[1]])
   if("summary_ibd" %in% names(res[[1]])){
-    df$prev <- lapply(res[1:(length(res)-1)],function(x) sum(x$summary_ibd$N[x$summary_ibd$state %in% c("D","A","T","U")])) %>% unlist
+    df$prev <- lapply(res[1:(length(res)-1)],function(x) sum(x$summary_ibd$N[x$summary_ibd[[group]] %in% groups])) %>% unlist
     df$prev <- df$prev/sum(res[[1]]$summary_ibd$N)
   } else {
-    df$prev <- lapply(res[1:(length(res)-1)],function(x) sum(x$summary_coi$N[x$summary_coi$state %in% c("D","A","T","U")])) %>% unlist
+    df$prev <- lapply(res[1:(length(res)-1)],function(x) sum(x$summary_coi$N[x$summary_coi[[group]] %in% groups])) %>% unlist
     df$prev <- df$prev/sum(res[[1]]$summary_coi$N)
   }
   melt <- reshape2::melt(df,id.var = "time")

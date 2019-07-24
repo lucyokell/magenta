@@ -73,6 +73,7 @@
 #' loaded and continued. Default = NULL,
 #' which will trigger initialisation
 #' @param seed Random seed. Default is Random
+#' @param ... Other parameters to model_param_list_create
 #'
 #' \code{Pipeline}
 #'
@@ -110,6 +111,7 @@ Pipeline <- function(EIR = 120,
                      human_only_full_save = FALSE,
                      human_only_full_summary_save = FALSE,
                      update_save = FALSE,
+                     update_save_func = NULL,
                      human_update_save = FALSE,
                      genetics_df_without_summarising = FALSE,
                      summary_saves_only = FALSE,
@@ -125,7 +127,8 @@ Pipeline <- function(EIR = 120,
                      drug_list = drug_list_create(),
                      vector_adaptation_list = vector_adaptation_list_create(),
                      only_allele_freqs = TRUE,
-                     nmf_list = nmf_list_create()) {
+                     nmf_list = nmf_list_create(),
+                     ...) {
 
 
   # PRE-SET UP HOUSEKEEPING ------------------------ ####
@@ -149,7 +152,7 @@ Pipeline <- function(EIR = 120,
   if (is.null(saved_state_path)) {
 
     # Create parameter list, changine any key parameters, e.g. the average age
-    mpl <- model_param_list_create()
+    mpl <- model_param_list_create(...)
 
     # Create age brackets, either geometric or evenly spaced
     age_vector <- age_brackets(100, 40, TRUE)
@@ -230,7 +233,8 @@ Pipeline <- function(EIR = 120,
       housekeeping_list = housekeeping_list,
       drug_list = drug_list,
       nmf_list = nmf_list,
-      vector_adaptation_list = vector_adaptation_list
+      vector_adaptation_list = vector_adaptation_list,
+      mpl = mpl
     )
   } else {
 
@@ -426,15 +430,25 @@ Pipeline <- function(EIR = 120,
         sim.out <- simulation_R(pl2, seed = seed)
 
         # save what we want to save
-        res <- update_saves(
-          res, i, sim.out, sample_states,
-          sample_size, sample_reps, mean_only,
-          barcode_params, num_loci,
-          genetics_df_without_summarising, save_lineages,
-          human_update_save, summary_saves_only,
-          only_allele_freqs, mpl, seed,full_update_save=full_update_save
-        )
-
+        if (is.null(update_save_func)) {
+          res <- update_saves(
+            res = res, i = i, sim.out = sim.out, 
+            sample_states = sample_states,
+            sample_size = sample_size, sample_reps = sample_reps, 
+            mean_only = mean_only, barcode_params = barcode_params, 
+            num_loci = num_loci, 
+            genetics_df_without_summarising = genetics_df_without_summarising, 
+            save_lineages = save_lineages,
+            human_update_save = human_update_save, 
+            summary_saves_only = summary_saves_only,
+            only_allele_freqs = only_allele_freqs, 
+            mpl = mpl, seed = seed, 
+            full_update_save = full_update_save
+          )
+        } else {
+          res <- update_save_func(res, i, sim.out, mpl, num_loci)
+        }
+        
         # spatial export
         if (spatial_type == 2) {
 
@@ -555,13 +569,8 @@ Pipeline <- function(EIR = 120,
 
       # If we want just the humans then get the keybits and save that instead
       if (human_only_full_save) {
-        strain_vars <- c(
-          "Strain_infection_state_vectors",
-          "Strain_day_of_infection_state_change_vectors",
-          "Strain_barcode_vectors"
-        )
         human_vars <- c("Infection_States", "Zetas", "Ages")
-        Strains <- sim.save$populations_event_and_strains_List[strains_vars]
+        Strains <- sim.save$populations_event_and_strains_List[strain_vars]
         Humans <- c(sim.save$population_List[human_vars], Strains)
         res <- Humans
       }

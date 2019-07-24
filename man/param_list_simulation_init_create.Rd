@@ -6,7 +6,7 @@
 \usage{
 param_list_simulation_init_create(N = 10000, eqSS, barcode_params,
   spatial_list, housekeeping_list, drug_list, nmf_list,
-  vector_adaptation_list)
+  vector_adaptation_list, mpl)
 }
 \arguments{
 \item{N}{Population size. Default = 1e4}
@@ -28,6 +28,8 @@ from \code{nmf_list_create}}
 
 \item{vector_adaptation_list}{vector adaptation list 
 from \code{vector_adaptation_list}}
+
+\item{mpl}{model parameter list from \code{model_param_list_create}}
 }
 \description{
 \code{param_list_simulation_init_create} creates suitable parameter list for

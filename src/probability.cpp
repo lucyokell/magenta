@@ -58,6 +58,21 @@ int sample1(const std::vector<double> &p, double pSum) {
 }
 
 //------------------------------------------------
+// sample from given probability vector (that sums to pSum)
+int sample1_ints(const std::vector<int> &p, int pSum) {
+    double rand = R::unif_rand()*pSum;
+    double z = 0;
+    for (int i = 0; i<int(p.size()); i++) {
+        z += p[i];
+        if (rand < z)
+            return i;
+    }
+    return(0);
+}
+
+
+
+//------------------------------------------------
 // sample given sorted random vector, cumsum vector, and n to sammple
 void samplerandoms(std::vector<double> &r, std::vector<double> &p, int n, std::vector<int> &bite_storage_queue) {
   

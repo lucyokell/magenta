@@ -17,13 +17,15 @@
 #'   from \code{nmf_list_create}
 #' @param vector_adaptation_list vector adaptation list 
 #'   from \code{vector_adaptation_list}
+#' @param mpl model parameter list from \code{model_param_list_create}
 #' 
 #' @export
 
 param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params, 
                                               spatial_list, housekeeping_list,
                                               drug_list, nmf_list,
-                                              vector_adaptation_list)
+                                              vector_adaptation_list,
+                                              mpl)
 {
   
   ## CHECKS ##
@@ -47,6 +49,8 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
   if (length(numerics)!=0) stop(paste(names(numerics),"provided not numeric"))
   
   ##---------------------------------------------
+  # change names of parameters here to match the c versions
+  names(mpl) <- paste0("g_",names(mpl)) 
   
   # Create paramlist
   param_list <- list(N = N, eqSS = eqSS, barcode_params = barcode_params, 
@@ -54,7 +58,8 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
                     housekeeping_list = housekeeping_list,
                     drug_list = drug_list,
                     nmf_list = nmf_list,
-                    vector_adaptation_list = vector_adaptation_list)
+                    vector_adaptation_list = vector_adaptation_list,
+                    core_parameter_list = mpl)
   
   return(param_list)
   
@@ -208,17 +213,21 @@ simulation_R <- function(param_list, seed)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(param_list))
-    if(length(param_list)==8)
+    if(length(param_list)==9)
     {
-      stopifnot(identical(names(param_list), c("N","eqSS","barcode_params","spatial_list", "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list")))  
+      stopifnot(identical(names(param_list), c("N","eqSS","barcode_params","spatial_list", 
+                                               "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list",
+                                               "core_parameter_list")))  
     }
     # if it is length one it may be an unpacked list in which case unpack and check
     # this might happen in the future when a list of param_lists is fed directly to this
     # fucntion in a cluster way
-    else if(length(param_list)==8)
+    else if(length(param_list)==9)
     {
       param_list <- param_list[[1]]
-      stopifnot(identical(names(param_list), c("N", "eqSS", "barcode_params","spatial_list", "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list")))  
+      stopifnot(identical(names(param_list), c("N", "eqSS", "barcode_params","spatial_list", 
+                                               "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list",
+                                               "core_parameter_list")))  
     } 
     else 
     {

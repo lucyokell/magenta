@@ -1,7 +1,7 @@
 Package: magenta
 Type: Package
 Title: Individual-based simulation model of malaria epidemiology and genomics
-Version: 0.4.0
+Version: 0.4.2
 Date: 2018-08-21
 Author: OJ Watson & Bob Verity
 Maintainer: Oliver Watson <o.watson@imperial.ac.uk>
@@ -18,19 +18,22 @@ Imports:
     magrittr,
     ggplot2,
     odin,
+    dde,
     dplyr,
-    proxy,
+    reshape2,
+    stringdist,
     redux,
-    dde, 
-    countrycode,
     progress
 Remotes: 
-    mrc-ide/odin@88cb87,
+    mrc-ide/odin,
     richfitz/dde
 LinkingTo: Rcpp, BH
 LazyData: TRUE
 RoxygenNote: 6.1.1
 SystemRequirements: C++11
+Additional_repositories: https://mrc-ide.github.io/drat
 Suggests:
+    knitr,
+    rmarkdown,
     testthat
 Encoding: UTF-8
