@@ -220,13 +220,12 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
   // if we are choosing a sample
   if(sample_size) {
     pop_sample = sample_without_replacement(pop_sample, sample_size);
-    std::cout << "sampling" << std::endl;
+    rcpp_out(u_ptr->parameters.g_h_quiet_print, "Sampling");
   }
   pop_size = pop_sample.size();
   
   std::vector< int> coi(pop_size, 0);
-  std::vector< int> coi_detected_micro(pop_size, 0);
-  std::vector< int> moi(pop_size, 0);
+  std::vector< int> coi_detected_pcr(pop_size, 0);
   std::vector< int> ages(pop_size, 0);
   std::vector< int> states(pop_size, 0);
   std::vector<std::vector< boost::dynamic_bitset<> > > bitsets(pop_size);
@@ -234,10 +233,11 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
   
   // temps
   double q_i;
+  double qu_i;
   unsigned int i;
   std::vector<Strain> strains_i;
-  std::vector<boost::dynamic_bitset<> > bitsets_u_i;
-  std::vector<boost::dynamic_bitset<> > bitsets_not_u_i;
+  std::vector<boost::dynamic_bitset<> > bitsets_pcr_i;
+  std::vector<boost::dynamic_bitset<> > bitsets_all_i;
   std::vector< int> barcode_states_i;
   
   
@@ -248,46 +248,57 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
     
     // simple assignments first
     ages[el] = u_ptr->population[i].get_m_person_age();
+    int state_change = u_ptr->population[i].get_m_day_of_InfectionStatus_change();
     states[el] = static_cast< int>(u_ptr->population[i].get_m_infection_state());
     
     // clear temps
     barcode_states_i.clear();
-    bitsets_u_i.clear();
-    bitsets_not_u_i.clear();
+    bitsets_pcr_i.clear();
+    bitsets_all_i.clear();
     strains_i.clear();
     
     // reserve space
     strains_i = u_ptr->population[i].get_m_active_strains();
-    bitsets_u_i.reserve(strains_i.size());
-    bitsets_not_u_i.reserve(strains_i.size());
+    bitsets_pcr_i.reserve(strains_i.size());
+    bitsets_all_i.reserve(strains_i.size());
     barcode_states_i.reserve(strains_i.size());
     
+    // their detectabilities
+    q_i = q_fun(u_ptr->parameters, ages[el], u_ptr->population[i].get_m_ID());
+    qu_i = std::pow(q_i,u_ptr->parameters.g_alphaU);
     
-    // for coi let's first get the barcodes for the non U states 
+    // for coi we want one forall barcodes and then one for just those 
+    // that are detected by PCR/Sequenom etc. 
+    
     for(auto b : strains_i) {
-      if(b.get_m_strain_infection_status() != Strain::SUBPATENT) {
-        bitsets_not_u_i.emplace_back(b.get_m_barcode()); 
+      if(b.get_m_strain_infection_status() == Strain::SUBPATENT) {
+        if(rbernoulli1(qu_i)) {
+        bitsets_pcr_i.emplace_back(b.get_m_barcode()); 
+        }
       } 
-      bitsets_u_i.emplace_back(b.get_m_barcode()); 
+      else 
+      {
+        bitsets_all_i.emplace_back(b.get_m_barcode()); 
+      }
       barcode_states_i.emplace_back(static_cast< int> (b.get_m_strain_infection_status()));
     }
     barcode_states[el] = barcode_states_i;
-    bitsets[el] = bitsets_u_i;
+    bitsets[el] = bitsets_all_i;
     
     // and then the unique size
     if(strains_i.size()){
       
-      q_i = q_fun(u_ptr->parameters, ages[el], u_ptr->population[i].get_m_ID());
-      std::sort(bitsets_not_u_i.begin(), bitsets_not_u_i.end());
-      coi_detected_micro[el] = std::max(1,static_cast<int>(ceil(q_i * (std::unique(bitsets_not_u_i.begin(), bitsets_not_u_i.end()) - bitsets_not_u_i.begin()))));
-      
+      // cois for pcr
+      std::sort(bitsets_pcr_i.begin(), bitsets_pcr_i.end());
+      coi_detected_pcr[el] = std::unique(bitsets_pcr_i.begin(), bitsets_pcr_i.end()) - bitsets_pcr_i.begin();
+
       // similar for all
-      std::sort(bitsets_u_i.begin(), bitsets_u_i.end());
-      coi[el] = std::unique(bitsets_u_i.begin(), bitsets_u_i.end()) - bitsets_u_i.begin();
-      
+      std::sort(bitsets_all_i.begin(), bitsets_all_i.end());
+      coi[el] = std::unique(bitsets_all_i.begin(), bitsets_all_i.end()) - bitsets_all_i.begin();
+
     } else {
       
-      coi_detected_micro[el] = 0;
+      coi_detected_pcr[el] = 0;
       coi[el] = 0;
       
     }
@@ -297,7 +308,7 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
   
   Rcpp::List res_list = Rcpp::List::create(
     Rcpp::Named("coi", coi),
-    Rcpp::Named("coi_detected_micro",coi_detected_micro), 
+    Rcpp::Named("coi_detected_pcr",coi_detected_pcr), 
     Rcpp::Named("age",ages), 
     Rcpp::Named("state",states),
     Rcpp::Named("barcodes",barcodes),
