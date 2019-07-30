@@ -7,10 +7,13 @@
 plaf_matrix_check(matrix, years)
 }
 \arguments{
-\item{years}{Years desired}
+\item{matrix}{plaf matrix}
 
-\item{plaf}{plaf matrix}
+\item{years}{Years desired}
 }
 \description{
-checks length formatting etc
+plaf matrix check
+}
+\details{
+Checks length formatting etc of population level allele frequency matrix
 }

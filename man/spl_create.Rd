@@ -2,7 +2,7 @@
 % Please edit documentation in R/equilibrium_state_create.R
 \name{spl_create}
 \alias{spl_create}
-\title{Create spatial list object to be passed to main functions if required}
+\title{Spatial Parameter List Creation}
 \usage{
 spl_create(spatial_type = 0, human_importation_rate_vector = NULL,
   mosquito_imporation_rate_vector = NULL,
@@ -10,7 +10,32 @@ spl_create(spatial_type = 0, human_importation_rate_vector = NULL,
   oocyst_freq_vector = rep(1, 10000), num_human_infs = 0,
   num_mos_infs = 0, plaf = rep(0.5, 24))
 }
+\arguments{
+\item{spatial_type}{Numeric for spatial type. Default = 0}
+
+\item{human_importation_rate_vector}{Vector of human importations into this
+region. Default = NULL}
+
+\item{mosquito_imporation_rate_vector}{Vector of mosquito infection 
+importations into this region. Default = NULL}
+
+\item{cotransmission_freq_vector}{Vector of size of cotransmissions. This is 
+preallocated here and regenerated every simulation update length.
+Default = rep(1, 10000)}
+
+\item{oocyst_freq_vector}{Vector of number of ooocysts. This is 
+preallocated here and regenerated every simulation update length.
+Default = rep(1, 10000)}
+
+\item{num_human_infs}{Number of human infections from last day. Required for
+metapopulation. Default = 0}
+
+\item{num_mos_infs}{Number of mosquito infections from last day. Required for
+metapopulation. Default = 0}
+
+\item{plaf}{Population Level Frequency. Default = rep(0.5, 24)}
+}
 \description{
-\code{spl_create} creates the user required spatial 
-list to be passed to the initialisation function if require
+\code{spl_create} creates the user required spatial
+list to be passed to the initialisation function if needed.
 }

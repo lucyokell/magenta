@@ -360,10 +360,16 @@ double Strain::distance_of_bitset_a_and_vec_x(boost::dynamic_bitset<> a,
 }
 
 // mean distance between all bitsets within a vector of bitsets
-double Strain::distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl)
+double Strain::distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl, bool unique_only)
 {
   
   unsigned int distance = 0;
+  
+  // should we unique the bitsets first
+  if(unique_only) {
+    std::sort( x.begin(), x.end() );
+    x.erase( unique( x.begin(), x.end() ), x.end() );
+  }
   
   for(unsigned int i = 1; i < (x.size()); i++)
   {
@@ -375,10 +381,17 @@ double Strain::distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> 
 }
 
 // mean distance between all bitsets within a vector of bitsets
-double Strain::ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl)
+double Strain::ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, bool unique_only)
 {
   
   unsigned int distance = 0;
+  
+
+  // should we unique the bitsets first
+  if(unique_only) {
+    std::sort( x.begin(), x.end() );
+    x.erase( unique( x.begin(), x.end() ), x.end() );
+  }
   
   for(unsigned int i = 1; i < (x.size()); i++)
   {

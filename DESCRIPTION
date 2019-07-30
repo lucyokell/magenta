@@ -12,18 +12,19 @@ Description: Individual-based simulation model of malaria epidemiology and genom
 License: MIT + file LICENSE
 Depends: R (>= 2.10)
 Imports:
-    Rcpp (>= 0.12.7),
-    stringi,
-    statmod,
-    magrittr,
-    ggplot2,
-    odin,
     dde,
     dplyr,
-    reshape2,
-    stringdist,
+    ggplot2,
+    magrittr,
+    odin,
+    progress,
+    Rcpp (>= 0.12.7),
     redux,
-    progress
+    reshape2,
+    rlang,
+    statmod,
+    stringdist,
+    stringi
 Remotes: 
     mrc-ide/odin,
     richfitz/dde

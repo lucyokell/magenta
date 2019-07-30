@@ -117,6 +117,7 @@ public:
   double g_aD;
   double g_fD0;
   double g_gD;
+  double g_alphaU;
   // Blood stage immunity parameters;
   double g_b0;
   double g_b1;
@@ -165,7 +166,7 @@ public:
   
   // mutation parameters
   bool g_mutation_flag;
-  double g_mutation_occurence;
+  double g_mutation_rate;
   std::vector<unsigned int> g_mutations_today;
   unsigned int g_mutation_pos_allocator;
   

@@ -4,10 +4,9 @@
 \alias{mu_fv_create}
 \title{Create mosquito death and feeding vector}
 \usage{
-mu_fv_create(eqInit, ft = ft, itn_cov = itn_cov, irs_cov = irs_cov,
-  int_times = NULL, years = years, full = FALSE, complete = TRUE,
-  odin_model = system.file("extdata/odin_model_itn_irs.R", package =
-  "magenta"))
+mu_fv_create(eqInit, ft, itn_cov, irs_cov, years, int_times = NULL,
+  full = FALSE, odin_model = system.file("extdata/odin_itn_irs.R",
+  package = "magenta"))
 }
 \arguments{
 \item{eqInit}{Equilibrium Inititial Conditions}
@@ -20,7 +19,14 @@ mu_fv_create(eqInit, ft = ft, itn_cov = itn_cov, irs_cov = irs_cov,
 
 \item{years}{Numeric for total years}
 
-\item{admin}{Admin string}
+\item{int_times}{Timing of intervention changes. Default = NULL, which will 
+assume they are 365 days apart}
+
+\item{full}{Boolean to return the whole deterministic output or just mosquito
+death rate and anthrophagy. Default = FALSE}
+
+\item{odin_model}{File path to odin model file. Default is the itns and irs
+model included with magenta.}
 }
 \description{
 Grabs spatial incidence and mosquitoFOI vector from database

@@ -94,8 +94,8 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
       {
         allocate_gametocytes(parameters, parameters.g_spatial_imported_oocysts[o_i*2],parameters.g_spatial_imported_oocysts[(o_i*2)+1]);
       }
-      // also need to export oocysts
-      // TODO
+      // also need to export oocysts here
+      // TODO in finishing metapopulation
     } 
     // else for island simulations
     else 
@@ -120,6 +120,7 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
       gam_sampled = person.sample_two_barcodes(parameters);
       
       // are we doing vector adaptation
+      // TODO: Set this up so the gametocytes can fail and the mosquito does not get any allocated
       if (parameters.g_vector_adaptation_flag){
         // if they only have one strain then pass it 
         if(person.get_m_number_of_strains() > 1) {

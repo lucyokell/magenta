@@ -21,5 +21,10 @@ intervention_grab(country, admin, year_range, final_itn_cov = NULL,
 \item{final_ft}{Final treatment coverage}
 }
 \description{
+Intervention grab
+}
+\details{
 Grabs ITN, IRS  ft from database
+
+N.B. The admin region used for ft can be checked
 }

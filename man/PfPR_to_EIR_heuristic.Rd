@@ -4,17 +4,23 @@
 \alias{PfPR_to_EIR_heuristic}
 \title{Brute force conversion of PfPR and ft to an EIR}
 \usage{
-PfPR_to_EIR_heuristic(PfPR = NULL, PfPR_micro = NULL, mv = NULL,
-  age_range = NULL, all_a = FALSE, ft, ...)
+PfPR_to_EIR_heuristic(ft, PfPR = NULL, PfPR_micro = NULL, mv = NULL,
+  age_range = NULL, all_a = FALSE, ...)
 }
 \arguments{
+\item{ft}{Treatment seeking}
+
 \item{PfPR}{Parasite prevaence by PCR}
 
-\item{PfPR_micro}{Parasite prevaence by microscopy (Default = NULL)}
+\item{PfPR_micro}{Parasite prevaence by microscopy. Default = NULL}
 
 \item{mv}{Mosquito size if it's known. Default = NULL}
 
-\item{ft}{Treatment seeking}
+\item{age_range}{Numeric vecotr length 2 for the age range to be included.
+Default = NULL}
+
+\item{all_a}{Boolean for whether all asymptomatics in state A are included
+in microscopy based prevalence estimates. Default = NULL}
 
 \item{...}{Any other params to be fed to the model parameter list}
 }

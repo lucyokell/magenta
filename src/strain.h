@@ -184,10 +184,10 @@ public:
                                                 std::vector<std::vector< boost::dynamic_bitset<> > >::const_iterator end);
   
   // mean distance between all bitsets within a vector of bitsets
-  static double distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl);
+  static double distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl, bool unique_only = false);
 
   // mean ibd distance between all bitsets within a vector of bitsets
-  static double ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, unsigned int bl);
+  static double ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, bool unique_only = false);
   
 };
 

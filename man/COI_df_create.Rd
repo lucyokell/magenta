@@ -6,13 +6,13 @@
 \usage{
 COI_df_create(df, groupvars = c("age_bin", "clinical"),
   breaks = c(-0.001, 5, 15, 100.1), barcodes = FALSE, ibd = FALSE,
-  n = Inf, reps = 1, mean_only = TRUE)
+  n = Inf, reps = 1, nl = 24, mean_only = TRUE)
 }
 \arguments{
 \item{df}{Output of \code{\link{pop_strains_df}}}
 
 \item{groupvars}{Grouping vars for summarySE. 
-Default = \code{c("age_bin","clinical")}}
+Default = \code{c('age_bin','clinical')}}
 
 \item{breaks}{Numberic vector of age breaks. 
 Default = \code{c(-0.001,5,15,100.1)}}
@@ -25,6 +25,8 @@ Default = \code{c(-0.001,5,15,100.1)}}
 Default = Inf that means all individuals are included}
 
 \item{reps}{Numeric for number of population subsamples to make. Default = 1}
+
+\item{nl}{Number of loci. Default = 24}
 
 \item{mean_only}{Boolean for whether to just return the mean when summarising
 vs all summary statistics. Default = TRUE}

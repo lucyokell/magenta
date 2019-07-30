@@ -92,14 +92,6 @@ binary <- function(x, n = 24) {
   string 
 }
 
-#' Function to generate ggplot colours
-#'
-#' @param n Number of colors
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
-
 # function to put all of one infividuals' parms into one place
 person_make <- function(o,n){
   
@@ -119,14 +111,33 @@ person_make <- function(o,n){
   return(list("vars"=df,"l"=l))
 }
 
-# quick plot microscopy prev from summary save object
-micro_prev_2_10 <- function(out){
-  
-  prevs <- lapply(out[1:(length(out)-1)], function(x) {
-    infs <- c(x[[positions[i]]]$Summary$State %in% c("D","T","A"))
-    kids <- c(x[[positions[i]]]$Summary$Age_Bin %in% levels(x[[positions[i]]]$Summary$Age_Bin)[3:5])
-    return((sum(x[[positions[i]]]$Summary$N[infs & kids],na.rm=TRUE)/
-              sum(x[[positions[i]]]$Summary$N[kids],na.rm=TRUE)))
-  }) %>% unlist
-  
+#' @noRd
+assert_null_and_func <- function(x, func, name = deparse(substitute(x))){
+  if (!is.null(x)) {
+    func(x, name)
+  }
+}
+
+#' @noRd
+assert_scalar_character <- function(x, name = deparse(substitute(x))) {
+  if (!(is.character(x) && length(x) == 1L && !is.na(x))) {
+    stop(sprintf("'%s' must be a scalar character", name))
+  }
+  invisible(x)
+}
+
+#' @noRd
+assert_scalar_logical <- function(x, name = deparse(substitute(x))) {
+  if (!(is.logical(x) && length(x) == 1L && !is.na(x))) {
+    stop(sprintf("'%s' must be a scalar logical", name))
+  }
+  invisible(x)
+}
+
+#' @noRd
+assert_scalar_numeric <- function(x, name = deparse(substitute(x))) {
+  if (!(is.numeric(x) && length(x) == 1L && !is.na(x))) {
+    stop(sprintf("'%s' must be a scalar numeric", name))
+  }
+  invisible(x)
 }

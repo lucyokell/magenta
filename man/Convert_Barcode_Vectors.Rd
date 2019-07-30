@@ -4,13 +4,22 @@
 \alias{Convert_Barcode_Vectors}
 \title{Convert human barcodes to numerics}
 \usage{
-Convert_Barcode_Vectors(sim.save, ID, sub_patents_included = TRUE,
+Convert_Barcode_Vectors(sim_save, ID, sub_patents_included = TRUE,
   ibd = FALSE, nl = 24, COI_type = "old")
 }
 \arguments{
-\item{sim.save}{Saved output of simulation}
+\item{sim_save}{Saved output of simulation}
 
-\item{sub_patents_included}{Boolean as to whether subpatents are included. Default = TRUE
+\item{ID}{Vector of detection immunities for the population}
+
+\item{sub_patents_included}{Boolean as to whether subpatents are included. 
+Default = TRUE}
+
+\item{ibd}{Boolean for IBD simulations. Default = FALSE}
+
+\item{nl}{Numeric for number of loci. Default = 24}
+
+\item{COI_type}{String for type of COI calculation. Default = "old"
 
 \code{Convert_Barcode_Vectors}}
 }

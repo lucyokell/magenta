@@ -108,10 +108,10 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   u_ptr->parameters.g_plaf = Rcpp::as<std::vector<double> >(spatial_list["plaf"]);
   
   // Resistance updates
-  if (drug_list["g_resistance_flag"]) {
-    u_ptr->parameters.g_resistance_flag = Rcpp::as<bool>(drug_list["g_resistance_flag"]);
-    u_ptr->parameters.g_drug_choice = Rcpp::as<int>(drug_list["g_drug_choice"]);
-    u_ptr->parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["g_partner_drug_ratios"]);
+  if (drug_list["resistance_flag"]) {
+    u_ptr->parameters.g_resistance_flag = Rcpp::as<bool>(drug_list["resistance_flag"]);
+    u_ptr->parameters.g_drug_choice = Rcpp::as<int>(drug_list["drug_choice"]);
+    u_ptr->parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["partner_drug_ratios"]);
   }
   
   u_ptr->parameters.g_cotransmission_frequencies = Rcpp::as<std::vector<int> >(spatial_list["cotransmission_freq_vector"]);
@@ -233,7 +233,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
       u_ptr->parameters.g_mutation_pos_allocator = 0;
       // mutation updates
         for(unsigned int l = 0; l < u_ptr->parameters.g_num_loci; l++){
-          u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_occurence * u_ptr->parameters.g_total_human_infections);
+          u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_rate * u_ptr->parameters.g_total_human_infections);
         }
       }
     

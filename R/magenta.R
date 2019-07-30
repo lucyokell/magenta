@@ -15,7 +15,7 @@
 #' @importFrom utils adist read.csv tail packageVersion
 #' @importFrom ggplot2 ggplot
 #' @importFrom graphics par plot
-#' 
+#' @importFrom rlang .data
 #' @importFrom grDevices dev.off tiff dev.new hcl
 #' @importFrom odin odin
 #'

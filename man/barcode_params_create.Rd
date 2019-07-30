@@ -6,16 +6,16 @@
 \usage{
 barcode_params_create(num_loci = 24, ibd_length = 1, plaf = rep(0.5,
   24), prob_crossover = rep(0.5, 24), starting_ibd = 0,
-  mutation_flag = FALSE, mutation_occurence = 1e-07)
+  mutation_flag = FALSE, mutation_rate = 1e-07)
 }
 \arguments{
 \item{num_loci}{Number of loci. Default = 24}
 
-\item{ibd_length}{If we are simulating IBD dynamics, each loci is now 
+\item{ibd_length}{If we are simulating IBD dynamics, each loci is now
 represented by a bitset of ibd_length. Thus ibd_length needs to be long
-enough to ensure that as new identity relationships occur, i.e. 
+enough to ensure that as new identity relationships occur, i.e.
 an importation barcode will be a new identity. e.g. If your population is
-1000, we may expect at 80% prevalence, with a mean COI of 3 we will need 
+1000, we may expect at 80% prevalence, with a mean COI of 3 we will need
 2400 different identities, i.e. 2^ibd_length > 2400. However, keep in mind
 importations as these need to be continually new, i.e. if we are simulating
 for 30 years, with 3 importations a day, then we will need at least length
@@ -23,17 +23,17 @@ to ensure that 2^ibd_length > 2400 + (30*365*3). This will probably be
 automatically calculated in the future. If we are not ding IBD, then this
 should be 1, which is the defalt.}
 
-\item{plaf}{Vector of population level allele frequencies for the barcode. 
+\item{plaf}{Vector of population level allele frequencies for the barcode.
 Default = rep(0.5, barcode_length)}
 
-\item{prob_crossover}{Vector of probabilities for crossover events for the 
+\item{prob_crossover}{Vector of probabilities for crossover events for the
 barcode. Default = rep(0.5, barcode_length)}
 
 \item{starting_ibd}{Starting ibd. Default = 0}
 
-\item{mutation_flag}{Are we simulating mutations}
+\item{mutation_flag}{Boolean for simulating mutations}
 
-\item{mutation_flag}{What is the probability of occurence}
+\item{mutation_rate}{Probability of mutation occuring and fixing}
 }
 \description{
 \code{barcode_params_create} creates list detialing the barcode/genetic

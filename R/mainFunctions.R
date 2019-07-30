@@ -49,8 +49,6 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
   if (length(numerics)!=0) stop(paste(names(numerics),"provided not numeric"))
   
   ##---------------------------------------------
-  # change names of parameters here to match the c versions
-  names(mpl) <- paste0("g_",names(mpl)) 
   
   # Create paramlist
   param_list <- list(N = N, eqSS = eqSS, barcode_params = barcode_params, 

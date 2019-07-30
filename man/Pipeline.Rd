@@ -5,23 +5,20 @@
 \title{Pipeline for cluster submission}
 \usage{
 Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
-  survival_percentage = 0.18, oocyst_mean = 5, oocyst_shape = 5,
-  N = 1e+05, years = 20, update_length = 365, country = NULL,
-  admin = NULL, use_historic_interventions = FALSE,
-  spatial_type = NULL, redis_host = "fi--dideclusthn.dide.ic.ac.uk",
-  spatial_uuid = NULL, spatial_incidence_matrix = NULL,
+  use_historic_interventions = FALSE, survival_percentage = 0.2,
+  oocyst_mean = 2.5, oocyst_shape = 1, N = 1e+05, years = 20,
+  update_length = 365, country = NULL, admin = NULL,
+  spatial_type = NULL, spatial_incidence_matrix = NULL,
   spatial_mosquitoFOI_matrix = NULL, num_loci = 24, ibd_length = 1,
   plaf = rep(0.5, num_loci), prob_crossover = rep(0.5, num_loci),
-  starting_ibd = 0, mutation_occurence = 1e-07,
-  mutation_flag = FALSE, mu_vec = NULL, fv_vec = NULL,
+  starting_ibd = 0, mutation_rate = 1e-07, mutation_flag = FALSE,
   full_save = FALSE, full_update_save = FALSE,
-  human_only_full_save = FALSE, human_only_full_summary_save = FALSE,
-  update_save = FALSE, update_save_func = NULL,
-  human_update_save = FALSE, genetics_df_without_summarising = FALSE,
-  summary_saves_only = FALSE, set_up_only = FALSE, mean_only = TRUE,
-  save_lineages = FALSE, saved_state_path = NULL,
-  seed = as.integer(runif(1, 1, 1e+09)), sample_size = Inf,
-  sample_states = 0:5, sample_reps = 1,
+  human_only_full_save = FALSE, update_save = FALSE,
+  update_save_func = NULL, human_update_save = FALSE,
+  genetics_df_without_summarising = FALSE, summary_saves_only = FALSE,
+  set_up_only = FALSE, mean_only = TRUE, save_lineages = FALSE,
+  saved_state_path = NULL, seed = as.integer(runif(1, 1, 1e+09)),
+  sample_size = Inf, sample_states = 0:5, sample_reps = 1,
   housekeeping_list = housekeeping_list_create(),
   drug_list = drug_list_create(),
   vector_adaptation_list = vector_adaptation_list_create(),
@@ -31,6 +28,30 @@ Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
 \item{EIR}{Numeric for desired annual EIR. Default = 120}
 
 \item{ft}{Frequency of treatment. Default = 0.4}
+
+\item{itn_cov}{Vector for ITN coverages that change at update_length intervals.
+Default = 0}
+
+\item{irs_cov}{Vector for IRS coverages that change at update_length intervals.
+Default = 0}
+
+\item{use_historic_interventions}{Boolean as to whether the historic
+  interventions are incorporated. This will occur by using the length of years and taking the most
+  recent years back in time. Therefore
+  if years > 15, then there will be burn in time, when no interventions
+  are assumed. Default = FALSE, and
+  only is used if country and admin are suitably provided.
+  
+# Genetic Params}
+
+\item{survival_percentage}{Mumeric for % of sporozoites surviving. 
+Default = 0.2}
+
+\item{oocyst_mean}{Mean for number of oocysts formed from a bite. Default=2.5}
+
+\item{oocyst_shape}{Shape parameter for oocysts formed. Default=1
+
+# Spatial}
 
 \item{N}{Population Size. Default = 100000}
 
@@ -43,31 +64,12 @@ Default = 365}
 Default = NULL}
 
 \item{admin}{Character for admin region. Some fuzzy logic will be
-used to match. If
-not provided then no seasonality is introduced. Default = NULL}
-
-\item{use_historic_interventions}{Boolean as to whether the historic
- interventions are incorporated.
-  This will occur by using the length of years and taking the most
-  recent years back in time. Therefore
-  if years > 15, then there will be burn in time, when no interventions
-  are assumed. Default = FALSE, and
-  only is used if country and admin are suitably provided.
-# Genetic Params}
+used to match. If not provided then no seasonality is introduced.
+Default = NULL}
 
 \item{spatial_type}{Default = NULL. If spatial is wanted then provide
-a character describing
-the type of spatial simulation, which must be one of "island" or "metapop".}
-
-\item{redis_host}{Default = "fi--dideclusthn.dide.ic.ac.uk". This should
-be the host address
-where your redis server is running.}
-
-\item{spatial_uuid}{Default = NULL. If spatial is provided, then this will
-error unless a character
-string is passed to this argument. This character should be the same for
-each parallel task within
-the same job.}
+a character describing the type of spatial simulation, which must be 
+one of "island" or "metapop".}
 
 \item{spatial_incidence_matrix}{Spatial incidence for humans,
 i.e. importation vector}
@@ -93,15 +95,22 @@ should be 1, which is the defalt.}
 Default = rep(0.5, num_loci)}
 
 \item{prob_crossover}{Vector of probabilities for crossover events for the
-  barcode. Default = rep(0.5, num_loci)
-# odin Params}
+barcode. Default = rep(0.5, num_loci)}
 
-\item{mu_vec}{Numeric for hor mu_vec changes as calculated from odin model}
+\item{starting_ibd}{Starting IBD. Default = 0, which means that each infected
+individual at initialisation is given a unique ID for their parasites.}
 
-\item{fv_vec}{Numeric for how fv_vec changes as calculated from odin model}
+\item{mutation_rate}{Probability of mutation occuring and fixing}
+
+\item{mutation_flag}{Boolean for simulating mutations
+
+# Saving Params}
 
 \item{full_save}{Boolean detailing whether the entire simulation is saved.
 Default = FALSE}
+
+\item{full_update_save}{Boolean to save entire simualation at each update 
+save. Default = FALSE}
 
 \item{human_only_full_save}{Boolean detailing whether just the human
 component of the simulation is saved within full_save. Default = FALSE}
@@ -109,18 +118,62 @@ component of the simulation is saved within full_save. Default = FALSE}
 \item{update_save}{Boolean detailing whether the logging output is saved
 each update_length up to years. Default = FALSE}
 
+\item{update_save_func}{As opposed to having to provide arguments for the 
+update behaviour, you can pass in a function. See \code{update_saves}
+for the default one.}
+
 \item{human_update_save}{Boolean detailing if the human state is also
 saved during each update_length. Default = FALSE}
+
+\item{genetics_df_without_summarising}{Boolean for returning just the 
+genetics data frame without summarising with \code{\link{COI_df_create}}.
+Default = FALSE}
 
 \item{summary_saves_only}{Boolean if summary tables about COI are saved
 within human yearly save only. Dataframes of age, clinical status
 binned COI.}
+
+\item{set_up_only}{Boolean for whether to return just the initialised simulation. 
+Default = FALSE}
+
+\item{mean_only}{Boolean for returning only the mean when summarising the 
+population COI, COU etc. Default = TRUE}
+
+\item{save_lineages}{Boolean for whether we save the frequency of each strain
+when summarising with \code{genetics_df_without_summarising}=TRUE. 
+Default = FALSE}
 
 \item{saved_state_path}{Full file path to a saved model state to be
 loaded and continued. Default = NULL,
 which will trigger initialisation}
 
 \item{seed}{Random seed. Default is Random}
+
+\item{sample_size}{Numeric for number of individuals to be sampled at the end
+of each update. Default = Inf, which samples everyone. If you provide a 
+vector of sample sizes it will sample at each specified sample size.}
+
+\item{sample_states}{Numeric for which sample infection states are to be
+included in sampling. Default = 0:5 (i.e. all states). 1:4 for example 
+would ensure only infected individuals are included.}
+
+\item{sample_reps}{Numeric for how many sample reps are done. Default = 1.
+
+# Parameter Lists}
+
+\item{housekeeping_list}{List created by  \code{\link{housekeeping_list_create}}}
+
+\item{drug_list}{List created by \code{\link{drug_list_create}}}
+
+\item{vector_adaptation_list}{List created by \code{\link{vector_adaptation_list_create}}}
+
+\item{only_allele_freqs}{Boolean for returning the summarised genetics (allele 
+frequencies and maybe strain frequencies) or the whole data frame produced
+by \code{\link{pop_strains_df}}. Default = TRUE}
+
+\item{nmf_list}{List created by \code{\link{nmf_list_create}}
+
+# Other}
 
 \item{...}{Other parameters to model_param_list_create
 
@@ -129,6 +182,9 @@ which will trigger initialisation}
 \description{
 \code{Pipeline} steps through creating the parameter list, the equilibrium
 initialisation and steady state creation before checking and passing suitable
-parameters to the simulation. This is then saved. If a path to a 
+parameters to the simulation. This is then saved. If a path to a
 savedState is provided then this state is loaded and continued.
+}
+\details{
+# Main Params
 }

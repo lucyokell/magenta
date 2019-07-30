@@ -4,11 +4,11 @@
 \alias{Heatmap_ordered_binary_plot}
 \title{Plot ordered heatmap}
 \usage{
-Heatmap_ordered_binary_plot(sim.save, years, EIR, ordered = TRUE,
+Heatmap_ordered_binary_plot(sim_save, years, EIR, ordered = TRUE,
   save_path = NULL)
 }
 \arguments{
-\item{sim.save}{Saved output of simulation}
+\item{sim_save}{Saved output of simulation}
 
 \item{years}{Lenth of simulation}
 

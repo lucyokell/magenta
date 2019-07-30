@@ -7,9 +7,10 @@
 equilibrium_ss_create(eqInit)
 }
 \arguments{
-\item{eqInit}{Equilibrium initialisation state as output from \code{equilibrium_init_create}}
+\item{eqInit}{Equilibrium initialisation state as
+output from \code{equilibrium_init_create}}
 }
 \description{
-\code{equilibrium_ss_create} creates a starting state from 
+\code{equilibrium_ss_create} creates a starting state from
   the output of \code{equilibrium_init_create}
 }

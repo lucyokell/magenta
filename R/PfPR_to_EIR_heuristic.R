@@ -1,15 +1,21 @@
 #------------------------------------------------
 #' Brute force conversion of PfPR and ft to an EIR
 #'
-#' @param PfPR Parasite prevaence by PCR
-#' @param PfPR_micro Parasite prevaence by microscopy (Default = NULL)
-#' @param mv Mosquito size if it's known. Default = NULL
 #' @param ft Treatment seeking
+#' @param PfPR Parasite prevaence by PCR
+#' @param PfPR_micro Parasite prevaence by microscopy. Default = NULL
+#' @param mv Mosquito size if it's known. Default = NULL
+#' @param age_range Numeric vecotr length 2 for the age range to be included.
+#'   Default = NULL
+#' @param all_a Boolean for whether all asymptomatics in state A are included  
+#'   in microscopy based prevalence estimates. Default = NULL
 #' @param ... Any other params to be fed to the model parameter list
 #' 
 
-PfPR_to_EIR_heuristic <- function(PfPR=NULL,PfPR_micro=NULL,mv=NULL,age_range=NULL,all_a=FALSE,
-                                  ft, ...){
+PfPR_to_EIR_heuristic <- function(ft, 
+                                  PfPR=NULL, PfPR_micro=NULL, mv=NULL, 
+                                  age_range=NULL, all_a=FALSE,
+                                  ...){
   
   mpl <- model_param_list_create(eta = 1/(21*365),...)
   

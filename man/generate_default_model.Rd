@@ -18,6 +18,6 @@ generate_default_model(ft, age, dat, generator, dde = TRUE)
 \item{dde}{Use dde in soliving eventual odin. Default = FALSE}
 }
 \description{
-\code{generate_default_model} creates the user required generator for 
+\code{generate_default_model} creates the user required generator for
 the odin model.
 }

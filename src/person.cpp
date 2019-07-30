@@ -481,7 +481,9 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
   // Increase number of succesful bites
   m_number_of_succesful_bites++;
   
-  // Will the infectious bit actually lead to an infection
+  // Will the infectious bite actually lead to an infection
+  
+  // TODO: Should this be back outside?
   
   // Firstly can they be infected again
   if (m_infection_state == SUSCEPTIBLE ||

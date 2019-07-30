@@ -2,9 +2,11 @@
 #'
 #' \code{Pipeline} steps through creating the parameter list, the equilibrium
 #' initialisation and steady state creation before checking and passing suitable
-#' parameters to the simulation. This is then saved. If a path to a 
+#' parameters to the simulation. This is then saved. If a path to a
 #' savedState is provided then this state is loaded and continued.
 #'
+#' # Main Params
+#' 
 #' @param N Population Size. Default = 100000
 #' @param ft Frequency of treatment. Default = 0.4
 #' @param years Lenth of simulation. Default = 20
@@ -12,35 +14,42 @@
 #'   Default = 365
 #' @param EIR Numeric for desired annual EIR. Default = 120
 #' @param country Character for country within which admin2 is in.
-#' Default = NULL
+#'   Default = NULL
 #' @param admin Character for admin region. Some fuzzy logic will be
-#' used to match. If
-#' not provided then no seasonality is introduced. Default = NULL
+#'   used to match. If not provided then no seasonality is introduced.
+#'   Default = NULL
+#' @param itn_cov Vector for ITN coverages that change at update_length intervals.
+#'   Default = 0
+#' @param irs_cov Vector for IRS coverages that change at update_length intervals.
+#'   Default = 0
+#' @param survival_percentage Mumeric for % of sporozoites surviving. 
+#'   Default = 0.2
+#' @param oocyst_mean Mean for number of oocysts formed from a bite. Default=2.5
+#' @param oocyst_shape Shape parameter for oocysts formed. Default=1
+#' 
+#' # Spatial
+#' 
 #' @param spatial_type Default = NULL. If spatial is wanted then provide
-#' a character describing
-#' the type of spatial simulation, which must be one of "island" or "metapop".
-#' @param redis_host Default = "fi--dideclusthn.dide.ic.ac.uk". This should
-#' be the host address
-#' where your redis server is running.
-#' @param spatial_uuid Default = NULL. If spatial is provided, then this will
-#' error unless a character
-#' string is passed to this argument. This character should be the same for
-#' each parallel task within
-#' the same job.
+#'   a character describing the type of spatial simulation, which must be 
+#'   one of "island" or "metapop".
+# @param redis_host Default = "fi--dideclusthn.dide.ic.ac.uk". This should
+#   be the host address where your redis server is running.
+# @param spatial_uuid Default = NULL. If spatial is provided, then this will
+#   error unless a character string is passed to this argument. This character
+#   should be the same for each parallel task within the same job.
 #' @param spatial_incidence_matrix Spatial incidence for humans,
 #' i.e. importation vector
 #' @param spatial_mosquitoFOI_matrix Spatial mosquio FOI, i.e. importation
 #'  to mosquitoes vector
-#' @param fv_vec Numeric for how fv_vec changes as calculated from odin model
-#' @param mu_vec Numeric for hor mu_vec changes as calculated from odin model
 #' @param use_historic_interventions Boolean as to whether the historic
-#'  interventions are incorporated.
-#'   This will occur by using the length of years and taking the most
+#'   interventions are incorporated. This will occur by using the length of years and taking the most
 #'   recent years back in time. Therefore
 #'   if years > 15, then there will be burn in time, when no interventions
 #'   are assumed. Default = FALSE, and
 #'   only is used if country and admin are suitably provided.
+#'   
 #' # Genetic Params
+#' 
 #' @param num_loci Number of loci. Default = 24
 #' @param ibd_length If we are simulating IBD dynamics, each loci is now
 #'   represented by a bitset of ibd_length. Thus ibd_length needs to be long
@@ -57,9 +66,17 @@
 #'   Default = rep(0.5, num_loci)
 #' @param prob_crossover Vector of probabilities for crossover events for the
 #'   barcode. Default = rep(0.5, num_loci)
-#' # odin Params
+#' @param starting_ibd Starting IBD. Default = 0, which means that each infected
+#'   individual at initialisation is given a unique ID for their parasites.
+#' @param mutation_rate Probability of mutation occuring and fixing
+#' @param mutation_flag Boolean for simulating mutations
+#' 
+#' # Saving Params
+#' 
 #' @param full_save Boolean detailing whether the entire simulation is saved.
-#'  Default = FALSE
+#'   Default = FALSE
+#' @param full_update_save Boolean to save entire simualation at each update 
+#'   save. Default = FALSE
 #' @param human_only_full_save Boolean detailing whether just the human
 #' component of the simulation is saved within full_save. Default = FALSE
 #' @param update_save Boolean detailing whether the logging output is saved
@@ -69,9 +86,42 @@
 #' @param summary_saves_only Boolean if summary tables about COI are saved
 #' within human yearly save only. Dataframes of age, clinical status
 #' binned COI.
+#' @param mean_only Boolean for returning only the mean when summarising the 
+#'   population COI, COU etc. Default = TRUE
+#' @param save_lineages Boolean for whether we save the frequency of each strain
+#'   when summarising with \code{genetics_df_without_summarising}=TRUE. 
+#'   Default = FALSE
+#' @param only_allele_freqs Boolean for returning the summarised genetics (allele 
+#'   frequencies and maybe strain frequencies) or the whole data frame produced
+#'   by \code{\link{pop_strains_df}}. Default = TRUE
 #' @param saved_state_path Full file path to a saved model state to be
-#' loaded and continued. Default = NULL,
-#' which will trigger initialisation
+#'   loaded and continued. Default = NULL,
+#'   which will trigger initialisation
+#' @param genetics_df_without_summarising Boolean for returning just the 
+#'   genetics data frame without summarising with \code{\link{COI_df_create}}.
+#'   Default = FALSE
+#' @param update_save_func As opposed to having to provide arguments for the 
+#'   update behaviour, you can pass in a function. See \code{update_saves}
+#'   for the default one. 
+#' @param set_up_only Boolean for whether to return just the initialised simulation. 
+#'   Default = FALSE
+#' @param sample_size Numeric for number of individuals to be sampled at the end
+#'   of each update. Default = Inf, which samples everyone. If you provide a 
+#'   vector of sample sizes it will sample at each specified sample size. 
+#' @param sample_states Numeric for which sample infection states are to be
+#'   included in sampling. Default = 0:5 (i.e. all states). 1:4 for example 
+#'   would ensure only infected individuals are included. 
+#' @param sample_reps Numeric for how many sample reps are done. Default = 1.
+#' 
+#' # Parameter Lists
+#' 
+#' @param housekeeping_list List created by  \code{\link{housekeeping_list_create}}
+#' @param drug_list List created by \code{\link{drug_list_create}}
+#' @param vector_adaptation_list List created by \code{\link{vector_adaptation_list_create}}
+#' @param nmf_list List created by \code{\link{nmf_list_create}}
+#' 
+#' # Other
+#' 
 #' @param seed Random seed. Default is Random
 #' @param ... Other parameters to model_param_list_create
 #'
@@ -83,18 +133,18 @@ Pipeline <- function(EIR = 120,
                      ft = 0.4,
                      itn_cov = 0,
                      irs_cov = 0,
-                     survival_percentage = 0.18,
-                     oocyst_mean = 5,
-                     oocyst_shape = 5,
+                     use_historic_interventions = FALSE,
+                     survival_percentage = 0.20,
+                     oocyst_mean = 2.5,
+                     oocyst_shape = 1,
                      N = 100000,
                      years = 20,
                      update_length = 365,
                      country = NULL,
                      admin = NULL,
-                     use_historic_interventions = FALSE,
                      spatial_type = NULL,
-                     redis_host = "fi--dideclusthn.dide.ic.ac.uk",
-                     spatial_uuid = NULL,
+                     # redis_host = "fi--dideclusthn.dide.ic.ac.uk",
+                     # spatial_uuid = NULL,
                      spatial_incidence_matrix = NULL,
                      spatial_mosquitoFOI_matrix = NULL,
                      num_loci = 24,
@@ -102,14 +152,11 @@ Pipeline <- function(EIR = 120,
                      plaf = rep(0.5, num_loci),
                      prob_crossover = rep(0.5, num_loci),
                      starting_ibd = 0.0,
-                     mutation_occurence = 1e-7,
+                     mutation_rate = 1e-7,
                      mutation_flag = FALSE,
-                     mu_vec = NULL,
-                     fv_vec = NULL,
                      full_save = FALSE,
                      full_update_save=FALSE,
                      human_only_full_save = FALSE,
-                     human_only_full_summary_save = FALSE,
                      update_save = FALSE,
                      update_save_func = NULL,
                      human_update_save = FALSE,
@@ -146,6 +193,17 @@ Pipeline <- function(EIR = 120,
   )
   human_vars <- c("Infection_States", "Zetas", "Ages")
 
+  # historic intervetnion grab if asked
+  if (use_historic_interventions & length(years) > 1) {
+    
+    ints <- intervention_grab(country = country, admin = admin, year_range = years)
+    spl <- spl_grab(country = country, admin = admin, year_range = years)
+    itn_cov <- ints$itn_cov
+    irs_cov <- ints$irs_cov
+    ft <- ints$ft
+  }
+  
+
 
   # INITIALISATION --------------------------------- ####
   # If we don't have a saved state then we initialise first
@@ -158,8 +216,8 @@ Pipeline <- function(EIR = 120,
     age_vector <- age_brackets(100, 40, TRUE)
 
     # check to change the ft for the initial and odin to reflect 28 day failure rates
-    lpfs <- unlist(lapply(drug_list$g_prob_of_lpf[seq_len(drug_list$g_number_of_drugs)],"[[",1))
-    ft_odin <- ft * weighted.mean(lpfs, drug_list$g_partner_drug_ratios)
+    lpfs <- unlist(lapply(drug_list$prob_of_lpf[seq_len(drug_list$number_of_drugs)],"[[",1))
+    ft_odin <- ft * weighted.mean(lpfs, drug_list$partner_drug_ratios)
     
     # Create a near equilibirum initial condition
     eqInit <- equilibrium_init_create(
@@ -187,17 +245,17 @@ Pipeline <- function(EIR = 120,
       prob_crossover = prob_crossover,
       starting_ibd = starting_ibd,
       mutation_flag = mutation_flag,
-      mutation_occurence = mutation_occurence
+      mutation_rate = mutation_rate
     )
 
     # spatial checks and formatting
     if (!is.null(spatial_type)) {
       if (spatial_type == "metapop") {
-        spatial_type <- 2
-        if (is.null(spatial_uuid)) {
-          stop("Spatial_uuid is required if running spatial simulations")
-        }
-        redis_id <- paste0("oj_", spatial_uuid)
+        # spatial_type <- 2
+        # if (is.null(spatial_uuid)) {
+        #   stop("Spatial_uuid is required if running spatial simulations")
+        # }
+        # redis_id <- paste0("oj_", spatial_uuid)
       } else if (spatial_type == "island") {
         spatial_type <- 1
       }
@@ -219,11 +277,11 @@ Pipeline <- function(EIR = 120,
 
 
     # handle drug parms
-    resistance_flags <- drug_list$g_resistance_flag
+    resistance_flags <- drug_list$resistance_flag
     if (length(resistance_flags) == 1) {
       resistance_flags <- rep(resistance_flags, ceiling(years))
     }
-    drug_list$g_resistance_flag <- resistance_flags[1]
+    drug_list$resistance_flag <- resistance_flags[1]
 
     # Now check and create the parameter list for use in the Rcpp simulation
     pl <- param_list_simulation_init_create(
@@ -254,19 +312,19 @@ Pipeline <- function(EIR = 120,
     message("Set Up Grab")
     # Now let's save the simulation in full
     pl2 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
-    sim.save <- simulation_R(pl2, seed = seed)
+    sim_save <- simulation_R(pl2, seed = seed)
 
     # If we want just the humans then get the keybits and save that instead
     if (full_save) {
-      return(sim.save)
+      return(sim_save)
     }
     if (human_only_full_save) {
-      Strains <- sim.save$populations_event_and_strains_List[strain_vars]
-      Humans <- c(sim.save$population_List[human_vars], Strains)
+      Strains <- sim_save$populations_event_and_strains_List[strain_vars]
+      Humans <- c(sim_save$population_List[human_vars], Strains)
       res <- Humans
       return(res)
     } else {
-      res <- sim.save
+      res <- sim_save
       return(res)
     }
   }
@@ -278,79 +336,79 @@ Pipeline <- function(EIR = 120,
   if (spatial_type == 2) {
     stop("metapopulation simulation not implemented yet")
 
-    redis <- redux::hiredis(host = "fi--dideclusthn.dide.ic.ac.uk")
-
-    # create barcode as binary string
-    barcodes <- lapply(sim.out$Exported_Barcodes, as.numeric) %>%
-      lapply(paste0, collapse = "") %>%
-      unlist()
-
-    # work out here how many barcodes are going to which other simulation
-    export_proportions <- round((spatial / sum(spatial, na.rm = TRUE)) * 
-                                  round(sum(spatial * N, na.rm = TRUE)))
-    export_positions <- list()
-    import_positions <- list()
-    check_barcodes <- list()
-    epc <- 1
-    metapopulation_number <- which(is.na(spatial))
-    other_metapopulations <- seq_len(length(spatial))[-metapopulation_number]
-
-    # Create the necessary redis lists and push the barcodes
-    for (i in 1:length(export_proportions)) {
-      if (!is.na(export_proportions[i])) {
-        export_positions[[i]] <- epc:(epc + export_proportions[i] - 1)
-        import_positions[[i]] <- paste0(i, metapopulation_number)
-        check_barcodes[[i]] <- paste0(i, "DONE")
-        epc <- epc + export_proportions[i]
-        redis$SET(
-          paste0(
-            redis_id, "_", metapopulation_number, i
-          ),
-          redux::object_to_bin(barcodes[export_positions[[i]]])
-        )
-      } else {
-        export_positions[[i]] <- export_proportions[i]
-        import_positions[[i]] <- NULL
-        check_barcodes[[i]] <- NULL
-      }
-    }
-
-    # clear the blank ones
-    import_positions[[metapopulation_number]] <- NULL
-    check_barcodes[[metapopulation_number]] <- NULL
-
-    # Say that this metapopulation is finished
-    redis$SET(paste0(metapopulation_number, "DONE"), 1)
-
-    # create the redis object for grabbing other barcodes
-    redis <- redux::redis
-    get_barcodes_cmds <- lapply(import_positions, function(x) {
-      (redis$GET(x))
-    })
-    check_done <- lapply(check_barcodes, function(x) {
-      (redis$GET(x))
-    })
-
-    # sit on a while loop here untill all populations are ready
-    cannot_import <- TRUE
-    while (cannot_import) {
-      barcode_checks <- unlist(redis$pipeline(.commands = check_done))
-      if (sum(is.null(barcode_checks)) == 0) {
-        cannot_import <- FALSE
-      }
-    }
-
-    # once they are all ready set the done to 0
-    redis$SET(paste0(redis_id, "_", metapopulation_number, "DONE"), 0)
-
-    # fetch and format the barcodes for import
-    imported_barcodes <- redis$pipeline(.commands = get_barcodes_cmds) %>%
-      lapply(redux::bin_to_object) %>%
-      unlist()
-    imported_barcodes <- imported_barcodes %>%
-      lapply(function(x) {
-        strsplit(x, "") %>% unlist() %>% as.numeric() %>% as.logical()
-      })
+    # redis <- redux::hiredis(host = "fi--dideclusthn.dide.ic.ac.uk")
+    # 
+    # # create barcode as binary string
+    # barcodes <- lapply(sim.out$Exported_Barcodes, as.numeric) %>%
+    #   lapply(paste0, collapse = "") %>%
+    #   unlist()
+    # 
+    # # work out here how many barcodes are going to which other simulation
+    # export_proportions <- round((spatial / sum(spatial, na.rm = TRUE)) * 
+    #                               round(sum(spatial * N, na.rm = TRUE)))
+    # export_positions <- list()
+    # import_positions <- list()
+    # check_barcodes <- list()
+    # epc <- 1
+    # metapopulation_number <- which(is.na(spatial))
+    # other_metapopulations <- seq_len(length(spatial))[-metapopulation_number]
+    # 
+    # # Create the necessary redis lists and push the barcodes
+    # for (i in 1:length(export_proportions)) {
+    #   if (!is.na(export_proportions[i])) {
+    #     export_positions[[i]] <- epc:(epc + export_proportions[i] - 1)
+    #     import_positions[[i]] <- paste0(i, metapopulation_number)
+    #     check_barcodes[[i]] <- paste0(i, "DONE")
+    #     epc <- epc + export_proportions[i]
+    #     redis$SET(
+    #       paste0(
+    #         redis_id, "_", metapopulation_number, i
+    #       ),
+    #       redux::object_to_bin(barcodes[export_positions[[i]]])
+    #     )
+    #   } else {
+    #     export_positions[[i]] <- export_proportions[i]
+    #     import_positions[[i]] <- NULL
+    #     check_barcodes[[i]] <- NULL
+    #   }
+    # }
+    # 
+    # # clear the blank ones
+    # import_positions[[metapopulation_number]] <- NULL
+    # check_barcodes[[metapopulation_number]] <- NULL
+    # 
+    # # Say that this metapopulation is finished
+    # redis$SET(paste0(metapopulation_number, "DONE"), 1)
+    # 
+    # # create the redis object for grabbing other barcodes
+    # redis <- redux::redis
+    # get_barcodes_cmds <- lapply(import_positions, function(x) {
+    #   (redis$GET(x))
+    # })
+    # check_done <- lapply(check_barcodes, function(x) {
+    #   (redis$GET(x))
+    # })
+    # 
+    # # sit on a while loop here untill all populations are ready
+    # cannot_import <- TRUE
+    # while (cannot_import) {
+    #   barcode_checks <- unlist(redis$pipeline(.commands = check_done))
+    #   if (sum(is.null(barcode_checks)) == 0) {
+    #     cannot_import <- FALSE
+    #   }
+    # }
+    # 
+    # # once they are all ready set the done to 0
+    # redis$SET(paste0(redis_id, "_", metapopulation_number, "DONE"), 0)
+    # 
+    # # fetch and format the barcodes for import
+    # imported_barcodes <- redis$pipeline(.commands = get_barcodes_cmds) %>%
+    #   lapply(redux::bin_to_object) %>%
+    #   unlist()
+    # imported_barcodes <- imported_barcodes %>%
+    #   lapply(function(x) {
+    #     strsplit(x, "") %>% unlist() %>% as.numeric() %>% as.logical()
+    #   })
   }
 
 
@@ -359,7 +417,10 @@ Pipeline <- function(EIR = 120,
     eqInit = eqInit, ft = ft_odin, itn_cov = itn_cov,
     irs_cov = irs_cov, years = years
   )
-  if (length(ft) == 1) ft <- rep(ft, years)
+  
+  if (length(ft) == 1) {
+    ft <- rep(ft, years)
+  }
 
 
   # SIMULATION WITH LOGGING ------------------------ #####
@@ -374,7 +435,7 @@ Pipeline <- function(EIR = 120,
 
     # and set up annual checks for variables that change discretely
     year <- 1
-    next_drug_cycle <- drug_list$g_temporal_cycling
+    next_drug_cycle <- drug_list$temporal_cycling
     ft_now <- ft[year]
 
 
@@ -402,7 +463,7 @@ Pipeline <- function(EIR = 120,
           # update the year, ft and resistance flag
           year <- year + 1
           ft_now <- ft[year]
-          drug_list$g_resistance_flag <- resistance_flags[year]
+          drug_list$resistance_flag <- resistance_flags[year]
 
           # update the spatial list
           spatial_list <- spl_create(
@@ -450,41 +511,42 @@ Pipeline <- function(EIR = 120,
         }
         
         # spatial export
+        # Metapopulation not fully implemeted yet so commenting out
         if (spatial_type == 2) {
 
-          # Push barcodes to redis
-          for (i in 1:length(export_proportions)) {
-            if (!is.na(export_proportions[i])) {
-              redis$SET(
-                paste0(redis_id, "_", metapopulation_number, i),
-                redux::object_to_bin(barcodes[export_positions[[i]]])
-              )
-            }
-          }
-
-          # once pushed set the done to 1
-          redis$SET(paste0(redis_id, "_", metapopulation_number, "DONE"), 1)
-
-          # sit on a while loop here untill all populations are ready
-          cannot_import <- TRUE
-          while (cannot_import) {
-            barcode_checks <- redis$pipeline(.commands = check_done) %>% unlist()
-            if (sum(barcode_checks == 0) == 0) {
-              cannot_import <- FALSE
-            }
-          }
-
-          # once they are all ready set the done to 0
-          redis$SET(paste0(redis_id, "_", metapopulation_number, "DONE"), 0)
-
-          # fetch and format the barcodes for import
-          imported_barcodes <- redis$pipeline(.commands = get_barcodes_cmds) %>%
-            lapply(redux::bin_to_object) %>%
-            unlist()
-          imported_barcodes <- imported_barcodes %>%
-            lapply(function(x) {
-              strsplit(x, "") %>% unlist() %>% as.numeric() %>% as.logical()
-            })
+          # # Push barcodes to redis
+          # for (i in 1:length(export_proportions)) {
+          #   if (!is.na(export_proportions[i])) {
+          #     redis$SET(
+          #       paste0(redis_id, "_", metapopulation_number, i),
+          #       redux::object_to_bin(barcodes[export_positions[[i]]])
+          #     )
+          #   }
+          # }
+          # 
+          # # once pushed set the done to 1
+          # redis$SET(paste0(redis_id, "_", metapopulation_number, "DONE"), 1)
+          # 
+          # # sit on a while loop here untill all populations are ready
+          # cannot_import <- TRUE
+          # while (cannot_import) {
+          #   barcode_checks <- redis$pipeline(.commands = check_done) %>% unlist()
+          #   if (sum(barcode_checks == 0) == 0) {
+          #     cannot_import <- FALSE
+          #   }
+          # }
+          # 
+          # # once they are all ready set the done to 0
+          # redis$SET(paste0(redis_id, "_", metapopulation_number, "DONE"), 0)
+          # 
+          # # fetch and format the barcodes for import
+          # imported_barcodes <- redis$pipeline(.commands = get_barcodes_cmds) %>%
+          #   lapply(redux::bin_to_object) %>%
+          #   unlist()
+          # imported_barcodes <- imported_barcodes %>%
+          #   lapply(function(x) {
+          #     strsplit(x, "") %>% unlist() %>% as.numeric() %>% as.logical()
+          #   })
         }
 
         # drug resistance updates
@@ -503,7 +565,7 @@ Pipeline <- function(EIR = 120,
     }
     
     
-    # last one may not occupy a full update length
+    # last rep may not occupy a full update length
     temp_mu <- out$mu[1:update_length + ((i) * update_length)]
     abridged_length <- sum(!is.na(temp_mu))
     
@@ -520,20 +582,20 @@ Pipeline <- function(EIR = 120,
 
     # If we have specified a full save then we grab that and save
     # it or just the human bits of interest
-    if (full_save || human_only_full_save || human_only_full_summary_save) {
+    if (full_save || human_only_full_save) {
 
       # Now let's save the simulation in full
       pl2 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
-      sim.save <- simulation_R(pl2, seed = seed)
+      sim_save <- simulation_R(pl2, seed = seed)
 
       # If we want just the humans then get the keybits and save that instead
       if (human_only_full_save) {
-        Strains <- sim.save$populations_event_and_strains_List[strain_vars]
-        Humans <- c(sim.save$population_List[human_vars], Strains)
+        Strains <- sim_save$populations_event_and_strains_List[strain_vars]
+        Humans <- c(sim_save$population_List[human_vars], Strains)
         res[[length(res)]] <- Humans
       }
       else {
-        res[[length(res)]] <- sim.save
+        res[[length(res)]] <- sim_save
       }
     }
     else {
@@ -565,17 +627,17 @@ Pipeline <- function(EIR = 120,
       #  browser()
       # Now let's save the simulation in full
       pl2 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
-      sim.save <- simulation_R(pl2, seed = seed)
+      sim_save <- simulation_R(pl2, seed = seed)
 
       # If we want just the humans then get the keybits and save that instead
       if (human_only_full_save) {
         human_vars <- c("Infection_States", "Zetas", "Ages")
-        Strains <- sim.save$populations_event_and_strains_List[strain_vars]
-        Humans <- c(sim.save$population_List[human_vars], Strains)
+        Strains <- sim_save$populations_event_and_strains_List[strain_vars]
+        Humans <- c(sim_save$population_List[human_vars], Strains)
         res <- Humans
       }
       else {
-        res <- sim.save
+        res <- sim_save
       }
     }
     else {

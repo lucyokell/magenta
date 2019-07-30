@@ -5,14 +5,22 @@
 \title{Create summary prev and genetic dataframes}
 \usage{
 summary_data_frames_from_sims(res_list, update_length = 30, years = 35,
-  age_breaks = list(1, 2, 3), coi_detect = FALSE, ibd = FALSE)
+  age_breaks = c("(-0.001,5]", "(5,15]", "(15,100]"),
+  coi_detect = FALSE, ibd = FALSE)
 }
 \arguments{
 \item{res_list}{list of simulation outputs}
 
-\item{update_length}{Days between sim saves in simulation. Default = 30}
+\item{update_length}{Days between sim_saves in simulation. Default = 30}
 
-\item{years}{Years sims were run for}
+\item{years}{Years sims were run for. Default = 35}
+
+\item{age_breaks}{Character vecotr for the age break levels used when
+sumarising the data by age. Default = c("(-0.001,5]","(5,15]","(15,100]")}
+
+\item{coi_detect}{Boolean whether to report the COI detected, i.e. what we
+believe would be detected my sequencing as sensitive as pcr 
+Default = FALSE, i.e the true COI}
 
 \item{ibd}{Were we collecting info on IBD}
 }

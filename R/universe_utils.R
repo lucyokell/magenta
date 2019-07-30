@@ -275,35 +275,6 @@ COI_df_create <- function(df,
     results <- list()
     length(results) <- reps
     
-    # convert ibd barcodes into ints
-    ibd_l <- ncol(df$nums[[which.max(df$bs > 0)]])/nl
-    ras <- ranges(ibd_l, ibd_l * nl)
-    loci_gaps <- seq_len(length(ras))
-    df$nums <- lapply(df$nums, unique)
-    df$ints <- lapply(df$nums, function(x) {
-      if (length(x) > 0) {
-        as.data.frame(matrix(unlist(apply(x, 1, function(x) {
-          sapply(loci_gaps, function(y) {
-            as.integer(bitsToInt(x[ras[[y]]]))
-          })
-        })), ncol = nl, byrow = TRUE))
-      } else {
-        as.data.frame(matrix(nrow = 0, ncol = nl))
-      }
-    })
-    
-    all_ints <- as.numeric(levels(factor(unlist(df$ints))))
-    df$ints <- lapply(df$ints, function(x) {
-      if (length(x) > 0) {
-        as.data.frame(matrix(match(unlist(x), all_ints), 
-                             ncol = nl, byrow = TRUE))
-      } else {
-        as.data.frame(matrix(nrow = 0, ncol = nl))
-      }
-    })
-    attr(df, "l") <- length((all_ints))
-
-    
     # make samples and reps of them
     for (i in seq_len(length(results))) {
       
@@ -329,30 +300,12 @@ COI_df_create <- function(df,
         mean_only = mean_only
       )
       
-      # pairwise IBD in population has to be calculated per group
-      summary_ibd1 <- dplyr::group_by(
-        df[chosen,], .data$age_bin) %>% dplyr::summarise(
-          N = sum(!is.na(.data$nums)),
-          age = mean(.data$age[!is.na(.data$nums)]),
-          mean = pibd_from_barcode_list(.data$ints, attr(df, "l"))
-        )
-      
-      summary_ibd2 <- dplyr::group_by(
-        df[chosen,], .data$clinical) %>% dplyr::summarise(
-          N = sum(!is.na(.data$nums)),
-          age = mean(.data$age[!is.na(.data$nums)]),
-          mean = pibd_from_barcode_list(.data$ints, attr(df, "l"))
-        )
-      
-      summary_ibd3 <- dplyr::group_by(
-        df[chosen,],) %>% dplyr::summarise(
-          N = sum(!is.na(.data$nums)),
-          age = mean(.data$age[!is.na(.data$nums)]),
-          mean = pibd_from_barcode_list(.data$ints, attr(df, "l"))
-        )
-      
-      sum_ibd_list <- list(summary_ibd1, summary_ibd2, summary_ibd3)
-      summary_ibd <- dplyr::bind_rows(sum_ibd_list)
+      summary_ibd <- summarySE_mean_only(
+        df[chosen,],
+        measurevar = "pibd", 
+        groupvars = groupvars,
+        mean_only = mean_only
+      )
       
       res <- list(
         summary_ibd = summary_ibd,

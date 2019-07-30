@@ -126,8 +126,8 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List param_list) {
     barcode_states[el] = barcode_states_i;
     
     // whats the pibd within the individuals bitsets that could be detected and within just those at high parasitaemia
-    pibd_within[el] = Strain::ibd_distance_mean_within_bitsets(bitsets_i, u_ptr->parameters.g_barcode_length);
-    pibd_within_d[el] = Strain::ibd_distance_mean_within_bitsets(bitsets_d_i, u_ptr->parameters.g_barcode_length);
+    pibd_within[el] = Strain::ibd_distance_mean_within_bitsets(bitsets_i, true);
+    pibd_within_d[el] = Strain::ibd_distance_mean_within_bitsets(bitsets_d_i, true);
     
   }
   
@@ -136,25 +136,44 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List param_list) {
   double pibd_d_i = 0.0;
   std::vector<int> contacts(pop_size,0);
   std::vector<int> contacts_d(pop_size,0);
+  std::vector<boost::dynamic_bitset<> > temp_bitset_vec;
+  std::vector<boost::dynamic_bitset<> > temp_bitset_vec_d;
+  std::vector<boost::dynamic_bitset<> > temp_bitset_vec2;
+  std::vector<boost::dynamic_bitset<> > temp_bitset_vec_d2;
   
   
   for(unsigned int i = 0; i < (pop_size-1); i++) {
     if(bitsets[i].size()){
+          temp_bitset_vec = bitsets[i];
+          std::sort( temp_bitset_vec.begin(), temp_bitset_vec.end() );
+          temp_bitset_vec.erase( unique( temp_bitset_vec.begin(), temp_bitset_vec.end() ), temp_bitset_vec.end() );
+          
+          temp_bitset_vec_d = bitsets_d[i];
+          std::sort( temp_bitset_vec_d.begin(), temp_bitset_vec_d.end() );
+          temp_bitset_vec_d.erase( unique( temp_bitset_vec_d.begin(), temp_bitset_vec_d.end() ), temp_bitset_vec_d.end() );
       for(unsigned int j = i+1; j < pop_size; j++) {
         if(bitsets[j].size()) {
           pibd_i = pibd_d_i = 0;
-          for(unsigned int k1 = 0; k1 < bitsets[i].size(); k1++){
-            pibd_i = pibd_i + Strain::ibd_distance_of_bitset_a_and_x(bitsets[i][k1], bitsets[j].begin(), bitsets[j].end());
+          
+          temp_bitset_vec2 = bitsets[j];
+          std::sort( temp_bitset_vec2.begin(), temp_bitset_vec2.end() );
+          temp_bitset_vec2.erase( unique( temp_bitset_vec2.begin(), temp_bitset_vec2.end() ), temp_bitset_vec2.end() );
+          for(unsigned int k1 = 0; k1 < temp_bitset_vec.size(); k1++){
+            pibd_i = pibd_i + Strain::ibd_distance_of_bitset_a_and_x(temp_bitset_vec[k1], temp_bitset_vec2.begin(), temp_bitset_vec2.end());
           }
-          for(unsigned int k2 = 0; k2 < bitsets_d[i].size(); k2++){
-            pibd_d_i = pibd_d_i + Strain::ibd_distance_of_bitset_a_and_x(bitsets_d[i][k2], bitsets_d[j].begin(), bitsets_d[j].end());
+          
+          temp_bitset_vec_d2 = bitsets_d[j];
+          std::sort( temp_bitset_vec_d2.begin(), temp_bitset_vec_d2.end() );
+          temp_bitset_vec_d2.erase( unique( temp_bitset_vec_d2.begin(), temp_bitset_vec_d2.end() ), temp_bitset_vec_d2.end() );
+          for(unsigned int k2 = 0; k2 < temp_bitset_vec_d.size(); k2++){
+            pibd_d_i = pibd_d_i + Strain::ibd_distance_of_bitset_a_and_x(temp_bitset_vec_d[k2], temp_bitset_vec_d2.begin(), temp_bitset_vec_d2.end());
           }
           
           // running total of the number of bitset comparisons we have made for each individual
-          contacts[i] += bitsets[i].size() * bitsets[j].size();
-          contacts[j] += bitsets[i].size() * bitsets[j].size();
-          contacts_d[i] += bitsets_d[i].size() * bitsets_d[j].size();
-          contacts_d[j] += bitsets_d[i].size() * bitsets_d[j].size();
+          contacts[i] += temp_bitset_vec.size() * temp_bitset_vec2.size();
+          contacts[j] += temp_bitset_vec.size() * temp_bitset_vec2.size();
+          contacts_d[i] += temp_bitset_vec_d.size() * temp_bitset_vec_d2.size();
+          contacts_d[j] += temp_bitset_vec_d.size() * temp_bitset_vec_d2.size();
           
           // and the running total for the pibd
           pibd[i] += pibd_i;
@@ -248,7 +267,6 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
     
     // simple assignments first
     ages[el] = u_ptr->population[i].get_m_person_age();
-    int state_change = u_ptr->population[i].get_m_day_of_InfectionStatus_change();
     states[el] = static_cast< int>(u_ptr->population[i].get_m_infection_state());
     
     // clear temps
@@ -275,11 +293,9 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
         if(rbernoulli1(qu_i)) {
         bitsets_pcr_i.emplace_back(b.get_m_barcode()); 
         }
-      } 
-      else 
-      {
-        bitsets_all_i.emplace_back(b.get_m_barcode()); 
       }
+      
+      bitsets_all_i.emplace_back(b.get_m_barcode()); 
       barcode_states_i.emplace_back(static_cast< int> (b.get_m_strain_infection_status()));
     }
     barcode_states[el] = barcode_states_i;

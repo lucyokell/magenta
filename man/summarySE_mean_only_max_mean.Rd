@@ -5,7 +5,7 @@
 \title{Create summary statistics df}
 \usage{
 summarySE_mean_only_max_mean(data = NULL, measurevar = "COI",
-  groupvars = c("Age_Bin", "State"), mean_only = TRUE, max = 6)
+  groupvars = c("Age_Bin", "State"), mean_only = TRUE, max = 0)
 }
 \arguments{
 \item{data}{Dataframe to be summarised}
@@ -15,6 +15,10 @@ summarySE_mean_only_max_mean(data = NULL, measurevar = "COI",
 \item{groupvars}{What are we summarise by}
 
 \item{mean_only}{Are we just calculating the mean. Default = TRUE}
+
+\item{max}{Maximum value that can be obsered in the data beign summarised. 
+If greater than zero, all values in data will be set to the max before
+summarising. Default = 0.}
 }
 \description{
 Create summary statistics df

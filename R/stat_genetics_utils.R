@@ -8,7 +8,8 @@
 #' @param conf.interval numeric for CI
 #' 
 #' 
-summarySE <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State"),
+summarySE <- function(data=NULL, measurevar="COI", 
+                      groupvars=c("Age_Bin","State"),
                       conf.interval=.95) {
   
   
@@ -16,8 +17,8 @@ summarySE <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State"
     dplyr::summarise(N=length(!!dplyr::sym(measurevar)),
                      mean=mean(!!dplyr::sym(measurevar),na.rm=TRUE),
                      sd = sd(!!dplyr::sym(measurevar),na.rm=TRUE),
-                     se = sd/sqrt(N),
-                     ci = se * suppressWarnings(qt(conf.interval/2 + .5, N-1))
+                     se = sd/sqrt(.data$N),
+                     ci = .data$se * suppressWarnings(qt(conf.interval/2 + .5, .data$N-1))
     )
   
   return(as.data.frame(res))
@@ -53,11 +54,20 @@ summarySE_mean_only <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bi
 #' @param measurevar Character for measure variable
 #' @param groupvars What are we summarise by
 #' @param mean_only Are we just calculating the mean. Default = TRUE
+#' @param max Maximum value that can be obsered in the data beign summarised. 
+#'   If greater than zero, all values in data will be set to the max before
+#'   summarising. Default = 0.
 #' 
-summarySE_mean_only_max_mean <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State"),mean_only=TRUE, max = 6) {
+summarySE_mean_only_max_mean <- function(data=NULL, 
+                                         measurevar="COI", 
+                                         groupvars=c("Age_Bin","State"),
+                                         mean_only=TRUE, 
+                                         max = 0) {
   
-  if(nrow(data) != 0) {
+  if (nrow(data) != 0) {
+    if (max) {
     data[measurevar][data[measurevar]>max] <- max
+    }
   }
   if(!mean_only) {
     return(summarySE(data, measurevar,groupvars))
@@ -128,18 +138,19 @@ cou_from_barcode_list <- function(barcode_list){
   
 }
 
-pibd_from_barcode_list <- function(barcode_list){
-  l_factor_i <- attr(r[[year0]],"l") + attr(r[[year]],"l") 
-  if(!unphased){
-    t <- rbind(rbind_list_base(r[[year0]][["ints"]][samp[pos<=ss]]),rbind_list_base(r[[year]][["ints"]][samp[pos>ss]]))
-    z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
-    return((z - (1/ss))/(1-(1/ss)))
-  } else {
-    t <- rbind(rbind_list_base(r[[year0]][["ints_max"]][samp[pos<=ss]]),rbind_list_base(r[[year]][["ints_max"]][samp[pos>ss]]))
-    z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
-    return((z - (1/ss))/(1-(1/ss)))
-  }
+
+
+pibd_from_barcode_list <- function(barcode_list, l_factor_i){
+   
+    t <- rbind_list_base(barcode_list)
+    if(nrow(t)>1){
+    z <- mean(apply(t,2,function(x) sum((tabulate(x,l_factor_i)/length(x))^2)))
+    return((z - (1/nrow(t)))/(1-(1/nrow(t))))
+    } else {
+      return(NA)
+    }
 }
+
 
 convert_ibd_barcode <- function(b, nl){
   

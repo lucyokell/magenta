@@ -28,7 +28,40 @@ need to be true for resistance cost to exist. Default of NULL means that
 this becomes seq_len(number_of_resistance_loci), i.e. only dependent on 
 their own loci. (TODO: Change this to be a list of length norl)}
 
-\item{prob_of_lpf}{Numeric vector for lpf, Should be 2^res.loci * num_drugs}
+\item{prob_of_lpf}{List of probabiliteis of lpf. Each list element should 
+be a vector of the prob of lpf for each relevent barcode combination for 
+a given drug. E.g. The default is:
+
+\code{list(c(1.0,0.97,0.80,0.55), c(1.0,0.98,0.7,0.51))} 
+
+The first list vector is length 4, and so 2 barcode positions change the 
+prob of lpf. If the parasite is 0,0 then the prob of lpf is 0 (1-1), 
+but if it was 0,1 it would be 0.2. 
+The second list vecotr is also length 4, so the second possible drug also
+only involves two loci. However if it was 8 long then 3 loci would be 
+involved.}
+
+\item{barcode_res_pos}{List for which barcode positions correspond to which
+drug resistance mechanism. E.g. the default is:
+
+\code{list(c(0,1),c(0,2))}
+
+Resistance to drug 1 is encoded at barcode position 0 and 1
+Resistance to drug 2 is encoded at barcode position 0 and 2
+The shared barcode position in this example reflects say 2 different ACTs,
+which both have artemisinin as one component, but a different partner drug.}
+
+\item{prophylactic_pos}{List for which barcode positions determine the
+impact of drug resistance in shortening the effective prophylactic period.
+E.g. the default is \code{list(c(1),c(2))}, which shows that for drug 1,
+the prophylactic position is encoded in barcode position 1, and for drug 2
+it is encoded at position 2.}
+
+\item{dur_P}{Vector for the duration of prophylaxis for each drug. Default 
+is \code{rep(25,number_of_drugs)}.}
+
+\item{dur_SPC}{Vector for the duration of slow parasite clearance for each 
+drug. Default is \code{rep(5,number_of_drugs)}.}
 
 \item{mft_flag}{Boolean are we doing mft}
 

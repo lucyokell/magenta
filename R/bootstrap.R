@@ -16,11 +16,11 @@ cou_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_fu
   if(!unphased){
     t <- c(unlist(r[[year0]][["ints"]][samp[pos<=ss]]), unlist(r[[year]][["ints"]][samp[pos>ss]]))
     z <- sum(tab_func(t,l_factor_i)^2)
-    return((z - (1/ss))/(1-(1/ss)))
+    return((z - (1/length(t)))/(1-(1/length(t))))
   } else {
     t <- c(unlist(r[[year0]][["ints_max"]][samp[pos<=ss]]), unlist(r[[year]][["ints_max"]][samp[pos>ss]]))
     z <- sum(tab_func(t,l_factor_i)^2)
-    return((z - (1/ss))/(1-(1/ss)))
+    return((z - (1/length(t)))/(1-(1/length(t))))
   }
 }
 
@@ -29,11 +29,11 @@ pibd_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_f
   if(!unphased){
     t <- rbind(rbind_list_base(r[[year0]][["ints"]][samp[pos<=ss]]),rbind_list_base(r[[year]][["ints"]][samp[pos>ss]]))
     z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
-    return((z - (1/ss))/(1-(1/ss)))
+    return((z - (1/nrow(t)))/(1-(1/nrow(t))))
   } else {
     t <- rbind(rbind_list_base(r[[year0]][["ints_max"]][samp[pos<=ss]]),rbind_list_base(r[[year]][["ints_max"]][samp[pos>ss]]))
     z <- mean(apply(t,2,function(x) sum(tab_func(x,l_factor_i)^2)))
-    return((z - (1/ss))/(1-(1/ss)))
+    return((z - (1/nrow(t)))/(1-(1/nrow(t))))
   }
 }
 

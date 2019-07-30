@@ -22,10 +22,11 @@ Parameters::Parameters() {
   g_spatial_imported_mosquito_infection_counter = 0;
   g_spatial_exported_barcode_counter = 0;
   g_spatial_exported_oocyst_counter = 0;
-  g_spatial_exported_barcodes = std::vector<boost::dynamic_bitset<>>();
-  g_spatial_exported_oocysts = std::vector<boost::dynamic_bitset<>>();
-  g_spatial_imported_barcodes = std::vector<boost::dynamic_bitset<>>();
-  g_spatial_imported_oocysts = std::vector<boost::dynamic_bitset<>>();
+  g_spatial_exported_barcodes = std::vector<boost::dynamic_bitset<> >();
+  g_spatial_exported_oocysts = std::vector<boost::dynamic_bitset<> >();
+  g_spatial_imported_barcodes = std::vector<boost::dynamic_bitset<> >();
+  g_spatial_imported_oocysts = std::vector<boost::dynamic_bitset<> >();
+  
   // more island stuff
   g_percentage_imported_human_infections = 0.0;
   g_percentage_imported_mosquito_infections = 0.0;
@@ -76,7 +77,7 @@ Parameters::Parameters() {
   g_dur_P = 25;
   g_dur_A = 195;
   g_dur_AU = g_dur_A + g_dur_U;
-  // Pre-erythrocytic immunity parameters
+  // Detection immunity parameters
   g_d1 = 0.160527;
   g_dID = 10 * 365;
   g_ID0 = 1.577533;
@@ -85,6 +86,7 @@ Parameters::Parameters() {
   g_aD = 8001.99;
   g_fD0 = 0.007055;
   g_gD = 4.8183;
+  g_alphaU = 0.185624;
   // Blood stage immunity parameters
   g_b0 = 0.590076;
   g_b1 = 0.5;
@@ -120,7 +122,7 @@ Parameters::Parameters() {
   
   // mutation parameters
   g_mutation_flag = false;
-  g_mutation_occurence = 0.0000001;
+  g_mutation_rate = 0.0000001;
   g_mutations_today = std::vector<unsigned int> {0,0};
   g_mutation_pos_allocator = 0;
   

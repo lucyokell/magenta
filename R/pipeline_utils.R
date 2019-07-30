@@ -120,16 +120,19 @@ spl_matrix_check <- function(matrix, years) {
 
 #' plaf matrix check
 #' 
-#' checks length formatting etc
+#' @details Checks length formatting etc of population level allele frequency matrix
 #' 
-#' @param plaf plaf matrix
+#' @param matrix plaf matrix
 #' @param years Years desired
 
 plaf_matrix_check <- function(matrix, years) {
   
   if(is.matrix(matrix)){
     if(dim(matrix)[1] != ceiling(years)){
-      matrix <- rbind(matrix,matrix(rep(matrix[2,],ceiling(years) - dim(matrix)[1]),ncol=dim(matrix)[2],byrow=TRUE))
+      matrix <- rbind(matrix,
+                      matrix(rep(matrix[2,],ceiling(years) - dim(matrix)[1]),
+                             ncol=dim(matrix)[2],byrow=TRUE)
+                      )
     }
   }
   
@@ -144,7 +147,9 @@ plaf_matrix_check <- function(matrix, years) {
 
 #' Intervention grab
 #' 
-#' Grabs ITN, IRS  ft from database
+#' @details Grabs ITN, IRS  ft from database
+#' 
+#' N.B. The admin region used for ft can be checked 
 #' 
 #' @param country Country string
 #' @param admin Admin string
@@ -167,7 +172,14 @@ intervention_grab <- function(country, admin, year_range,
   # incorporate hitoric interventions
   itn_cov <- itn_2000_2015$value[which(itn_2000_2015$admin==admin & itn_2000_2015$country==country)]
   irs_cov <- irs_2000_2015$value[which(irs_2000_2015$admin==admin & irs_2000_2015$country==country)]
-  ft <- admin_units_seasonal$ft[which(admin_units_seasonal$admin1==admin & admin_units_seasonal$country==country)] 
+  
+  # admatch for ft
+  if(is.null(options("quiet_admin"))) {
+    options("quiet_admin"=TRUE)
+  }
+  
+  adm <- admin_match(admin, country, quiet = options("quiet_admin"))
+  ft <- admin_units_seasonal$ft[adm] 
   ft <- rep(ft, 16)
   
   # check it's the right length
@@ -184,9 +196,9 @@ intervention_grab <- function(country, admin, year_range,
   years <- 2000:2015
   
   # check the final coverages
-  if (is.null(final_itn_cov)) final_itn_cov <- min(tail(itn_cov, 1), 0.9)
-  if (is.null(final_irs_cov)) final_irs_cov <- min(tail(irs_cov, 1), 0.9)
-  if (is.null(final_ft)) final_ft <- min(tail(final_ft, 1), 0.9)
+  if (is.null(final_itn_cov)) final_itn_cov <- tail(itn_cov, 1)
+  if (is.null(final_irs_cov)) final_irs_cov <- tail(irs_cov, 1)
+  if (is.null(final_ft)) final_ft <- tail(ft, 1)
   
   # alter the end 
   if (end_year > 2015) {
@@ -238,22 +250,26 @@ intervention_grab <- function(country, admin, year_range,
 #' Grabs spatial incidence and mosquitoFOI vector from database
 #' 
 #' @param eqInit Equilibrium Inititial Conditions
-#' @param admin Admin string
 #' @param ft Annual Treatment Coverage vector
 #' @param itn_cov Annual ITN Coverage vector
 #' @param irs_cov Annual IRS Coverage vector
+#' @param int_times Timing of intervention changes. Default = NULL, which will 
+#'   assume they are 365 days apart
+#' @param full Boolean to return the whole deterministic output or just mosquito
+#'   death rate and anthrophagy. Default = FALSE
+#' @param odin_model File path to odin model file. Default is the itns and irs
+#'   model included with magenta.     
 #' @param years Numeric for total years
 #' 
 
 mu_fv_create <- function(eqInit,
-                         ft = ft,
-                         itn_cov = itn_cov,
-                         irs_cov = irs_cov,
+                         ft,
+                         itn_cov,
+                         irs_cov,
+                         years,
                          int_times = NULL,
-                         years = years,
                          full = FALSE,
-                         complete = TRUE,
-                         odin_model = system.file("extdata/odin_model_itn_irs.R",package="magenta")) {
+                         odin_model = system.file("extdata/odin_itn_irs.R",package="magenta")) {
   
   if (identical(irs_cov, 0) && identical(itn_cov, 0)) {
     out <- data.frame("mu"=rep(0.132, length(seq_len(round(years*365))+1)),
@@ -356,7 +372,36 @@ housekeeping_list_create <- function(quiet = TRUE,
 #'   need to be true for resistance cost to exist. Default of NULL means that 
 #'   this becomes seq_len(number_of_resistance_loci), i.e. only dependent on 
 #'   their own loci. (TODO: Change this to be a list of length norl)
-#' @param prob_of_lpf Numeric vector for lpf, Should be 2^res.loci * num_drugs
+#' @param prob_of_lpf List of probabiliteis of lpf. Each list element should 
+#'   be a vector of the prob of lpf for each relevent barcode combination for 
+#'   a given drug. E.g. The default is:
+#'   
+#'   \code{list(c(1.0,0.97,0.80,0.55), c(1.0,0.98,0.7,0.51))} 
+#'   
+#'   The first list vector is length 4, and so 2 barcode positions change the 
+#'   prob of lpf. If the parasite is 0,0 then the prob of lpf is 0 (1-1), 
+#'   but if it was 0,1 it would be 0.2. 
+#'   The second list vecotr is also length 4, so the second possible drug also
+#'   only involves two loci. However if it was 8 long then 3 loci would be 
+#'   involved. 
+#' @param barcode_res_pos List for which barcode positions correspond to which
+#'   drug resistance mechanism. E.g. the default is:
+#'   
+#'   \code{list(c(0,1),c(0,2))}
+#'   
+#'   Resistance to drug 1 is encoded at barcode position 0 and 1
+#'   Resistance to drug 2 is encoded at barcode position 0 and 2
+#'   The shared barcode position in this example reflects say 2 different ACTs,
+#'   which both have artemisinin as one component, but a different partner drug.
+#' @param prophylactic_pos List for which barcode positions determine the
+#'   impact of drug resistance in shortening the effective prophylactic period.
+#'   E.g. the default is \code{list(c(1),c(2))}, which shows that for drug 1,
+#'   the prophylactic position is encoded in barcode position 1, and for drug 2
+#'   it is encoded at position 2.
+#' @param dur_P Vector for the duration of prophylaxis for each drug. Default 
+#'   is \code{rep(25,number_of_drugs)}.
+#' @param dur_SPC Vector for the duration of slow parasite clearance for each 
+#'   drug. Default is \code{rep(5,number_of_drugs)}.
 #' @param mft_flag Boolean are we doing mft
 #' @param temporal_cycling Numeric for when in years a drug switch occurs
 #' @param sequential_cycling Numeric for what perc. treatment failure before switch
@@ -398,43 +443,24 @@ drug_list_create <- function(resistance_flag = FALSE,
                                                    epistatic_logic)
   
   
-  l <- list("g_resistance_flag" = resistance_flag,
-            "g_number_of_resistance_loci" = number_of_resistance_loci,
-            "g_cost_of_resistance" = resistance_costs,
-            "g_prob_of_lpf" = prob_of_lpf,
-            "g_barcode_res_pos" = barcode_res_pos,
-            "g_prophylactic_pos" = prophylactic_pos,
-            "g_dur_P" = dur_P,
-            "g_dur_SPC" = dur_SPC,
-            "g_mft_flag" = mft_flag,
-            "g_temporal_cycling" = temporal_cycling,
-            "g_next_temporal_cycle" = temporal_cycling,
-            "g_sequential_cycling" = sequential_cycling,
-            "g_sequential_update" = sequential_update,
-            "g_number_of_drugs" = number_of_drugs,
-            "g_drug_choice" = drug_choice,
-            "g_partner_drug_ratios" = partner_drug_ratios)
+  l <- list("resistance_flag" = resistance_flag,
+            "number_of_resistance_loci" = number_of_resistance_loci,
+            "cost_of_resistance" = resistance_costs,
+            "prob_of_lpf" = prob_of_lpf,
+            "barcode_res_pos" = barcode_res_pos,
+            "prophylactic_pos" = prophylactic_pos,
+            "dur_P" = dur_P,
+            "dur_SPC" = dur_SPC,
+            "mft_flag" = mft_flag,
+            "temporal_cycling" = temporal_cycling,
+            "next_temporal_cycle" = temporal_cycling,
+            "sequential_cycling" = sequential_cycling,
+            "sequential_update" = sequential_update,
+            "number_of_drugs" = number_of_drugs,
+            "drug_choice" = drug_choice,
+            "partner_drug_ratios" = partner_drug_ratios)
   
   return(l)
-  
-}
-
-lpf_table_create <- function(number_of_drugs, drug_tables){
-  
-  max_bits <- (2^(number_of_drugs+1))-1
-  barcode_poss <- matrix(intToBits(0:max_bits),ncol=32,byrow=T)[,1:(number_of_drugs+1)]
-  
-  results <- rep(1, (2^(number_of_drugs+1))*number_of_drugs)
-  count <- 1
-  
-  for(i in 1:number_of_drugs){
-    for(j in 1:nrow(barcode_poss)){
-      results[count] <- drug_tables[[i]][bitsToInt(barcode_poss[j,c(1,i+1)])+1]
-      count <- count+1
-    }
-  }
-  
-  return(results)
   
 }
 
@@ -467,31 +493,31 @@ resistance_cost_table_create <- function(number_of_resistance_loci,
 drug_list_update <- function(drug_list, year, tf){
   
   
-  if (drug_list$g_resistance_flag) {
-    if (!drug_list$g_mft_flag) {
+  if (drug_list$resistance_flag) {
+    if (!drug_list$mft_flag) {
       
       # if sequential cycling
-      if (drug_list$g_sequential_cycling > 0) {
-        if (tf > drug_list$g_sequential_cycling && year > drug_list$g_next_temporal_cycle) {
-          drug_list$g_drug_choice <- drug_list$g_drug_choice + 1
-          drug_list$g_next_temporal_cycle <- year + drug_list$g_sequential_update
-          if(drug_list$g_drug_choice == (drug_list$g_number_of_drugs)){
-            drug_list$g_drug_choice <- 0
+      if (drug_list$sequential_cycling > 0) {
+        if (tf > drug_list$sequential_cycling && year > drug_list$next_temporal_cycle) {
+          drug_list$drug_choice <- drug_list$drug_choice + 1
+          drug_list$next_temporal_cycle <- year + drug_list$sequential_update
+          if(drug_list$drug_choice == (drug_list$number_of_drugs)){
+            drug_list$drug_choice <- 0
           }
           
-          message(drug_list$g_drug_choice)
+          message(drug_list$drug_choice)
         }
       }
       
       # if temporal cycling
-      if (drug_list$g_temporal_cycling > 0) {
-        if (drug_list$g_next_temporal_cycle == year) {
-          drug_list$g_drug_choice <- drug_list$g_drug_choice + 1
-          if(drug_list$g_drug_choice == (drug_list$g_number_of_drugs)){
-            drug_list$g_drug_choice <- 0
+      if (drug_list$temporal_cycling > 0) {
+        if (drug_list$next_temporal_cycle == year) {
+          drug_list$drug_choice <- drug_list$drug_choice + 1
+          if(drug_list$drug_choice == (drug_list$number_of_drugs)){
+            drug_list$drug_choice <- 0
           }
-          drug_list$g_next_temporal_cycle <- drug_list$g_next_temporal_cycle + 
-            drug_list$g_temporal_cycling
+          drug_list$next_temporal_cycle <- drug_list$next_temporal_cycle + 
+            drug_list$temporal_cycling
         }
       }
     }
@@ -559,14 +585,14 @@ update_saves <- function(res, i, sim.out, sample_states,
       # sample the population strain's genetics
       if(length(sample_size)>1){
         df <- pop_strains_df(sim.out$Ptr, sample_size = 0, 
-                             sample_states = sample_states, ibd = barcode_params$barcode_type,
-                             seed = seed,
-                             nl = num_loci)
+                             sample_states = sample_states, 
+                             ibd = barcode_params$barcode_type,
+                             seed = seed)
       } else {
         df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
-                             sample_states = sample_states, ibd = barcode_params$barcode_type,
-                             seed = seed, 
-                             nl = num_loci)
+                             sample_states = sample_states, 
+                             ibd = barcode_params$barcode_type,
+                             seed = seed)
         
       }
       
@@ -586,14 +612,16 @@ update_saves <- function(res, i, sim.out, sample_states,
       } else {
         
         if(i%%12 == 0 && i >= (length(res)-180)){
-          res[[i]] <- COI_df_create(df, barcodes=TRUE, nl=num_loci, 
+          res[[i]] <- COI_df_create(df, barcodes=TRUE, 
                                     ibd = barcode_params$barcode_type,
-                                    n = sample_size, reps = sample_reps, 
+                                    n = sample_size, 
+                                    reps = sample_reps, 
                                     mean_only = mean_only)
         } else {
-          res[[i]] <- COI_df_create(df, barcodes=FALSE, nl=num_loci, 
+          res[[i]] <- COI_df_create(df, barcodes=FALSE, 
                                     ibd = barcode_params$barcode_type,
-                                    n = sample_size, reps = sample_reps, 
+                                    n = sample_size, 
+                                    reps = sample_reps, 
                                     mean_only = mean_only)
         }
         
@@ -634,18 +662,18 @@ update_saves <- function(res, i, sim.out, sample_states,
       human_vars <- c("Infection_States", "Zetas", "Ages")
       
       pl3 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
-      sim.save <- simulation_R(pl3, seed = seed)
+      sim_save <- simulation_R(pl3, seed = seed)
       
       if(full_update_save) {
-        res[[i]] <-sim.save
+        res[[i]] <- sim_save
       } else {
       
       # and then store what's needed
-      Strains <- sim.save$populations_event_and_strains_List[strain_vars]
-      Humans <- c(sim.save$population_List[human_vars],
+      Strains <- sim_save$populations_event_and_strains_List[strain_vars]
+      Humans <- c(sim_save$population_List[human_vars],
                   Strains,
-                  sim.save$scourge_List["Mosquito_Day_of_death"],
-                  sim.save$scourge_List["Mosquito_Infection_States"])
+                  sim_save$scourge_List["Mosquito_Day_of_death"],
+                  sim_save$scourge_List["Mosquito_Infection_States"])
       res[[i]] <- Humans
       }
     }
@@ -677,9 +705,9 @@ vector_adaptation_list_create <- function(vector_adaptation_flag = FALSE,
                                           local_oocyst_advantage = 0.2,
                                           gametocyte_non_sterilisation = 0.2){
   
-  l <- list("g_vector_adaptation_flag" = vector_adaptation_flag,
-            "g_local_oocyst_advantage" = local_oocyst_advantage,
-            "g_gametocyte_non_sterilisation" = gametocyte_non_sterilisation)
+  l <- list("vector_adaptation_flag" = vector_adaptation_flag,
+            "local_oocyst_advantage" = local_oocyst_advantage,
+            "gametocyte_non_sterilisation" = gametocyte_non_sterilisation)
   
   return(l)
   
@@ -708,10 +736,10 @@ nmf_list_create <- function(nmf_flag = FALSE,
                                                  7300.0, 9125.0, 10950.0, 36850.0),
                             prob_of_testing_nmf = 0.5){
   
-  l <- list("g_nmf_flag" = nmf_flag,
-            "g_mean_nmf_frequency" = mean_nmf_frequency,
-            "g_nmf_age_brackets" = nmf_age_brackets,
-            "g_prob_of_testing_nmf" = prob_of_testing_nmf)
+  l <- list("nmf_flag" = nmf_flag,
+            "mean_nmf_frequency" = mean_nmf_frequency,
+            "nmf_age_brackets" = nmf_age_brackets,
+            "prob_of_testing_nmf" = prob_of_testing_nmf)
   
   return(l)
   

@@ -4,18 +4,23 @@
 \alias{Sample_COI}
 \title{Sample x times from saved simulation and produce age COI data}
 \usage{
-Sample_COI(sim.save, ID, sample_size, age_densities, age_breaks = seq(0,
+Sample_COI(sim_save, ID, sample_size, age_densities, age_breaks = seq(0,
   90 * 365, 2 * 365), sub_patents_included = FALSE, reps = 50,
   COI_type = "old")
 }
 \arguments{
-\item{sim.save}{Saved output of simulation}
+\item{sim_save}{Saved output of simulation}
+
+\item{ID}{Vector of detection immunities for the population}
 
 \item{sample_size}{Numeric for sample size}
 
 \item{age_densities}{Densitvy vector for age distribution required}
 
 \item{age_breaks}{Corresponding vector of age breaks for the density}
+
+\item{sub_patents_included}{Boolean as to whether subpatents are included. 
+Default = TRUE}
 
 \item{reps}{How many samples are made}
 
