@@ -27,7 +27,7 @@ Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
 \arguments{
 \item{EIR}{Numeric for desired annual EIR. Default = 120}
 
-\item{ft}{Frequency of treatment. Default = 0.4}
+\item{ft}{Vector of treatment frequency. Default = 0.4}
 
 \item{itn_cov}{Vector for ITN coverages that change at update_length intervals.
 Default = 0}
@@ -35,14 +35,10 @@ Default = 0}
 \item{irs_cov}{Vector for IRS coverages that change at update_length intervals.
 Default = 0}
 
-\item{use_historic_interventions}{Boolean as to whether the historic
-  interventions are incorporated. This will occur by using the length of years and taking the most
-  recent years back in time. Therefore
-  if years > 15, then there will be burn in time, when no interventions
-  are assumed. Default = FALSE, and
-  only is used if country and admin are suitably provided.
-  
-# Genetic Params}
+\item{use_historic_interventions}{Boolean as to whether to use interventions 
+on file for the admin and country specified. If TRUE then provide the years
+as a year range, e.g. 2000:2015. WARNING - Best to have this as FALSE and 
+manually specify the itn_cov, irs_cov and ft.}
 
 \item{survival_percentage}{Mumeric for % of sporozoites surviving. 
 Default = 0.2}
@@ -75,7 +71,9 @@ one of "island" or "metapop".}
 i.e. importation vector}
 
 \item{spatial_mosquitoFOI_matrix}{Spatial mosquio FOI, i.e. importation
-to mosquitoes vector}
+ to mosquitoes vector
+  
+# Genetic Params}
 
 \item{num_loci}{Number of loci. Default = 24}
 

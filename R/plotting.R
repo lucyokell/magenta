@@ -17,7 +17,11 @@
 
 Heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, save_path=NULL){
   
+  if("populations_event_and_strains_List" %in% names(sim_save)) {
   mat <- matrix(as.numeric(unlist(sim_save$populations_event_and_strains_List$Strain_barcode_vectors)),ncol=24,byrow=T)
+  } else {
+    mat <- matrix(as.numeric(unlist(sim_save$Strain_barcode_vectors)),ncol=24,byrow=T)
+  }
   
   if(ordered){
     
@@ -26,7 +30,6 @@ Heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, sa
     sorted_row_pos <- unlist(sapply(names(tabled),function(x){return(which(ID==as.numeric(x)))}) )
     
     if(is.null(save_path)){
-      dev.new(noRStudioGD = TRUE)
       heatmap(mat[sorted_row_pos,],Rowv = NA,Colv = NA,main = paste0( years," years | EIR = ",EIR),scale="none",labRow = "")
     } else {
       tiff(save_path,width=620,height=620,units="mm",res=300,pointsize = 36, compression="lzw",family="Times New Roman")
@@ -35,7 +38,6 @@ Heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, sa
     }
   } else {
     if(is.null(save_path)){
-      dev.new(noRStudioGD = TRUE)
       heatmap(mat,Rowv = NA,Colv = NA,main = paste0( years," years | EIR = ",EIR),scale="none",labRow = "")  
     } else {
       tiff(save_path,width=620,height=620,units="mm",res=300,pointsize = 36, compression="lzw",family="Times New Roman")
