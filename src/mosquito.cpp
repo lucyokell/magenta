@@ -61,8 +61,8 @@ void Mosquito::allocate_gametocytes(const Parameters &parameters,
 {
   // Push gametocyte barcodes and time of bursting and spz count remaining, i.e. 4
   
-  m_oocyst_barcode_male_vector.emplace_back(gam_1);
-  m_oocyst_barcode_female_vector.emplace_back(gam_2);
+  m_oocyst_barcode_female_vector.emplace_back(gam_1);
+  m_oocyst_barcode_male_vector.emplace_back(gam_2);
   m_oocyst_rupture_time_vector.emplace_back(parameters.g_current_time + static_cast<int>(parameters.g_delay_mos));
   m_oocyst_remaining_spz_count.emplace_back(4);
   
@@ -79,6 +79,11 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
 {
   
   parameters.g_total_mosquito_infections++;
+  
+  // are we doing vector adaptation work. If so alter the oocyst numbers 
+  if (parameters.g_vector_adaptation_flag){
+    parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter] = std::ceil(parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter]*parameters.g_oocyst_reduction_by_artemisinin);
+  }
   
   // if we are doing spatial then use the imported oocysts first 
   if(parameters.g_spatial_imported_mosquito_infection_counter < parameters.g_spatial_total_imported_mosquito_infections)
@@ -100,11 +105,31 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
     // else for island simulations
     else 
     {
-      // for the time being let's not generate any mixed oocysts from imports
+      // allocate imported gametocytes
       for(int o_i = 0; o_i < parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter]; o_i++)
       {  
         gam_sampled[0] = Strain::generate_next_barcode();
-        allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[0]);
+        gam_sampled[1] = Strain::generate_next_barcode();
+        
+        // are we doing vector adaptation
+        if (parameters.g_vector_adaptation_flag){
+          
+          // check if the oocyst would have been produced by judging the female gametocyte for adaptation
+          
+          // Check if all vector adapted loci are true
+          if (Strain::all_at_positions(gam_sampled[0], parameters.g_vector_adaptation_loci)) {
+            allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
+          } else {
+            // if not would it have still made it through
+            if(rbernoulli1(parameters.g_local_oocyst_advantage)) {
+              allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
+            }
+          }
+        }
+        else 
+        {
+          allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
+        }
       }
     }
     
@@ -120,29 +145,24 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
       gam_sampled = person.sample_two_barcodes(parameters);
       
       // are we doing vector adaptation
-      // TODO: Set this up so the gametocytes can fail and the mosquito does not get any allocated
       if (parameters.g_vector_adaptation_flag){
-        // if they only have one strain then pass it 
-        if(person.get_m_number_of_strains() > 1) {
-          bool adapted_check = false;
-          
-          // check if the oocyst would have been produced by judging the female gametocyte for adaptation
-          while(!adapted_check){
-            // if the last loci is true then it is adapted so always fine
-            if(gam_sampled[0][parameters.g_num_loci-1]) {
-              adapted_check = true;
-            } else {
-              // if not would it have still made it through though otherwise draw new gametocytes
-              adapted_check = rbernoulli1(parameters.g_local_oocyst_advantage);
-              if(!adapted_check) {
-                gam_sampled = person.sample_two_barcodes(parameters);
-              }
-            }
+        
+        // check if the oocyst would have been produced by judging the female gametocyte for adaptation
+        
+        // Check if all vector adapted loci are true
+        if (Strain::all_at_positions(gam_sampled[0], parameters.g_vector_adaptation_loci)) {
+          allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
+        } else {
+          // if not would it have still made it through
+          if(rbernoulli1(parameters.g_local_oocyst_advantage)) {
+            allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
           }
         }
       }
-      
-      allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
+      else 
+      {
+        allocate_gametocytes(parameters, gam_sampled[0], gam_sampled[1]);
+      }
     }
   }
   
@@ -157,38 +177,38 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
 // Sample one sporozoite to be passed on to the human
 boost::dynamic_bitset<> Mosquito::sample_sporozoite() {
   
-    // are there any spz in the mosquito
-    if(m_generated_sporozoite_count){
-      // are we using a spz
-      if(rbernoulli1(m_generated_sporozoite_count / (4*m_ruptured_oocyst_count) )) 
-      {
-       return(m_generated_sporozoites_vector[runiform_int_1(1, m_generated_sporozoite_count - 1)]);
-      }
+  // are there any spz in the mosquito
+  if(m_generated_sporozoite_count){
+    // are we using a spz
+    if(rbernoulli1(m_generated_sporozoite_count / (4*m_ruptured_oocyst_count) )) 
+    {
+      return(m_generated_sporozoites_vector[runiform_int_1(1, m_generated_sporozoite_count - 1)]);
     }
+  }
+  
+  // sample from avaialble oocysts and then store the spz
+  // does the mosquito have more than one oocyst to pick from 
+  if (m_ruptured_oocyst_count == 1)
+  {
+    Strain::temp_barcode = Strain::generate_recombinant_barcode(
+      get_m_oocyst_barcode_male_vector(0),
+      get_m_oocyst_barcode_female_vector(0)
+    );
     
-    // sample from avaialble oocysts and then store the spz
-    // does the mosquito have more than one oocyst to pick from 
-    if (m_ruptured_oocyst_count == 1)
-    {
-      Strain::temp_barcode = Strain::generate_recombinant_barcode(
-        get_m_oocyst_barcode_male_vector(0),
-        get_m_oocyst_barcode_female_vector(0)
-      );
-      
-      // decrease the remaining  spz from this oocyst
-      m_oocyst_remaining_spz_count[0]--;
-    } 
-    else 
-    {
-      m_oocyst_pick = sample1_ints(m_oocyst_remaining_spz_count, (4*m_ruptured_oocyst_count)-m_generated_sporozoite_count);
-      Strain::temp_barcode = Strain::generate_recombinant_barcode(
-        m_oocyst_barcode_male_vector[m_oocyst_pick],
-                                    m_oocyst_barcode_female_vector[m_oocyst_pick]
-      );
-      
-      // decrease the number of remaining spz from this oocyst
-      m_oocyst_remaining_spz_count[m_oocyst_pick]--;
-    }
+    // decrease the remaining  spz from this oocyst
+    m_oocyst_remaining_spz_count[0]--;
+  } 
+  else 
+  {
+    m_oocyst_pick = sample1_ints(m_oocyst_remaining_spz_count, (4*m_ruptured_oocyst_count)-m_generated_sporozoite_count);
+    Strain::temp_barcode = Strain::generate_recombinant_barcode(
+      m_oocyst_barcode_male_vector[m_oocyst_pick],
+                                  m_oocyst_barcode_female_vector[m_oocyst_pick]
+    );
+    
+    // decrease the number of remaining spz from this oocyst
+    m_oocyst_remaining_spz_count[m_oocyst_pick]--;
+  }
   
   m_generated_sporozoite_count++;
   m_generated_sporozoites_vector.emplace_back(Strain::temp_barcode);
@@ -294,7 +314,7 @@ bool Mosquito::die(Parameters & parameters)
   m_day_of_next_event = 0;
   m_mosquito_infected = false;
   
-    // Clear vectors
+  // Clear vectors
   m_oocyst_rupture_time_vector.clear();
   m_oocyst_barcode_male_vector.clear();
   m_oocyst_barcode_female_vector.clear();
@@ -312,7 +332,7 @@ bool Mosquito::die(Parameters & parameters)
     
     // Set to biting today
     m_mosquito_biting_today = true;
- 
+    
   }
   
   // Schedule next event
@@ -321,7 +341,7 @@ bool Mosquito::die(Parameters & parameters)
   // Schedule next blood meal
   // schedule_m_day_of_blood_meal(parameters);
   // schedule_m_day_of_blood_meal(parameters);
-
+  
   return(m_mosquito_biting_today);
 }
 
@@ -408,10 +428,10 @@ bool Mosquito::event_handle(Parameters &parameters)
           // Update the catching - i.e. if there are no oocysts to rupture today then do not update the catch
           if(m_oocyst_rupture_time_vector.size() > m_ruptured_oocyst_count)
           {
-          if (m_oocyst_rupture_time_vector[m_ruptured_oocyst_count] != parameters.g_current_time)
-          {
-            m_oocyst_realisation_empty_catch = 0;
-          }
+            if (m_oocyst_rupture_time_vector[m_ruptured_oocyst_count] != parameters.g_current_time)
+            {
+              m_oocyst_realisation_empty_catch = 0;
+            }
           }
           else 
           {

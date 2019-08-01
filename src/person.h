@@ -105,8 +105,10 @@ private:
   
   // Vector of associated active strain contribution to onwards infection and associate variables 
   std::vector<double> m_active_strain_contribution;
+  std::vector<double> m_active_female_strain_contribution;
   int m_contribution_counter = 0;
   double m_contribution_sum = 0;
+  double m_female_contribution_sum = 0;
   bool m_cA_counter = false;
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

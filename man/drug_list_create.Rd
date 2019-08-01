@@ -21,7 +21,7 @@ drug_list_create(resistance_flag = FALSE, number_of_drugs = 2,
 
 \item{number_of_resistance_loci}{Numeric for number of res. loci}
 
-\item{resistance_costs}{Numeric vector for costs of res. Should be 2^res.loci}
+\item{resistance_costs}{Numeric vector for costs of res.}
 
 \item{epistatic_logic}{Is there compensatory relationships. i.e. what loci 
 need to be true for resistance cost to exist. Default of NULL means that 

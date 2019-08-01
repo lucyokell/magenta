@@ -615,6 +615,70 @@ plot_mean_summary <- function(res, x,
   
 }
 
+# Plot resistance frequenceies and lineages over time:
+plot_resistance_lineages <- function(t,legend=TRUE){
+  
+  l <- length(t)-1
+  bs <- length(t[[1]]$af)
+  bst <- 2^bs
+  colours <- hcl(seq(360/bst,360,length.out = bst),c = 100,l = 75,alpha = 1,fixup = TRUE)
+  
+  if("lineage" %in% names(t[[1]])) {
+    lins <- TRUE
+  } else {
+    lins <- FALSE
+  }
+  
+  
+  af <- matrix(unlist(lapply(t[1:l],"[[","af")),ncol=bs,byrow=TRUE)
+  
+  if(lins) {
+  lin <- matrix(unlist(lapply(t[1:l],"[[","lineage")),ncol=bst,byrow=TRUE)
+  }
+  
+  af_df <- data.frame("time"=1:l,"af"=as.numeric(af),"loci"=as.character(sort(rep(1:ncol(af),l))) ) 
+  af_gg <- ggplot(af_df, aes(x=time, y=af,color=loci)) + geom_point() + geom_line()
+  
+  if(lins){
+    lin_names <- apply(
+      sapply(0:((bst)-1),function(x){intToBits(x)}),
+      2,
+      function(x){ paste0(as.numeric(x[1:bs]),collapse="") }
+    )
+    vad <- apply(
+      sapply(0:((bst)-1),function(x){intToBits(x)}),
+      2,
+      function(x){ as.logical(x[bs]) }
+    )
+    
+    lin_df <- data.frame("time"=1:l,"af"=as.numeric(lin),
+                         "lin"=factor(as.character(mapply(rep,lin_names,l)),levels=lin_names),
+                         "vad"=as.logical(mapply(rep,vad,l)))  
+    
+    va <- c("","VA")
+    va_group <- paste(lin_names,va[as.numeric(vad)+1])
+    lin_df$group <- factor(as.character(mapply(rep,va_group,l)),levels=va_group)
+    
+    colours <- rep(RColorBrewer::brewer.pal(8,"Paired"),2)
+    
+    lin_gg <- ggplot(lin_df, aes(x=time, y=af, color=group, shape=group)) + geom_point() + geom_line() + 
+      scale_color_manual(name="barcode",labels=lin_names,values = colours) + 
+      scale_shape_manual(name="barcode",labels=lin_names,values = c(rep(19,8),rep(17,8)))
+    heights <- c(1,1)
+   
+  } else {
+    lin_gg <- NULL
+    heights <- c(1,0)
+  }
+  if(legend) {
+  cowplot::plot_grid(af_gg,lin_gg,rel_heights = heights,ncol=1)
+  } else {
+    cowplot::plot_grid(af_gg+theme(legend.position = "none"),
+                       lin_gg+theme(legend.position = "none"),
+                       rel_heights = heights,ncol=1)
+  }
+  
+}
 
 #' Function to generate ggplot colours
 #'

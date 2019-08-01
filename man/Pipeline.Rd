@@ -21,7 +21,7 @@ Pipeline(EIR = 120, ft = 0.4, itn_cov = 0, irs_cov = 0,
   sample_size = Inf, sample_states = 0:5, sample_reps = 1,
   housekeeping_list = housekeeping_list_create(),
   drug_list = drug_list_create(),
-  vector_adaptation_list = vector_adaptation_list_create(),
+  vector_adaptation_list = vector_adaptation_list_create(num_loci),
   only_allele_freqs = TRUE, nmf_list = nmf_list_create(), ...)
 }
 \arguments{

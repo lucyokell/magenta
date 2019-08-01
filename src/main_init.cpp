@@ -122,8 +122,10 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   // -------------------------------------------------
   
   parameters.g_vector_adaptation_flag = Rcpp::as<bool>(vector_adaptation_list["vector_adaptation_flag"]);
+  parameters.g_vector_adaptation_loci = Rcpp::as<std::vector<unsigned int> >(vector_adaptation_list["vector_adaptation_loci"]);
   parameters.g_local_oocyst_advantage = Rcpp::as<double>(vector_adaptation_list["local_oocyst_advantage"]);
-  parameters.g_gametocyte_non_sterilisation = Rcpp::as<double>(vector_adaptation_list["gametocyte_non_sterilisation"]);
+  parameters.g_gametocyte_sterilisation = Rcpp::as<double>(vector_adaptation_list["gametocyte_sterilisation"]);
+  parameters.g_oocyst_reduction_by_artemisinin = Rcpp::as<double>(vector_adaptation_list["oocyst_reduction_by_artemisinin"]);
   
   // non malaria fever parameters
   parameters.g_nmf_flag = Rcpp::as<bool>(nmf_list["nmf_flag"]); // are we doing nmf work
@@ -325,7 +327,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
     // If they are infected, i.e. not S or P, then assign their strains and next strain clearance date
     if (population[n].get_m_infection_state() != Person::SUSCEPTIBLE && population[n].get_m_infection_state() != Person::PROPHYLAXIS) 
     {
-      // TODO: Think about how we can correctly initialise MOI for a given EIR. Presumably there is a rarefaction of MOI vs EIR, and the MOI is lognormal*age_dependency
+      // Initialise MOI given their individual biting rate
       population[n].set_m_number_of_strains(static_cast<int>(population[n].get_m_individual_biting_rate()) + 1);
       population[n].set_m_number_of_realised_infections(population[n].get_m_number_of_strains());
       population[n].schedule_m_day_of_strain_clearance(parameters);

@@ -367,7 +367,7 @@ housekeeping_list_create <- function(quiet = TRUE,
 #' 
 #' @param resistance_flag Boolean are we simulating resistance
 #' @param number_of_resistance_loci Numeric for number of res. loci
-#' @param resistance_costs Numeric vector for costs of res. Should be 2^res.loci
+#' @param resistance_costs Numeric vector for costs of res. 
 #' @param epistatic_logic Is there compensatory relationships. i.e. what loci 
 #'   need to be true for resistance cost to exist. Default of NULL means that 
 #'   this becomes seq_len(number_of_resistance_loci), i.e. only dependent on 
@@ -543,7 +543,8 @@ pop_alf <- function(nums,nl,weighted=FALSE){
     if(weighted) {
     res <- colSums(do.call(rbind,lapply(nums,function(x){colMeans(matrix(as.numeric(x),ncol = nl))})))/length(nums)
     } else {
-    res <- colMeans(matrix(as.numeric(do.call(rbind,nums)),ncol=nl))
+    res <- matrix(as.numeric(do.call(rbind,nums)),ncol=nl)
+    res <- colSums(res)/nrow(res)
     }
   } else {
     res <- rep(NA,nl)
@@ -633,6 +634,7 @@ update_saves <- function(res, i, sim.out, sample_states,
       res[[i]]$not_treated <- sim.out$Loggers$Treatments$Not_Treated
       res[[i]]$treatment_failure <-  res[[i]]$unsuccesful_treatments_lpf / (res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments) 
       res[[i]]$daily_pop_eir <-  sim.out$Loggers$Treatments$daily_infectious_bite_counters/sim.out$Loggers$Log_Counter*365
+      res[[i]]$mutations <-  sim.out$Loggers$daily_mutations_per_loci
       
       if(any(is.na(res[[i]]$treatment_failure))) {
         res[[i]]$treatment_failure[is.na(res[[i]]$treatment_failure)] <- 0 
@@ -694,20 +696,29 @@ update_saves <- function(res, i, sim.out, sample_states,
 #' 
 #' List for vector adaptations relating to oocyst success
 #' 
+#' @param vector_adaptation_loci Vector of integers detailing which loci
+#'   in the barcode correspond to the vector adaptation phenotype
 #' @param vector_adaptation_flag Boolean are we doing vector adaptation.
-#' @param local_oocyst_advantage Double for multiplicative efffect on oocyst 
-#'   chance formation.
-#' @param gametocyte_non_sterilisation Double for reduction in a wild type's 
-#'   onward contribution to infection due to sterilisation due to artemisinin. 
+#' @param local_oocyst_advantage Numeric for probability that non adapated
+#'   parasites will get through. Default = 0.5 
+#' @param gametocyte_sterilisation Numeric for theimpact of artemisinin on 
+#'   male gametocytes. Default = 0.5, which causes the probability that a 
+#'   wild type male gametocyte will be chosen to be in oocysts is halved. 
+#' @param oocyst_reduction_by_artemisinin Numeric for reduction in oocyst 
+#'   under artemisinin drug pressure. default = 0.2
 #' 
 
-vector_adaptation_list_create <- function(vector_adaptation_flag = FALSE,
-                                          local_oocyst_advantage = 0.2,
-                                          gametocyte_non_sterilisation = 0.2){
+vector_adaptation_list_create <- function(vector_adaptation_loci,
+                                          vector_adaptation_flag = FALSE,
+                                          local_oocyst_advantage = 0.5,
+                                          gametocyte_sterilisation = 0.5,
+                                          oocyst_reduction_by_artemisinin = 0.2){
   
   l <- list("vector_adaptation_flag" = vector_adaptation_flag,
+            "vector_adaptation_loci" = vector_adaptation_loci,
             "local_oocyst_advantage" = local_oocyst_advantage,
-            "gametocyte_non_sterilisation" = gametocyte_non_sterilisation)
+            "gametocyte_sterilisation" = gametocyte_sterilisation,
+            "oocyst_reduction_by_artemisinin" = oocyst_reduction_by_artemisinin)
   
   return(l)
   

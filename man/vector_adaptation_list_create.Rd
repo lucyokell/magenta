@@ -4,17 +4,26 @@
 \alias{vector_adaptation_list_create}
 \title{Create vector adaptation list}
 \usage{
-vector_adaptation_list_create(vector_adaptation_flag = FALSE,
-  local_oocyst_advantage = 0.2, gametocyte_non_sterilisation = 0.2)
+vector_adaptation_list_create(vector_adaptation_loci,
+  vector_adaptation_flag = FALSE, local_oocyst_advantage = 0.5,
+  gametocyte_sterilisation = 0.5,
+  oocyst_reduction_by_artemisinin = 0.2)
 }
 \arguments{
+\item{vector_adaptation_loci}{Vector of integers detailing which loci
+in the barcode correspond to the vector adaptation phenotype}
+
 \item{vector_adaptation_flag}{Boolean are we doing vector adaptation.}
 
-\item{local_oocyst_advantage}{Double for multiplicative efffect on oocyst 
-chance formation.}
+\item{local_oocyst_advantage}{Numeric for probability that non adapated
+parasites will get through. Default = 0.5}
 
-\item{gametocyte_non_sterilisation}{Double for reduction in a wild type's 
-onward contribution to infection due to sterilisation due to artemisinin.}
+\item{gametocyte_sterilisation}{Numeric for theimpact of artemisinin on 
+male gametocytes. Default = 0.5, which causes the probability that a 
+wild type male gametocyte will be chosen to be in oocysts is halved.}
+
+\item{oocyst_reduction_by_artemisinin}{Numeric for reduction in oocyst 
+under artemisinin drug pressure. default = 0.2}
 }
 \description{
 List for vector adaptations relating to oocyst success

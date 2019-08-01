@@ -131,15 +131,19 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
       break;
       }
       
+      // This will be the same for the female
+      m_active_female_strain_contribution.emplace_back(m_active_strain_contribution.back());
+      
       // if there are resistance elements then we need to create our modifier
       if(parameters.g_resistance_flag){
         m_active_strain_contribution.back() *= m_active_strains[m_gametocytogenic_strains[n]].relative_contribution(parameters);
       }
       
+      // ammend contribuution to onwards infectiousness if the person is treated and the strain is not artemisinin resistant
       if(parameters.g_vector_adaptation_flag){
-        if(m_infection_state == TREATED){
+        if(m_infection_state == TREATED || (m_infection_state == ASYMPTOMATIC && m_treatment_outcome == LPF && m_day_last_treated > parameters.g_current_time - 10)){
           if(!m_active_strains[m_gametocytogenic_strains[n]].barcode_position(0)){
-            m_active_strain_contribution.back() *= parameters.g_gametocyte_non_sterilisation;
+            m_active_strain_contribution.back() *= parameters.g_gametocyte_sterilisation;
           }
         }
       }
@@ -147,6 +151,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
     }
     m_contribution_counter = 1;
     m_contribution_sum = std::accumulate(m_active_strain_contribution.begin(), m_active_strain_contribution.end(), 1.0);
+    m_female_contribution_sum = std::accumulate(m_active_strain_contribution.begin(), m_active_strain_contribution.end(), 1.0);
   }
   
   // If individual only has one strain then catch for this as we won't need to draw a random sample for what strain is drawn
@@ -159,7 +164,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
     // TODO: If we need extra selfing, then introduce effective selfing here, by making a m_temp_active_strain_contribution, for which the position that 
     // was drawn for the first barcode becomes x, such that p(selfing) = x/std::accumulate(m_temp_active_strain_contribution)
     return(std::vector<boost::dynamic_bitset<> > {
-      m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode(), 
+      m_active_strains[m_gametocytogenic_strains[sample1(m_active_female_strain_contribution, m_female_contribution_sum)]].get_m_barcode(), 
       m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode() 
     });
   }
@@ -219,7 +224,7 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
           m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition());
         
         if( time_ago < 1 ) {
-          if(rbernoulli1(prob_of_lpf * (1 - time_ago))) {
+          if(rbernoulli1(temp_prob_lpf * (1 - time_ago))) {
             m_post_treatment_strains.emplace_back(m_active_strains[ts]);
           }
         }
@@ -370,54 +375,54 @@ void Person::allocate_bite(Parameters &parameters, Mosquito &mosquito)
   // if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB ||
   //     static_cast<int>(m_IB_last_boost_time) == parameters.g_current_time)
   // {
+  
+  // If we have already allocated a bite to this indivdual in this time step then we know we won't need to assess the immunity boosting again
+  if (static_cast<int>(m_IB_last_boost_time) != parameters.g_current_time)
+  {
     
-    // If we have already allocated a bite to this indivdual in this time step then we know we won't need to assess the immunity boosting again
-    if (static_cast<int>(m_IB_last_boost_time) != parameters.g_current_time)
-    {
+    // First calculate what the current IB should be given when it was last calculated
+    m_IB *= exp((m_IB_last_calculated_time - parameters.g_current_time) / parameters.g_dB);
+    
+    // If the last bite was less than g_uB (time in which boosting of IB cannot happen) then increse IB
+    if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB) {
       
-      // First calculate what the current IB should be given when it was last calculated
-      m_IB *= exp((m_IB_last_calculated_time - parameters.g_current_time) / parameters.g_dB);
+      // Increase IB and update IB last boost time
+      m_IB++;
+      m_IB_last_boost_time = parameters.g_current_time + modf(m_IB_last_boost_time, &m_IB_last_boost_time);
       
-      // If the last bite was less than g_uB (time in which boosting of IB cannot happen) then increse IB
-      if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB) {
-        
-        // Increase IB and update IB last boost time
-        m_IB++;
-        m_IB_last_boost_time = parameters.g_current_time + modf(m_IB_last_boost_time, &m_IB_last_boost_time);
-        
-      }
-      
-      // Then update the biting success rate 
-      m_biting_success_rate = parameters.g_b0 * (parameters.g_b1 + ((1 - parameters.g_b1) / (1 + (pow((m_IB / parameters.g_IB0), parameters.g_kB)))));
-      
-      // Update last calculated time
-      m_IB_last_calculated_time = parameters.g_current_time;
     }
     
-    // Work out if the bite has led to an infection
+    // Then update the biting success rate 
+    m_biting_success_rate = parameters.g_b0 * (parameters.g_b1 + ((1 - parameters.g_b1) / (1 + (pow((m_IB / parameters.g_IB0), parameters.g_kB)))));
     
-    // Firstly if the human is susceptible, asymptomatic or subpatent they could be infected
-    // or in prophylaxis or and we're doing resistance modelling
+    // Update last calculated time
+    m_IB_last_calculated_time = parameters.g_current_time;
+  }
+  
+  // Work out if the bite has led to an infection
+  
+  // Firstly if the human is susceptible, asymptomatic or subpatent they could be infected
+  // or in prophylaxis or and we're doing resistance modelling
+  
+  // Or if they are diseased currently (i.e. sufficiently high blood stage parasitaemia to block liver stage)
+  // if (m_infection_state == SUSCEPTIBLE ||
+  //     m_infection_state == ASYMPTOMATIC || 
+  //     m_infection_state == SUBPATENT || 
+  //     (parameters.g_resistance_flag && m_infection_state == PROPHYLAXIS)
+  // )
+  // {
+  
+  // Random draw to see if the bite led to an infection
+  
+  if (rbernoulli1(m_biting_success_rate)) {
     
-    // Or if they are diseased currently (i.e. sufficiently high blood stage parasitaemia to block liver stage)
-    // if (m_infection_state == SUSCEPTIBLE ||
-    //     m_infection_state == ASYMPTOMATIC || 
-    //     m_infection_state == SUBPATENT || 
-    //     (parameters.g_resistance_flag && m_infection_state == PROPHYLAXIS)
-    // )
-    // {
-      
-      // Random draw to see if the bite led to an infection
-      
-      if (rbernoulli1(m_biting_success_rate)) {
-        
-        // Allocate infection
-        parameters.g_total_human_infections++;
-        allocate_infection(parameters, mosquito);
-      }
-    // }
-    
-   // }
+    // Allocate infection
+    parameters.g_total_human_infections++;
+    allocate_infection(parameters, mosquito);
+  }
+  // }
+  
+  // }
   
   // Increase number of bites 
   m_number_of_bites++;
@@ -500,89 +505,89 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB ||
         static_cast<int>(m_IB_last_boost_time) == parameters.g_current_time)
     {
-  
-  // Allocate strains being passed on
-  for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
-  {
-    
-    // if it is the first sporozoite then it is always taken. For successive sporozoites, we probabilistically decide based on their immunity
-    if(cotransmission == 0 || rbernoulli1(m_biting_success_rate)) {
       
-      // Push the resultant state of infection
-      m_infection_state_realisation_vector.emplace_back(m_temp_infection_state);
-      
-      // Push the resultant state change time
-      m_infection_time_realisation_vector.emplace_back(static_cast<int>(parameters.g_dur_E + parameters.g_current_time));
-      
-      // Allocate strains from mosquito
-      
-      // if we are doing spatial then use the exported barcodes first - the human biting quueue is shuffled so distributed across humans fine.
-      if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections)
+      // Allocate strains being passed on
+      for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
       {
         
-        // assign the exported barcode and increase the count
-        if(parameters.g_spatial_type == Parameters::METAPOPULATION)
-        {
-          m_infection_barcode_realisation_vector.emplace_back(parameters.g_spatial_imported_barcodes[parameters.g_spatial_imported_human_infection_counter]);
-        } 
-        else 
-        {
-          m_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());  
-        }
-        
-        parameters.g_spatial_imported_human_infection_counter++;
-        
-      }
-      else 
-      {
-        
-        m_infection_barcode_realisation_vector.emplace_back(mosquito.sample_sporozoite());
-        
-        // export a barcode if doing metapopulation spatial
-        if(parameters.g_spatial_exported_barcode_counter < parameters.g_spatial_total_exported_barcodes)
-        {
-          parameters.g_spatial_exported_barcodes[parameters.g_spatial_exported_barcode_counter] = m_infection_barcode_realisation_vector.back();
-          parameters.g_spatial_exported_barcode_counter++;  
-        }
-        
-      }
-      
-      // are we simulating mutations
-      if (parameters.g_mutation_flag){
-        
-        // are we still allocating mutations
-        if(parameters.g_mutation_pos_allocator < parameters.g_num_loci){
+        // if it is the first sporozoite then it is always taken. For successive sporozoites, we probabilistically decide based on their immunity
+        if(cotransmission == 0 || rbernoulli1(m_biting_success_rate)) {
           
-          // were there any mutations at this position for the population
-          if(parameters.g_mutations_today[parameters.g_mutation_pos_allocator]>0){
+          // Push the resultant state of infection
+          m_infection_state_realisation_vector.emplace_back(m_temp_infection_state);
+          
+          // Push the resultant state change time
+          m_infection_time_realisation_vector.emplace_back(static_cast<int>(parameters.g_dur_E + parameters.g_current_time));
+          
+          // Allocate strains from mosquito
+          
+          // if we are doing spatial then use the exported barcodes first - the human biting quueue is shuffled so distributed across humans fine.
+          if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections)
+          {
             
-            m_infection_barcode_realisation_vector[m_infection_barcode_realisation_vector.size()-1][parameters.g_mutation_pos_allocator].flip();
-            parameters.g_mutations_today[parameters.g_mutation_pos_allocator]--;
-            
-            if(parameters.g_mutations_today[parameters.g_mutation_pos_allocator] == 0){
-              parameters.g_mutation_pos_allocator++;
+            // assign the exported barcode and increase the count
+            if(parameters.g_spatial_type == Parameters::METAPOPULATION)
+            {
+              m_infection_barcode_realisation_vector.emplace_back(parameters.g_spatial_imported_barcodes[parameters.g_spatial_imported_human_infection_counter]);
+            } 
+            else 
+            {
+              m_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());  
             }
-          } else {
-            parameters.g_mutation_pos_allocator++;
+            
+            parameters.g_spatial_imported_human_infection_counter++;
+            
           }
+          else 
+          {
+            
+            m_infection_barcode_realisation_vector.emplace_back(mosquito.sample_sporozoite());
+            
+            // export a barcode if doing metapopulation spatial
+            if(parameters.g_spatial_exported_barcode_counter < parameters.g_spatial_total_exported_barcodes)
+            {
+              parameters.g_spatial_exported_barcodes[parameters.g_spatial_exported_barcode_counter] = m_infection_barcode_realisation_vector.back();
+              parameters.g_spatial_exported_barcode_counter++;  
+            }
+            
+          }
+          
+          // are we simulating mutations
+          if (parameters.g_mutation_flag){
+            
+            // are we still allocating mutations
+            if(parameters.g_mutation_pos_allocator < parameters.g_num_loci){
+              
+              // were there any mutations at this position for the population
+              if(parameters.g_mutations_today[parameters.g_mutation_pos_allocator]>0){
+                
+                m_infection_barcode_realisation_vector[m_infection_barcode_realisation_vector.size()-1][parameters.g_mutation_pos_allocator].flip();
+                parameters.g_mutations_today[parameters.g_mutation_pos_allocator]--;
+                
+                if(parameters.g_mutations_today[parameters.g_mutation_pos_allocator] == 0){
+                  parameters.g_mutation_pos_allocator++;
+                }
+              } else {
+                parameters.g_mutation_pos_allocator++;
+              }
+            }
+          }
+          
+          // remove this strain if it would have been cleared by prophylaxis
+          clear_strain_if_prophylactic(parameters);
+          
         }
+        
       }
-    
-    // TODO: add here a function call to remove this strain if it would have been cleared by prophylaxis
-    clear_strain_if_prophylactic(parameters);
       
-    }
-    
-  }
-  
-  // Increase cotransmission counter and catch for overflow
-  if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) {
-    parameters.g_cotransmission_frequencies_counter = 0;
-  }
-  
-  // Set next event date as may have changed as a result of the bite
-  set_m_day_of_next_event();
-  
+      // Increase cotransmission counter and catch for overflow
+      if(++parameters.g_cotransmission_frequencies_counter == parameters.g_cotransmission_frequencies_size) {
+        parameters.g_cotransmission_frequencies_counter = 0;
+      }
+      
+      // Set next event date as may have changed as a result of the bite
+      set_m_day_of_next_event();
+      
     }
   }
 }
@@ -699,6 +704,7 @@ void Person::all_strain_clearance() {
   //assert(m_number_of_strains != 0 && "Tried to clear all strains from an individual with no strains");
   m_active_strains.clear();
   m_active_strain_contribution.clear();
+  m_active_female_strain_contribution.clear();
   
   // Update numbers of strains and clearance dates
   m_number_of_strains = 0;
@@ -851,10 +857,10 @@ void Person::treatment_outcome(const Parameters &parameters) {
       late_paristological_failure(parameters);
       m_treatment_outcome = LPF;
     } else {
-    m_treatment_outcome = SUCCESFULLY_TREATED;
-    m_infection_state = PROPHYLAXIS;
-    schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
-    all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+      m_treatment_outcome = SUCCESFULLY_TREATED;
+      m_infection_state = PROPHYLAXIS;
+      schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+      all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
     }
   }
   
@@ -1031,7 +1037,7 @@ void Person::event_handle(const Parameters &parameters) {
                   m_active_strains[n].set_m_day_of_strain_infection_status_change(rexpint1(parameters.g_dur_U) + parameters.g_current_time + 1);
                 }
                 break;
-              
+                
               case Strain::SUBPATENT:
                 
                 // if more than one strain  then we can clear it
@@ -1048,7 +1054,7 @@ void Person::event_handle(const Parameters &parameters) {
                   n--;
                   if(m_number_of_strains==0) rcpp_out(parameters.g_h_quiet_print, "error: removed last strain\n!");
                   
-                // if not then set the strain state change to the human's 
+                  // if not then set the strain state change to the human's 
                 } else {
                   m_active_strains[n].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change);
                 }
@@ -1158,11 +1164,11 @@ void Person::event_handle(const Parameters &parameters) {
         m_temp_int = draw_m_day_of_InfectionStatus_change(parameters);
         
         if (m_infection_state == Person::ASYMPTOMATIC) {
-        if (m_temp_int > m_day_of_InfectionStatus_change) {
-          m_day_of_InfectionStatus_change = m_temp_int;
-        } else {
-          m_temp_int = m_day_of_InfectionStatus_change;
-        }
+          if (m_temp_int > m_day_of_InfectionStatus_change) {
+            m_day_of_InfectionStatus_change = m_temp_int;
+          } else {
+            m_temp_int = m_day_of_InfectionStatus_change;
+          }
         } else {
           m_day_of_InfectionStatus_change = m_temp_int;
         }
@@ -1278,6 +1284,7 @@ double Person::update(Parameters &parameters)
   m_contribution_counter = 0;
   m_cA_counter = true;
   m_active_strain_contribution.clear();
+  m_active_female_strain_contribution.clear();
   m_gametocytogenic_infections = 0;
   m_gametocytogenic_strains.clear();
   

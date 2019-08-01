@@ -179,8 +179,10 @@ public:
   
   // mosquito strain interaction params
   bool g_vector_adaptation_flag;
+  std::vector<unsigned> g_vector_adaptation_loci;
   double g_local_oocyst_advantage;
-  double g_gametocyte_non_sterilisation;
+  double g_gametocyte_sterilisation;
+  double g_oocyst_reduction_by_artemisinin;
   
   // non malaria fever parameters
   bool g_nmf_flag; // are we doing nmf work

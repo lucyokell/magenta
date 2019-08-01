@@ -418,12 +418,20 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List param_list)
   }
   
   // Create Rcpp loggers list
-  Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0], 
-                                          Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
-                                                                                                  Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
-                                                                                                                                                                                        Rcpp::Named("InfectionStates")=Infection_States, Rcpp::Named("Ages")=Ages, 
-                                                                                                                                                                                        Rcpp::Named("IB")=IB,Rcpp::Named("ICA")=ICA,Rcpp::Named("ICM")=ICM,Rcpp::Named("ID")=ID
-                                            );
+  Rcpp::List Loggers = Rcpp::List::create(
+    Rcpp::Named("S")=status_eq[0] ,
+    Rcpp::Named("D")=status_eq[1],
+    Rcpp::Named("A")=status_eq[2],
+    Rcpp::Named("U")=status_eq[3],
+    Rcpp::Named("T")=status_eq[4],
+    Rcpp::Named("P")=status_eq[5],
+    Rcpp::Named("InfectionStates")=Infection_States, 
+    Rcpp::Named("Ages")=Ages, 
+    Rcpp::Named("IB")=IB,
+    Rcpp::Named("ICA")=ICA,
+    Rcpp::Named("ICM")=ICM,
+    Rcpp::Named("ID")=ID
+  );
   
   
   // Create universe ptr for memory-continuiation

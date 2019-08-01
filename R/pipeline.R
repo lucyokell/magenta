@@ -170,7 +170,7 @@ Pipeline <- function(EIR = 120,
                      sample_reps = 1,
                      housekeeping_list = housekeeping_list_create(),
                      drug_list = drug_list_create(),
-                     vector_adaptation_list = vector_adaptation_list_create(),
+                     vector_adaptation_list = vector_adaptation_list_create(num_loci),
                      only_allele_freqs = TRUE,
                      nmf_list = nmf_list_create(),
                      ...) {
@@ -614,7 +614,6 @@ Pipeline <- function(EIR = 120,
       statePtr = sim.out$Ptr
     )
 
-    # Now run the simulation
     sim.out <- simulation_R(param_list = pl2, seed = seed)
 
     # If we have specified a full save or human save then we grab that

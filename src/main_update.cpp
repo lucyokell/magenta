@@ -136,6 +136,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     }
   }
   rcpp_out(u_ptr->parameters.g_h_quiet_print, "Starting susceptible population: " + std::to_string(Scount/u_ptr->parameters.g_N) + "\n");
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: TIMERS AND PRE LOOP
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -167,6 +168,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   int daily_incidence_return = 0;
   int daily_bite_counters = 0;
   int daily_infectious_bite_counters = 0;
+  std::vector<unsigned int> daily_mutations_per_loci(u_ptr->parameters.g_num_loci,0);
   
   // Maternal 
   double mean_psi = 0;
@@ -234,6 +236,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
       // mutation updates
         for(unsigned int l = 0; l < u_ptr->parameters.g_num_loci; l++){
           u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_rate * u_ptr->parameters.g_total_human_infections);
+          daily_mutations_per_loci[l] = u_ptr->parameters.g_mutations_today[l] + u_ptr->parameters.g_mutations_today[l];
         }
       }
     
@@ -268,11 +271,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // Loop through each person and mosquito and update
     // --------------------------------------------------------------------------------------------------------------------------------------------------
-    // PARALLEL_TODO: This loop could easily be parallelised as each person will not require any shared memory (except for u_ptr->parameters)
     
     // Human update loop
     // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Human loop" + "\n"); 
-    // #pragma omp parallel for schedule(static,1)
     for (unsigned int human_update_i = 0; human_update_i < u_ptr->parameters.g_N; human_update_i++)
     {
       psi_sum += u_ptr->psi_vector[human_update_i] = u_ptr->population[human_update_i].update(u_ptr->parameters);
@@ -370,7 +371,6 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     // rcpp_out(u_ptr->parameters.g_h_quiet_print, "Bite allocation" + "\n"); 
-    // PARALLEL_TODO: Don't know how this could be parallelised yet - come back to with mosquitos in.
     for (unsigned int num_bites_i = 0; num_bites_i < num_bites; num_bites_i++)
     {
       
@@ -550,9 +550,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   rcpp_out(u_ptr->parameters.g_h_quiet_print, "\n Ages and Immunity Done \n");
   
   // Create Rcpp loggers list
-  Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
-                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5],
-                                          Rcpp::Named("Log_Counter")=log_counter,                                                                                      
+  Rcpp::List Loggers = Rcpp::List::create(Rcpp::Named("Log_Counter")=log_counter,                                                                                      
                                           Rcpp::Named("Incidence")=total_incidence/log_counter,
                                           Rcpp::Named("Incidence_05")=total_incidence_05/log_counter, 
                                           Rcpp::Named("Treatments")=Rcpp::List::create(
@@ -562,16 +560,21 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
                                             Rcpp::Named("daily_bite_counters")=daily_bite_counters,
                                             Rcpp::Named("daily_infectious_bite_counters")=daily_infectious_bite_counters
                                           ),
+                                          Rcpp::Named("daily_mutations_per_loci")=daily_mutations_per_loci,
                                           Rcpp::Named("InfectionStates")=Infection_States, 
                                           Rcpp::Named("Ages")=Ages, 
                                           Rcpp::Named("IB")=IB, 
                                           Rcpp::Named("ICA")=ICA, 
                                           Rcpp::Named("ICM")=ICM, 
                                           Rcpp::Named("ID")=ID,
-                                          Rcpp::Named("Mos_S")=mosq_status_eq[0]/log_counter, 
-                                          Rcpp::Named("Mos_E")=mosq_status_eq[1]/log_counter, 
-                                          Rcpp::Named("Mos_I")=mosq_status_eq[2]/log_counter,
-                                          Rcpp::Named("Time")=u_ptr->parameters.g_current_time
+                                          Rcpp::Named("Mosquitoes")=Rcpp::List::create(
+                                            Rcpp::Named("Mos_S")=mosq_status_eq[0]/log_counter, 
+                                            Rcpp::Named("Mos_E")=mosq_status_eq[1]/log_counter, 
+                                            Rcpp::Named("Mos_I")=mosq_status_eq[2]/log_counter
+                                          ),
+                                          Rcpp::Named("Time")=u_ptr->parameters.g_current_time,
+                                          Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
+                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5]
                                           );
   
   

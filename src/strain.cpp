@@ -116,7 +116,13 @@ unsigned long Strain::bitset_positions_to_ulong(const std::vector<unsigned int> 
 // Work out if the strain is vector adapted
 bool Strain::vector_adapted_boolean(const Parameters &parameters){
   
-  return(m_barcode[parameters.g_num_loci-1]);
+  bool adapted = true;
+  for(auto v : parameters.g_vector_adaptation_loci) {
+    if(!m_barcode[v]){
+      adapted = false;
+    }
+  }
+  return(adapted);
   
 }
 
@@ -303,6 +309,10 @@ std::vector<unsigned int> Strain::ibd_barcode_to_integer_vector(boost::dynamic_b
   return(vec);
 }
 
+// --------------------------------------------------------------------------------------------------
+// DISTANCES
+// --------------------------------------------------------------------------------------------------
+
 // distances between one bitset and a vector range of bitsets
 unsigned int Strain::distance_of_bitset_a_and_x(boost::dynamic_bitset<> a, 
                                  std::vector<boost::dynamic_bitset<> >::const_iterator start, 
@@ -402,7 +412,27 @@ double Strain::ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitse
   return(distance / (Parameters::g_num_loci * (x.size() * (x.size() - 1) * 0.5) ) );
 }
 
-// TESTS -----------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------
+// MISC
+// --------------------------------------------------------------------------------------------------
+
+
+// barcode true at all locations specified by vector<int>
+bool Strain::all_at_positions(boost::dynamic_bitset<> x, std::vector<unsigned int> pos)
+{
+  bool all = true;
+  for(auto v : pos) {
+    if(!x[v]){
+      all = false;
+    }
+  }
+  return(all);
+  
+}
+
+// --------------------------------------------------------------------------------------------------
+// TESTS
+// --------------------------------------------------------------------------------------------------
 
 // PLAF test
 // [[Rcpp::export]]
@@ -479,3 +509,4 @@ Rcpp::List test_ibd_conversion(SEXP barcode, unsigned int bl,
 }
 
 
+// add test for to_ulong_range

@@ -50,10 +50,7 @@ private:
   InfectionStatus m_strain_infection_status;					// infection status associated with a strain
   int m_day_of_strain_infection_status_change;				// day that strain would move infection status
   int m_day_of_acquisition;                           // day that the strain was acquired by an individual/mosquito
-  bool m_cotransmission = false;                              // acquired by cotrasmission
-  // TODO: Phenotype parameters to do here for resistance work
-  
-  
+
 public:
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -188,6 +185,9 @@ public:
 
   // mean ibd distance between all bitsets within a vector of bitsets
   static double ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, bool unique_only = false);
+  
+  // barcode true at all locations specified by vector<int>
+  static bool all_at_positions(boost::dynamic_bitset<> x, std::vector<unsigned int> pos);
   
 };
 

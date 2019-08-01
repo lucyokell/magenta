@@ -135,8 +135,10 @@ Parameters::Parameters() {
   
   // mosquito strain interaction params
   g_vector_adaptation_flag = false;
-  g_local_oocyst_advantage = 0.8;
-  g_gametocyte_non_sterilisation = 0.2;
+  g_vector_adaptation_loci = std::vector<unsigned int>{23};
+  g_local_oocyst_advantage = 0.5;
+  g_gametocyte_sterilisation = 0.5;
+  g_oocyst_reduction_by_artemisinin = 0.2;
   
   // non malaria fever parameters
   g_nmf_flag = false;
