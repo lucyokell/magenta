@@ -468,6 +468,10 @@ resistance_cost_table_create <- function(number_of_resistance_loci,
                                          resistance_costs, 
                                          epistatic_logic=NULL){
   
+  if(length(resistance_costs)>number_of_resistance_loci) {
+    resistance_costs <- resistance_costs[seq_len(number_of_resistance_loci)]
+  }
+  
   if (is.null(epistatic_logic)) {
     epistatic_logic <- seq_len(number_of_resistance_loci)
   }
