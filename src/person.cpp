@@ -53,9 +53,19 @@ bool Person::reciprocal_infection_boolean(const Parameters &pars)
     m_cA_counter = false;
     // work out the number of strains that are gametocytogenic, i.e. they were realised more than delay_gam time earlier
     for(int n = 0 ; n < m_number_of_strains ; n++){
-      if(m_active_strains[n].get_m_day_of_strain_acquisition() < (pars.g_current_time - pars.g_delay_gam)){
-        m_gametocytogenic_strains.emplace_back(n);
-        m_gametocytogenic_infections++;
+      if(pars.g_gametocyte_sterilisation_flag){
+        if(
+          m_active_strains[n].get_m_day_of_strain_acquisition() < (pars.g_current_time - pars.g_delay_gam) ||
+            (m_active_strains[n].get_m_day_of_strain_acquisition() < (pars.g_current_time - pars.g_delay_gam/2) && m_active_strains[n].vector_adapted_boolean(pars))
+        ){
+          m_gametocytogenic_strains.emplace_back(n);
+          m_gametocytogenic_infections++;
+        } 
+      } else {
+        if(m_active_strains[n].get_m_day_of_strain_acquisition() < (pars.g_current_time - pars.g_delay_gam)){
+          m_gametocytogenic_strains.emplace_back(n);
+          m_gametocytogenic_infections++;
+        }
       }
     }
   }
@@ -140,7 +150,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
       }
       
       // ammend contribuution to onwards infectiousness if the person is treated and the strain is not artemisinin resistant
-      if(parameters.g_vector_adaptation_flag){
+      if(parameters.g_gametocyte_sterilisation_flag){
         if(m_infection_state == TREATED || (m_infection_state == ASYMPTOMATIC && m_treatment_outcome == LPF && m_day_last_treated > parameters.g_current_time - 10)){
           if(!m_active_strains[m_gametocytogenic_strains[n]].barcode_position(0)){
             m_active_strain_contribution.back() *= parameters.g_gametocyte_sterilisation;
@@ -150,8 +160,8 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
       
     }
     m_contribution_counter = 1;
-    m_contribution_sum = std::accumulate(m_active_strain_contribution.begin(), m_active_strain_contribution.end(), 1.0);
-    m_female_contribution_sum = std::accumulate(m_active_strain_contribution.begin(), m_active_strain_contribution.end(), 1.0);
+    m_contribution_sum = std::accumulate(m_active_strain_contribution.begin(), m_active_strain_contribution.end(), 0.0);
+    m_female_contribution_sum = std::accumulate(m_active_strain_contribution.begin(), m_active_strain_contribution.end(), 0.0);
   }
   
   // If individual only has one strain then catch for this as we won't need to draw a random sample for what strain is drawn
@@ -163,10 +173,14 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
   {
     // TODO: If we need extra selfing, then introduce effective selfing here, by making a m_temp_active_strain_contribution, for which the position that 
     // was drawn for the first barcode becomes x, such that p(selfing) = x/std::accumulate(m_temp_active_strain_contribution)
-    return(std::vector<boost::dynamic_bitset<> > {
-      m_active_strains[m_gametocytogenic_strains[sample1(m_active_female_strain_contribution, m_female_contribution_sum)]].get_m_barcode(), 
-      m_active_strains[m_gametocytogenic_strains[sample1(m_active_strain_contribution, m_contribution_sum)]].get_m_barcode() 
-    });
+    std::vector<boost::dynamic_bitset<> > temp_storage;
+    temp_storage.reserve(2);
+    int temp_a = sample1(m_active_female_strain_contribution, m_female_contribution_sum);
+    int temp_b = sample1(m_active_strain_contribution, m_contribution_sum);
+    temp_storage.emplace_back(m_active_strains[m_gametocytogenic_strains[temp_a]].get_m_barcode());
+    temp_storage.emplace_back(m_active_strains[m_gametocytogenic_strains[temp_b]].get_m_barcode());
+    
+    return(temp_storage);
   }
 }
 
@@ -220,8 +234,8 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
       else 
       {
         // if infection was more than dur_A ago then it is cleared for sure
-        time_ago = ((parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
-          m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition());
+        time_ago = ( (parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
+          (m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition()));
         
         if( time_ago < 1 ) {
           if(rbernoulli1(temp_prob_lpf * (1 - time_ago))) {
@@ -505,6 +519,9 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB ||
         static_cast<int>(m_IB_last_boost_time) == parameters.g_current_time)
     {
+      
+      // increase storage
+      m_infection_barcode_realisation_vector.reserve(m_infection_barcode_realisation_vector.capacity()+parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]);
       
       // Allocate strains being passed on
       for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)

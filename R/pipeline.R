@@ -246,6 +246,11 @@ Pipeline <- function(EIR = 120,
       mutation_rate = mutation_rate
     )
 
+    # handle mutations parms
+    if (length(mutation_flag) == 1) {
+      mutation_flag <- rep(mutation_flag, ceiling(years))
+    }
+    
     # spatial checks and formatting
     if (!is.null(spatial_type)) {
       if (spatial_type == "metapop") {
@@ -462,6 +467,7 @@ Pipeline <- function(EIR = 120,
           year <- year + 1
           ft_now <- ft[year]
           drug_list$resistance_flag <- resistance_flags[year]
+          barcode_params$mutation_flag <- mutation_flag[year]
 
           # update the spatial list
           spatial_list <- spl_create(
@@ -482,6 +488,7 @@ Pipeline <- function(EIR = 120,
           fv_vec = out$fv[1:update_length + ((i - 1) * update_length)],
           spatial_list = spatial_list,
           drug_list = drug_list,
+          barcode_params = barcode_params,
           statePtr = sim.out$Ptr
         )
 
@@ -574,6 +581,7 @@ Pipeline <- function(EIR = 120,
       fv_vec = out$fv[1:abridged_length + ((i) * update_length)],
       spatial_list = spatial_list,
       drug_list = drug_list,
+      barcode_params = barcode_params,
       statePtr = sim.out$Ptr
     )
     sim.out <- simulation_R(pl2, seed = seed)
@@ -611,6 +619,7 @@ Pipeline <- function(EIR = 120,
       fv_vec = out$fv,
       spatial_list = spatial_list,
       drug_list = drug_list,
+      barcode_params = barcode_params,
       statePtr = sim.out$Ptr
     )
 

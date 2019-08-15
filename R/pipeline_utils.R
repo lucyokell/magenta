@@ -705,6 +705,8 @@ update_saves <- function(res, i, sim.out, sample_states,
 #' @param vector_adaptation_flag Boolean are we doing vector adaptation.
 #' @param local_oocyst_advantage Numeric for probability that non adapated
 #'   parasites will get through. Default = 0.5 
+#' @param gametocyte_sterilisation_flag Boolean for whether we are doing
+#'   gametocye sterilisation as a result from artemisinin. Default = FALSE
 #' @param gametocyte_sterilisation Numeric for theimpact of artemisinin on 
 #'   male gametocytes. Default = 0.5, which causes the probability that a 
 #'   wild type male gametocyte will be chosen to be in oocysts is halved. 
@@ -715,12 +717,14 @@ update_saves <- function(res, i, sim.out, sample_states,
 vector_adaptation_list_create <- function(vector_adaptation_loci,
                                           vector_adaptation_flag = FALSE,
                                           local_oocyst_advantage = 0.5,
+                                          gametocyte_sterilisation_flag = FALSE,
                                           gametocyte_sterilisation = 0.5,
                                           oocyst_reduction_by_artemisinin = 0.2){
   
   l <- list("vector_adaptation_flag" = vector_adaptation_flag,
             "vector_adaptation_loci" = vector_adaptation_loci,
             "local_oocyst_advantage" = local_oocyst_advantage,
+            "gametocyte_sterilisation_flag" = gametocyte_sterilisation_flag,
             "gametocyte_sterilisation" = gametocyte_sterilisation,
             "oocyst_reduction_by_artemisinin" = oocyst_reduction_by_artemisinin)
   

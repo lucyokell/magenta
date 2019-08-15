@@ -6,6 +6,7 @@
 \usage{
 vector_adaptation_list_create(vector_adaptation_loci,
   vector_adaptation_flag = FALSE, local_oocyst_advantage = 0.5,
+  gametocyte_sterilisation_flag = FALSE,
   gametocyte_sterilisation = 0.5,
   oocyst_reduction_by_artemisinin = 0.2)
 }
@@ -17,6 +18,9 @@ in the barcode correspond to the vector adaptation phenotype}
 
 \item{local_oocyst_advantage}{Numeric for probability that non adapated
 parasites will get through. Default = 0.5}
+
+\item{gametocyte_sterilisation_flag}{Boolean for whether we are doing
+gametocye sterilisation as a result from artemisinin. Default = FALSE}
 
 \item{gametocyte_sterilisation}{Numeric for theimpact of artemisinin on 
 male gametocytes. Default = 0.5, which causes the probability that a 

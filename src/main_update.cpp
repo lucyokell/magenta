@@ -52,7 +52,7 @@ struct Universe {
 Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
 {
   
- 
+  
   // start timer
   chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
   
@@ -71,6 +71,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   u_ptr->parameters.g_ft = Rcpp::as<double>(param_list["ft"]);
   Rcpp::List spatial_list = param_list["spatial_list"];
   Rcpp::List drug_list = param_list["drug_list"];
+  Rcpp::List barcode_params  = param_list["barcode_params"];
   
   // Spatial updates 
   // Metapopulation not fully implemented yet
@@ -99,13 +100,18 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // 
     
-  } else if (u_ptr->parameters.g_spatial_type == Parameters::ISLAND) {
+  } 
+  else if (u_ptr->parameters.g_spatial_type == Parameters::ISLAND) 
+  {
     u_ptr->parameters.g_percentage_imported_human_infections = Rcpp::as<double>(spatial_list["imported_cotransmissions_events"]);
     u_ptr->parameters.g_percentage_imported_mosquito_infections = Rcpp::as<double>(spatial_list["imported_oocyst_events"]);
     u_ptr->parameters.g_spatial_total_imported_human_infections = u_ptr->parameters.g_percentage_imported_human_infections * u_ptr->parameters.g_total_human_infections;
     u_ptr->parameters.g_spatial_total_imported_mosquito_infections = u_ptr->parameters.g_percentage_imported_mosquito_infections * u_ptr->parameters.g_total_mosquito_infections;
   }
+  
+  // Other updates
   u_ptr->parameters.g_plaf = Rcpp::as<std::vector<double> >(spatial_list["plaf"]);
+  u_ptr->parameters.g_mutation_flag = Rcpp::as<bool>(barcode_params["mutation_flag"]);
   
   // Resistance updates
   if (drug_list["resistance_flag"]) {
@@ -234,11 +240,11 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     if(u_ptr->parameters.g_mutation_flag){
       u_ptr->parameters.g_mutation_pos_allocator = 0;
       // mutation updates
-        for(unsigned int l = 0; l < u_ptr->parameters.g_num_loci; l++){
-          u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_rate * u_ptr->parameters.g_total_human_infections);
-          daily_mutations_per_loci[l] = u_ptr->parameters.g_mutations_today[l] + u_ptr->parameters.g_mutations_today[l];
-        }
+      for(unsigned int l = 0; l < u_ptr->parameters.g_num_loci; l++){
+        u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_rate * u_ptr->parameters.g_total_human_infections);
+        daily_mutations_per_loci[l] = daily_mutations_per_loci[l] + u_ptr->parameters.g_mutations_today[l];
       }
+    }
     
     // Reset age dependent biting rate sum
     psi_sum = 0;
@@ -402,8 +408,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // Log the last period //
     
-     if (u_ptr->parameters.g_current_time > g_end_time - (u_ptr->parameters.g_years * 365) - 1)
-     {
+    if (u_ptr->parameters.g_current_time > g_end_time - (u_ptr->parameters.g_years * 365) - 1)
+    {
       
       log_counter++;
       
@@ -503,7 +509,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   std::vector<SEXP>  Exported_Barcodes(u_ptr->parameters.g_spatial_total_exported_barcodes);
   if(u_ptr->parameters.g_spatial_type == Parameters::METAPOPULATION)
   {
-  
+    
     for(unsigned int temp_status_iterator = 0; temp_status_iterator < u_ptr->parameters.g_spatial_total_exported_barcodes ; temp_status_iterator++)
     {
       Exported_Barcodes[temp_status_iterator] = bitset_to_sexp(u_ptr->parameters.g_spatial_exported_barcodes[temp_status_iterator], u_ptr->parameters.g_barcode_length);
@@ -574,8 +580,8 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
                                           ),
                                           Rcpp::Named("Time")=u_ptr->parameters.g_current_time,
                                           Rcpp::Named("S")=status_eq[0],Rcpp::Named("D")=status_eq[1],Rcpp::Named("A")=status_eq[2],
-                                          Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5]
-                                          );
+                                                                                                                                Rcpp::Named("U")=status_eq[3],Rcpp::Named("T")=status_eq[4],Rcpp::Named("P")=status_eq[5]
+  );
   
   
   rcpp_out(u_ptr->parameters.g_h_quiet_print, "\n Loggers Done \n");

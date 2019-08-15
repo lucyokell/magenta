@@ -54,7 +54,7 @@ private:
 public:
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // CONSTRUCTORS
+  // CONSTRUCTORS & DESTRUCTOR
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Default class constructor which will inialise a random strain
@@ -73,13 +73,18 @@ public:
   Strain(boost::dynamic_bitset<> barcode, const Strain::InfectionStatus &infectionStatus, 
          const int &dayOfInfectionStatusChange, const int & day_of_acquisition);
   
+  // Destructor
+  // ~Strain();
+  
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // GETTERS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Get barcode
-  boost::dynamic_bitset<> get_m_barcode() { return(m_barcode); }
+  boost::dynamic_bitset<> get_m_barcode() { 
+    return(m_barcode); 
+    }
   
   // Get strain infection status
   InfectionStatus get_m_strain_infection_status() { return(m_strain_infection_status); }
@@ -149,7 +154,7 @@ public:
   
   // Generate a random identity barcode, i.e. where the barcode represents num_loci * ibd_length
   static boost::dynamic_bitset<> generate_random_identity_barcode();
-
+  
   // Generate the next identity barcode, i.e. if it was 0101 it will now be 1111, if num_loci = 2
   static boost::dynamic_bitset<> generate_next_ibd_barcode();
   

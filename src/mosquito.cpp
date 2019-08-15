@@ -61,6 +61,10 @@ void Mosquito::allocate_gametocytes(const Parameters &parameters,
 {
   // Push gametocyte barcodes and time of bursting and spz count remaining, i.e. 4
   
+  if (m_oocyst_barcode_female_vector.size() == m_oocyst_barcode_female_vector.capacity()){
+    m_oocyst_barcode_female_vector.reserve(m_oocyst_barcode_female_vector.capacity()*2);
+    m_oocyst_barcode_male_vector.reserve(m_oocyst_barcode_female_vector.capacity()*2);
+  }
   m_oocyst_barcode_female_vector.emplace_back(gam_1);
   m_oocyst_barcode_male_vector.emplace_back(gam_2);
   m_oocyst_rupture_time_vector.emplace_back(parameters.g_current_time + static_cast<int>(parameters.g_delay_mos));
@@ -81,8 +85,11 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
   parameters.g_total_mosquito_infections++;
   
   // are we doing vector adaptation work. If so alter the oocyst numbers 
-  if (parameters.g_vector_adaptation_flag){
-    parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter] = std::ceil(parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter]*parameters.g_oocyst_reduction_by_artemisinin);
+  if (parameters.g_gametocyte_sterilisation_flag){
+    if (person.get_m_infection_state() == Person::TREATED || 
+        (person.get_m_infection_state() == Person::ASYMPTOMATIC && person.get_m_treatment_outcome() == Person::LPF && person.get_m_day_last_treated() > parameters.g_current_time - 10) ) {
+      parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter] = std::ceil(parameters.g_oocyst_frequencies[parameters.g_oocyst_frequencies_counter]*parameters.g_oocyst_reduction_by_artemisinin);
+    }
   }
   
   // if we are doing spatial then use the imported oocysts first 

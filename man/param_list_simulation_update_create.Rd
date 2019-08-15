@@ -5,7 +5,8 @@
 \title{Parameter List creation for magenta simulation updating}
 \usage{
 param_list_simulation_update_create(years = 1, ft = 0.4,
-  mu_vec = NULL, fv_vec = NULL, statePtr, spatial_list, drug_list)
+  mu_vec = NULL, fv_vec = NULL, statePtr, spatial_list, drug_list,
+  barcode_params)
 }
 \arguments{
 \item{years}{Length of simulation. Default = 1}
@@ -23,6 +24,8 @@ will result in rep(1/3,floor(years*365))}
 \item{spatial_list}{Spatial list}
 
 \item{drug_list}{Drug list}
+
+\item{barcode_parmas}{Barcode parameter list}
 }
 \description{
 \code{param_list_simulation_update_create} creates suitable parameter list for

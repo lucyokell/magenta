@@ -102,6 +102,8 @@ Rcpp::List population_get_genetics_ibd_df_n(Rcpp::List param_list) {
     // reserve space
     bitsets_i.reserve(strains_i.size());
     barcode_states_i.reserve(strains_i.size());
+    barcode_states[el].reserve(strains_i.size());
+    bitsets[el].reserve(strains_i.size());
 
     
     // and then their barcode bitsets for all D and those detected in A
@@ -280,6 +282,8 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
     bitsets_pcr_i.reserve(strains_i.size());
     bitsets_all_i.reserve(strains_i.size());
     barcode_states_i.reserve(strains_i.size());
+    barcode_states[el].reserve(strains_i.size());
+    bitsets[el].reserve(strains_i.size());
     
     // their detectabilities
     q_i = q_fun(u_ptr->parameters, ages[el], u_ptr->population[i].get_m_ID());

@@ -137,6 +137,7 @@ Parameters::Parameters() {
   g_vector_adaptation_flag = false;
   g_vector_adaptation_loci = std::vector<unsigned int>{23};
   g_local_oocyst_advantage = 0.5;
+  g_gametocyte_sterilisation_flag = false;
   g_gametocyte_sterilisation = 0.5;
   g_oocyst_reduction_by_artemisinin = 0.2;
   

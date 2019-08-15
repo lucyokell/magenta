@@ -79,12 +79,16 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
 #' @param statePtr Pointer for current model state as return by \code{simulation_R}$Ptr
 #' @param spatial_list Spatial list
 #' @param drug_list Drug list
+#' @param barcode_parmas Barcode parameter list
 #' 
 #' @export
 
 param_list_simulation_update_create <- function(years = 1, ft = 0.4,
                                                 mu_vec = NULL, fv_vec = NULL,
-                                                statePtr, spatial_list, drug_list)
+                                                statePtr, 
+                                                spatial_list, 
+                                                drug_list,
+                                                barcode_params)
 {
   
   ## CHECKS ##
@@ -115,7 +119,8 @@ param_list_simulation_update_create <- function(years = 1, ft = 0.4,
                     fv_vec = fv_vec,
                     statePtr = statePtr, 
                     spatial_list = spatial_list,
-                    drug_list = drug_list)
+                    drug_list = drug_list,
+                    barcode_params = barcode_params)
   
   return(param_list)
   
@@ -250,10 +255,10 @@ simulation_R <- function(param_list, seed)
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(param_list))
-    if(length(param_list)==7)
+    if(length(param_list)==8)
     {
       stopifnot(identical(names(param_list), 
-                          c("years","ft","mu_vec","fv_vec","statePtr", "spatial_list", "drug_list")))  
+                          c("years","ft","mu_vec","fv_vec","statePtr", "spatial_list", "drug_list","barcode_params")))  
     }
     else 
     {

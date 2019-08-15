@@ -327,5 +327,14 @@ barcode_params_create <- function(num_loci = 24,
     "mutation_rate" = mutation_rate
   )
   
+  # catch for changing mutation rates etc over time
+  if (length(res$mutation_flag)>1) {
+    res$mutation_flag <- res$mutation_flag[1]
+  }
+  
+  if (length(res$mutation_flag)>1) {
+    res$mutation_flag <- res$mutation_flag[1]
+  }
+  
   return(res)
 }

@@ -124,6 +124,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   parameters.g_vector_adaptation_flag = Rcpp::as<bool>(vector_adaptation_list["vector_adaptation_flag"]);
   parameters.g_vector_adaptation_loci = Rcpp::as<std::vector<unsigned int> >(vector_adaptation_list["vector_adaptation_loci"]);
   parameters.g_local_oocyst_advantage = Rcpp::as<double>(vector_adaptation_list["local_oocyst_advantage"]);
+  parameters.g_gametocyte_sterilisation_flag = Rcpp::as<bool>(vector_adaptation_list["gametocyte_sterilisation_flag"]);
   parameters.g_gametocyte_sterilisation = Rcpp::as<double>(vector_adaptation_list["gametocyte_sterilisation"]);
   parameters.g_oocyst_reduction_by_artemisinin = Rcpp::as<double>(vector_adaptation_list["oocyst_reduction_by_artemisinin"]);
   
