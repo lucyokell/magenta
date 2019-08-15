@@ -21,6 +21,7 @@
 #include "probability.h"
 #include "parameters.h"
 #include "util.h"
+#include <boost/utility.hpp>
 
 class Strain {
   
@@ -82,9 +83,7 @@ public:
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
   // Get barcode
-  boost::dynamic_bitset<> get_m_barcode() { 
-    return(m_barcode); 
-    }
+  boost::dynamic_bitset<> get_m_barcode() const { return(m_barcode); }
   
   // Get strain infection status
   InfectionStatus get_m_strain_infection_status() { return(m_strain_infection_status); }
@@ -191,8 +190,13 @@ public:
   // mean ibd distance between all bitsets within a vector of bitsets
   static double ibd_distance_mean_within_bitsets(std::vector<boost::dynamic_bitset<> > x, bool unique_only = false);
   
+  // OTHER STATICS
+  
   // barcode true at all locations specified by vector<int>
   static bool all_at_positions(boost::dynamic_bitset<> x, std::vector<unsigned int> pos);
+  
+  // barcode true at any locations specified by vector<int>
+  static bool any_at_positions(boost::dynamic_bitset<> x, std::vector<unsigned int> pos);
   
 };
 

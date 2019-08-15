@@ -211,6 +211,10 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
     temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
     prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
     
+    if (Strain::any_at_positions(m_active_strains[ts].get_m_barcode(),parameters.g_drugs[m_drug_choice].get_m_barcode_positions())) {
+      m_resistant_strains.emplace_back(m_active_strains[ts]);
+    }
+    
   }
   
   // did they clear
@@ -519,9 +523,6 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     if (m_IB_last_boost_time < parameters.g_current_time - parameters.g_uB ||
         static_cast<int>(m_IB_last_boost_time) == parameters.g_current_time)
     {
-      
-      // increase storage
-      m_infection_barcode_realisation_vector.reserve(m_infection_barcode_realisation_vector.capacity()+parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]);
       
       // Allocate strains being passed on
       for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
@@ -891,8 +892,11 @@ void Person::late_paristological_failure(const Parameters &parameters) {
   schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change  
   
   // clear the active strains
-  m_active_strains = m_post_treatment_strains;
-  m_number_of_strains = m_post_treatment_strains.size();
+  m_active_strains.clear();
+  for (auto a : m_post_treatment_strains) {
+    m_active_strains.emplace_back(a);
+  }
+  m_number_of_strains = m_active_strains.size();
   
   //loop through the new number of strains and draw their movement dates
   for(int ts = 0; ts < m_number_of_strains ; ts++){
@@ -909,6 +913,10 @@ void Person::late_paristological_failure(const Parameters &parameters) {
     }
     m_active_strains[ts].set_m_day_of_strain_infection_status_change(m_temp_int);
   }
+  
+  // update teh strain state change day
+  set_m_day_of_next_strain_state_change();
+  
 }
 
 // Slow parasite clearance
@@ -928,6 +936,9 @@ void Person::slow_treatment_clearance(const Parameters &parameters) {
   for(int ts = 0; ts < m_number_of_strains ; ts++){
     m_active_strains[ts].set_m_day_of_strain_infection_status_change(m_day_of_InfectionStatus_change + 1);
   }
+  
+  // update teh strain state change day
+  set_m_day_of_next_strain_state_change();
   
 }
 
@@ -1064,6 +1075,7 @@ void Person::event_handle(const Parameters &parameters) {
                   std::swap(m_active_strains[n], m_active_strains.back());
                   
                   // Pop thus deleting the random strain pointer
+                  if(m_number_of_strains==0) rcpp_out(parameters.g_h_quiet_print, "error: removed last strain\n!");
                   m_active_strains.pop_back();
                   
                   // Lower strain counter and decrease n so that we check the strain we just put here

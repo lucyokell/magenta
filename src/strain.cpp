@@ -436,6 +436,19 @@ bool Strain::all_at_positions(boost::dynamic_bitset<> x, std::vector<unsigned in
   
 }
 
+// barcode true at any locations specified by vector<int>
+bool Strain::any_at_positions(boost::dynamic_bitset<> x, std::vector<unsigned int> pos)
+{
+  bool any = false;
+  for(auto v : pos) {
+    if(x[v]){
+      return(true);
+    }
+  }
+  return(false);
+  
+}
+
 // --------------------------------------------------------------------------------------------------
 // TESTS
 // --------------------------------------------------------------------------------------------------

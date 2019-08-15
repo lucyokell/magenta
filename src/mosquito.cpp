@@ -60,13 +60,10 @@ void Mosquito::allocate_gametocytes(const Parameters &parameters,
                                     boost::dynamic_bitset<> &gam_2)
 {
   // Push gametocyte barcodes and time of bursting and spz count remaining, i.e. 4
-  
-  if (m_oocyst_barcode_female_vector.size() == m_oocyst_barcode_female_vector.capacity()){
-    m_oocyst_barcode_female_vector.reserve(m_oocyst_barcode_female_vector.capacity()*2);
-    m_oocyst_barcode_male_vector.reserve(m_oocyst_barcode_female_vector.capacity()*2);
-  }
   m_oocyst_barcode_female_vector.emplace_back(gam_1);
   m_oocyst_barcode_male_vector.emplace_back(gam_2);
+  // m_oocyst_barcode_female_vector.push_back(gam_1);
+  // m_oocyst_barcode_male_vector.push_back(gam_2);
   m_oocyst_rupture_time_vector.emplace_back(parameters.g_current_time + static_cast<int>(parameters.g_delay_mos));
   m_oocyst_remaining_spz_count.emplace_back(4);
   
