@@ -39,6 +39,10 @@ pop_strains_df <- function(statePtr, seed, sample_size = 0, sample_states = 0:5,
   # bring barcode states in
   df$barcode_states <- list$barcode_states
   
+  if (dim(df)[1] == 0){
+    df$nums <- df$barcode_states
+  } else {
+  
   # split the barcodes into a list and then move
   seqs <- unlist(lapply(list$barcode_states, length))
   breaks <- cumsum(seqs)
@@ -49,6 +53,7 @@ pop_strains_df <- function(statePtr, seed, sample_size = 0, sample_states = 0:5,
     nums[[1]] <- list$barcodes[1:breaks[1], , drop = FALSE]
   }
   
+  if (length(seqs) > 1) {
   for (i in 2:(length(breaks))) {
     if (seqs[i] > 1) {
       nums[[i]] <- list$barcodes[(breaks[i - 1] + 1):breaks[i], ]
@@ -57,8 +62,10 @@ pop_strains_df <- function(statePtr, seed, sample_size = 0, sample_states = 0:5,
       nums[[i]] <- list$barcodes[(breaks[i - 1] + 1):breaks[i], , drop = FALSE]
     }
   }
-  
+  }
   df$nums <- nums
+  }
+  
   return(df)
   
 }
@@ -141,6 +148,15 @@ COI_df_create <- function(df,
     results <- list()
     length(results) <- reps
     
+      # create overall clonality by first converting our nums to integers for quick tabulation
+      barcode_freq <- apply(rbind_list_base(df$nums), 2, function(x) {
+        mean(as.integer(x))
+      })
+      
+      df$nums[df$bs > 0] <- lapply(df$nums[df$bs > 0], function(x) {
+        apply(x, 1, bitsToInt)
+      })
+      
     # make samples and reps of them
     for (i in seq_len(length(results))) {
       
@@ -151,14 +167,6 @@ COI_df_create <- function(df,
         chosen <- ranges[[i]]
       }
       
-      # create overall clonality by first converting our nums to integers for quick tabulation
-      barcode_freq <- apply(rbind_list_base(df$nums), 2, function(x) {
-        mean(as.integer(x))
-      })
-      
-      df$nums[df$bs > 0] <- lapply(df$nums[df$bs > 0], function(x) {
-        apply(x, 1, bitsToInt)
-      })
       
       clonality <- table(table(unlist(df$nums[chosen])))
       barcodes_tab <- sort(table(unlist(df$nums[chosen])), 

@@ -100,6 +100,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   parameters.g_resistance_flag = Rcpp::as<bool>(drug_list["resistance_flag"]);
   parameters.g_number_of_resistance_loci= Rcpp::as<unsigned int>(drug_list["number_of_resistance_loci"]);
   parameters.g_cost_of_resistance = Rcpp::as<std::vector<double> >(drug_list["cost_of_resistance"]);
+  parameters.g_resistance_loci = Rcpp::as<std::vector<unsigned int> >(drug_list["resistance_loci"]);
+  parameters.g_artemisinin_loci = Rcpp::as<std::vector<unsigned int> >(drug_list["artemisinin_loci"]);
   
   // drug related parameters
   parameters.g_mft_flag = Rcpp::as<bool>(drug_list["mft_flag"]);

@@ -79,7 +79,7 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
 #' @param statePtr Pointer for current model state as return by \code{simulation_R}$Ptr
 #' @param spatial_list Spatial list
 #' @param drug_list Drug list
-#' @param barcode_parmas Barcode parameter list
+#' @param barcode_params Barcode parameter list
 #' 
 #' @export
 
@@ -148,6 +148,33 @@ param_list_simulation_get_create <- function(statePtr)
   
   # Create paramlist
   param_list <- list(statePtr = statePtr)
+  
+  return(param_list)
+  
+}
+
+#------------------------------------------------
+#' Parameter List creation for magenta simulation finalizer
+#'
+#' \code{param_list_simulation_finalizer_create} creates suitable parameter list for
+#' \code{simulation_R} for free memory used by a simulation
+#'
+#' @param statePtr Pointer for current model state as return by \code{simulation_R}$Ptr
+#' 
+#' @export
+
+param_list_simulation_finalizer_create <- function(statePtr)
+{
+  
+  ## CHECKS ##
+  ##---------------------------------------------
+  if(class(statePtr)!="externalptr") stop("state.ptr is not of class externalptr")
+  
+  ##---------------------------------------------
+  
+  # Create paramlist
+  param_list <- list(statePtr = statePtr,
+                     finalizer = TRUE)
   
   return(param_list)
   
@@ -278,7 +305,7 @@ simulation_R <- function(param_list, seed)
   ## -----------------------------------
   ## 3. From memory-continutation to saving
   ## -----------------------------------
-  if(is.null(param_list$years) & !is.null(param_list$statePtr)){
+  if(is.null(param_list$finalizer) & is.null(param_list$years) & !is.null(param_list$statePtr)){
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(param_list))
@@ -327,8 +354,37 @@ simulation_R <- function(param_list, seed)
     
   }
   
+  ## -----------------------------------
+  ## 5. Finalizer
+  ## -----------------------------------
+  if(!is.null(param_list$finalizer)){
+    
+    ## Check if paramlist is correct length and has right variable names
+    stopifnot(is.list(param_list))
+    if(length(param_list)==2)
+    {
+      stopifnot(identical(names(param_list), c("statePtr", "finalizer")))  
+    }
+    else 
+    {
+      stop("param_list not correct length")
+    } 
+    
+    
+    # ---------------------- RUN C CODE ------------------------------------- #
+    
+    # call Rcpp command with input list
+    set.seed(seed)
+    rawOutput <- Simulation_Finalizer_cpp(param_list)
+    
+    # ----------------------------------------------------------------------- #
+    
+  }
+  
   ## Catch if parameter list not matched well
-  if(is.null(rawOutput)) stop("No matching parameter list handler found within simulation_R")
+  if(is.null(rawOutput)) {
+    stop("No matching parameter list handler found within simulation_R")
+  }
   
   # return rawOutput
   return(rawOutput)

@@ -289,7 +289,7 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
     q_i = q_fun(u_ptr->parameters, ages[el], u_ptr->population[i].get_m_ID());
     qu_i = std::pow(q_i,u_ptr->parameters.g_alphaU);
     
-    // for coi we want one forall barcodes and then one for just those 
+    // for coi we want one for all barcodes and then one for just those 
     // that are detected by PCR/Sequenom etc. 
     
     for(auto b : strains_i) {
@@ -310,7 +310,7 @@ Rcpp::List population_get_genetics_df_n(Rcpp::List param_list) {
       
       // cois for pcr
       std::sort(bitsets_pcr_i.begin(), bitsets_pcr_i.end());
-      coi_detected_pcr[el] = std::unique(bitsets_pcr_i.begin(), bitsets_pcr_i.end()) - bitsets_pcr_i.begin();
+      coi_detected_pcr[el] = std::max(1,static_cast<int>(std::unique(bitsets_pcr_i.begin(), bitsets_pcr_i.end()) - bitsets_pcr_i.begin()));
 
       // similar for all
       std::sort(bitsets_all_i.begin(), bitsets_all_i.end());

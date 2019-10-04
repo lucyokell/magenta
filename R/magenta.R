@@ -11,7 +11,7 @@
 #' @useDynLib magenta
 #' @importFrom Rcpp sourceCpp
 #' @importFrom stats rlnorm heatmap runif qt sd approx qexp qlnorm rbinom rgeom
-#' @importFrom stats rnbinom time weighted.mean
+#' @importFrom stats rnbinom time weighted.mean na.omit
 #' @importFrom utils adist read.csv tail packageVersion
 #' @importFrom ggplot2 ggplot
 #' @importFrom graphics par plot

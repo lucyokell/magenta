@@ -8,8 +8,8 @@ drug_list_create(resistance_flag = FALSE, number_of_drugs = 2,
   number_of_resistance_loci = 3, resistance_costs = c(0.99, 0.99,
   0.98), epistatic_logic = NULL, prob_of_lpf = list(c(1, 0.97, 0.8,
   0.55), c(1, 0.98, 0.7, 0.51)), barcode_res_pos = list(c(0, 1), c(0,
-  2)), prophylactic_pos = list(c(1), c(2)), dur_P = rep(25,
-  number_of_drugs), dur_SPC = rep(5, number_of_drugs),
+  2)), prophylactic_pos = list(c(1), c(2)), artemisinin_loci = 0,
+  dur_P = rep(25, number_of_drugs), dur_SPC = rep(5, number_of_drugs),
   mft_flag = FALSE, temporal_cycling = -1, sequential_cycling = -1,
   sequential_update = 3, drug_choice = 0,
   partner_drug_ratios = rep(1/number_of_drugs, number_of_drugs))
@@ -56,6 +56,9 @@ impact of drug resistance in shortening the effective prophylactic period.
 E.g. the default is \code{list(c(1),c(2))}, which shows that for drug 1,
 the prophylactic position is encoded in barcode position 1, and for drug 2
 it is encoded at position 2.}
+
+\item{artemisinin_loci}{Numerics for barcode positions that confer artemisinin 
+resistance}
 
 \item{dur_P}{Vector for the duration of prophylaxis for each drug. Default 
 is \code{rep(25,number_of_drugs)}.}

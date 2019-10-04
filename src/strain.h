@@ -42,6 +42,7 @@ public:
   
   // temporary barcodes for all purposes
   static boost::dynamic_bitset<> temp_barcode;
+  static std::vector<boost::dynamic_bitset<> > temp_barcode_pair;
   static boost::dynamic_bitset<> temp_identity_barcode;
   static boost::dynamic_bitset<> temp_crossovers;
   
@@ -109,6 +110,9 @@ public:
   
   // Work out if the strain is vector adapted
   bool vector_adapted_boolean(const Parameters &parameters);
+
+  // Work out if the strain is resitsant at any resistant loci
+  bool resistant_at_any_loci_boolean(const Parameters &parameters);
   
   // Get barcode position
   bool barcode_position(unsigned int position);
@@ -158,7 +162,7 @@ public:
   static boost::dynamic_bitset<> generate_next_ibd_barcode();
   
   // Generate a random recombinant barcode given two barcodes
-  static boost::dynamic_bitset<> generate_recombinant_barcode(boost::dynamic_bitset<> x, boost::dynamic_bitset<> y);
+  static std::vector<boost::dynamic_bitset<> > generate_recombinant_barcode(boost::dynamic_bitset<> x, boost::dynamic_bitset<> y);
   
   // Generate a random barcode given probability of each SNP, i.e. PLAF
   static boost::dynamic_bitset<> generate_random_barcode_given_SNP_frequencies(std::vector<double> &x);

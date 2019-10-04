@@ -24,7 +24,8 @@ test_that("ibd recombinants", {
   x <- as.raw(c(1,1,1,0,0,1,0,0))
   y <- as.raw(c(0,0,0,1,1,0,1,1))
   z <- test_recombinant_with_ibd(x,y,length(x),4,2,rep(1,4))
-  expect_identical(y,z)
+  expected <- c(y[1:2],x[3:8])
+  expect_identical(expected,z)
 
   })
 

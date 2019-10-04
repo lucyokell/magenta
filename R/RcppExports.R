@@ -3,6 +3,15 @@
 
 #' Returns whole model to R in series of nested lists
 #'
+#' @param param_list parameter list generated with \code{param_list_simulation_finalizer_create}
+#' @return list of 1 confirming finalizer has finished
+#' @export
+Simulation_Finalizer_cpp <- function(param_list) {
+    .Call('_magenta_Simulation_Finalizer_cpp', PACKAGE = 'magenta', param_list)
+}
+
+#' Returns whole model to R in series of nested lists
+#'
 #' @param param_list parameter list generated with \code{Param_List_Simulation_Get_Create}
 #' @return list of 4 lists with the entire model state
 #' @export

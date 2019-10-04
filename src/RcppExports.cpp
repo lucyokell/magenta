@@ -5,6 +5,17 @@
 
 using namespace Rcpp;
 
+// Simulation_Finalizer_cpp
+Rcpp::List Simulation_Finalizer_cpp(Rcpp::List param_list);
+RcppExport SEXP _magenta_Simulation_Finalizer_cpp(SEXP param_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type param_list(param_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(Simulation_Finalizer_cpp(param_list));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Simulation_Get_cpp
 Rcpp::List Simulation_Get_cpp(Rcpp::List param_list);
 RcppExport SEXP _magenta_Simulation_Get_cpp(SEXP param_listSEXP) {
@@ -142,6 +153,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_magenta_Simulation_Finalizer_cpp", (DL_FUNC) &_magenta_Simulation_Finalizer_cpp, 1},
     {"_magenta_Simulation_Get_cpp", (DL_FUNC) &_magenta_Simulation_Get_cpp, 1},
     {"_magenta_Simulation_Init_cpp", (DL_FUNC) &_magenta_Simulation_Init_cpp, 1},
     {"_magenta_Simulation_Saved_Init_cpp", (DL_FUNC) &_magenta_Simulation_Saved_Init_cpp, 1},

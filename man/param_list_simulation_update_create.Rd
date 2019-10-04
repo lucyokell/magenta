@@ -25,7 +25,7 @@ will result in rep(1/3,floor(years*365))}
 
 \item{drug_list}{Drug list}
 
-\item{barcode_parmas}{Barcode parameter list}
+\item{barcode_params}{Barcode parameter list}
 }
 \description{
 \code{param_list_simulation_update_create} creates suitable parameter list for

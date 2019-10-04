@@ -56,6 +56,7 @@ const std::vector<Strain::InfectionStatus> Strain::m_transition_vector{ SUSCEPTI
 
 // temp barcodes for speed
 boost::dynamic_bitset<> Strain::temp_barcode(Parameters::g_barcode_length);
+std::vector<boost::dynamic_bitset<> > Strain::temp_barcode_pair(2);
 boost::dynamic_bitset<> Strain::temp_identity_barcode(Parameters::g_ibd_length);
 boost::dynamic_bitset<> Strain::temp_crossovers(Parameters::g_num_loci);
 
@@ -65,7 +66,7 @@ boost::dynamic_bitset<> Strain::temp_crossovers(Parameters::g_num_loci);
 
 // Work out the strain's relative onward contribution given the fitness costs in the parameters object
 double Strain::relative_contribution(const Parameters &parameters){
-  return(parameters.g_cost_of_resistance[to_ulong_range(0,parameters.g_number_of_resistance_loci)]);
+  return(parameters.g_cost_of_resistance[to_ulong_range(parameters.g_resistance_loci[0],parameters.g_resistance_loci.back())]);
 }
 
 // Work out if the strain caused late parasitological failure
@@ -131,6 +132,19 @@ bool Strain::vector_adapted_boolean(const Parameters &parameters){
   return(adapted);
   
 }
+
+// Work out if the strain is resitsance at any resistant loci
+bool Strain::resistant_at_any_loci_boolean(const Parameters &parameters){
+  
+  for(auto v : parameters.g_resistance_loci) {
+    if(m_barcode[v]){
+      return(true);
+    }
+  }
+  return(false);
+  
+}
+
 
 
 
@@ -238,7 +252,7 @@ boost::dynamic_bitset<> generate_crossover()
 }
 
 // Generate a random recombinant barcode given two barcodes
-boost::dynamic_bitset<> Strain::generate_recombinant_barcode(boost::dynamic_bitset<> x, boost::dynamic_bitset<> y)
+std::vector<boost::dynamic_bitset<> > Strain::generate_recombinant_barcode(boost::dynamic_bitset<> x, boost::dynamic_bitset<> y)
 {
   // find the different positions, then where these cross with another 
   // bitset created using the prob_crossover which represents chance of segragation. 
@@ -246,13 +260,35 @@ boost::dynamic_bitset<> Strain::generate_recombinant_barcode(boost::dynamic_bits
   // 0% recombination. Then where these differ with x. 
   // For the IBD style, our random barcode
   
+  // When you have done the switch then set the first bit of ibd_block length equal to the parent's
+  // first bit
+  
   // Match barcode type
   switch (Parameters::g_barcode_type)
   {
   case Parameters::ORDINARY:
-    return( ( (x ^ y) & generate_random_barcode_given_SNP_frequencies(Parameters::g_prob_crossover) ) ^ x );
+    
+    Strain::temp_barcode_pair[0] = (((x ^ y) & generate_random_barcode_given_SNP_frequencies(Parameters::g_prob_crossover) ) ^ x);
+    Strain::temp_barcode_pair[0][0] = x[0];
+    Strain::temp_barcode_pair[1] = (((x ^ y) & generate_random_barcode_given_SNP_frequencies(Parameters::g_prob_crossover) ) ^ y);
+    Strain::temp_barcode_pair[1][0] = y[0];
+    
+    return(Strain::temp_barcode_pair);
+    
   case Parameters::IBD:
-    return( ( (x ^ y) & replicate_by_bit(generate_crossover(),Parameters::g_ibd_length) ) ^ x );
+    
+    Strain::temp_barcode_pair[0] = (((x ^ y) & replicate_by_bit(generate_crossover(),Parameters::g_ibd_length) ) ^ x);
+    for(unsigned int j = 0; j < Parameters::g_ibd_length ; j++) {
+      Strain::temp_barcode_pair[0][j] = x[j];
+    }
+    
+    Strain::temp_barcode_pair[1] = (((x ^ y) & replicate_by_bit(generate_crossover(),Parameters::g_ibd_length) ) ^ y);
+    for(unsigned int j = 0; j < Parameters::g_ibd_length ; j++) {
+      Strain::temp_barcode_pair[1][j] = y[j];
+    }
+    
+    return(Strain::temp_barcode_pair);
+    
   default:
     Rcpp::stop("Unrecognised barcode_type");
   break;
@@ -439,7 +475,6 @@ bool Strain::all_at_positions(boost::dynamic_bitset<> x, std::vector<unsigned in
 // barcode true at any locations specified by vector<int>
 bool Strain::any_at_positions(boost::dynamic_bitset<> x, std::vector<unsigned int> pos)
 {
-  bool any = false;
   for(auto v : pos) {
     if(x[v]){
       return(true);
@@ -483,8 +518,9 @@ SEXP test_recombinant_with_ibd(SEXP barcode_1,
   
   boost::dynamic_bitset<> barcode_a = sexp_to_bitset(barcode_1, bl);
   boost::dynamic_bitset<> barcode_b = sexp_to_bitset(barcode_2, bl);
-  Strain::temp_barcode = Strain::generate_recombinant_barcode(barcode_a, barcode_b);
-  return(bitset_to_sexp(Strain::temp_barcode, bl));
+  std::vector<boost::dynamic_bitset<> > temp_barcodes = Strain::generate_recombinant_barcode(barcode_a, barcode_b);
+  
+  return(bitset_to_sexp(temp_barcodes[1], bl));
 }
 
 // generate next ibd barcode

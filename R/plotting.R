@@ -324,7 +324,7 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,
       return(res)
     }) %>% unlist
   }
-
+  
   mean_prev <- function(res_list,full_time_length,prev="pcr_prev"){
     i = 1:(full_time_length); 
     lapply(i,function(y){
@@ -346,7 +346,7 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,
                                        c = c, states = states, 
                                        ages = age_breaks,
                                        i = y)
-        })))
+      })))
     } else {
       return(lapply(age_breaks, function(x){
         unlist(lapply(i,function(y){
@@ -466,7 +466,7 @@ summary_data_frames_from_sims <- function(res_list, update_length = 30,
     terms <- c("0-5","5-15","15+","Clinical","Asymptomatic")
     for(t in terms) {
       melted$sampled[grepl(t,melted$variable,fixed=TRUE)] <- t
-      }
+    }
     levels(melted$sampled) <- c("All",terms)
     
     melted$value[which(melted$value==0)] <- 1 # convert iIBD measures to 1 if 0 (i.e. all monogenomic)
@@ -538,12 +538,12 @@ plot_x_loggers <- function(res, x, alpha = 1, scale = FALSE, extra = NULL ) {
   if("summary_ibd" %in% names(res[[1]])){
     df$prev <- lapply(res[1:(length(res)-1)],function(x) {
       sum(x$summary_ibd$N[x$summary_ibd$state %in% c("D","A","T","U")])
-      }) %>% unlist
+    }) %>% unlist
     df$prev <- df$prev/sum(res[[1]]$summary_ibd$N)
   } else {
     df$prev <- lapply(res[1:(length(res)-1)],function(x) {
       sum(x$summary_coi$N[x$summary_coi$state %in% c("D","A","T","U")])
-      }) %>% unlist
+    }) %>% unlist
     df$prev <- df$prev/sum(res[[1]]$summary_coi$N)
   }
   melt <- reshape2::melt(df,id.var = "time")
@@ -616,6 +616,7 @@ plot_mean_summary <- function(res, x,
 }
 
 # Plot resistance frequenceies and lineages over time:
+#' @noRd
 plot_resistance_lineages <- function(t,legend=TRUE){
   
   l <- length(t)-1
@@ -633,7 +634,7 @@ plot_resistance_lineages <- function(t,legend=TRUE){
   af <- matrix(unlist(lapply(t[1:l],"[[","af")),ncol=bs,byrow=TRUE)
   
   if(lins) {
-  lin <- matrix(unlist(lapply(t[1:l],"[[","lineage")),ncol=bst,byrow=TRUE)
+    lin <- matrix(unlist(lapply(t[1:l],"[[","lineage")),ncol=bst,byrow=TRUE)
   }
   
   af_df <- data.frame("time"=1:l,"af"=as.numeric(af),"loci"=as.character(sort(rep(1:ncol(af),l))) ) 
@@ -664,17 +665,36 @@ plot_resistance_lineages <- function(t,legend=TRUE){
     lin_gg <- ggplot(lin_df, aes(x=time, y=af, color=group, shape=group)) + geom_point() + geom_line() + 
       scale_color_manual(name="barcode",labels=lin_names,values = colours) + 
       scale_shape_manual(name="barcode",labels=lin_names,values = c(rep(19,8),rep(17,8)))
-    heights <- c(1,1)
+    heights <- c(1,1,1,1)
    
   } else {
     lin_gg <- NULL
-    heights <- c(1,0)
+    heights <- c(1,0,1,1)
   }
+  
+  
+  prev <- lapply(t[1:l],function(x){x[c("pcr_prev","dat","micro_2_10")]}) %>% 
+    rbind_list_base() %>% 
+    reshape2::melt() %>% 
+    mutate(time=rep(1:l,3)) %>% 
+    ggplot(aes(x=time,y=value,color=variable)) + geom_line()
+  
+  ntf <- lapply(tail(t,l/2),function(x){sum(x$unsuccesful_treatments_lpf,x$not_treated)}) %>% unlist %>% sum
+  ntf <- ntf/(t[[l+1]]$Loggers$Ages %>% length()/100)/round(t[[l+1]]$Loggers$Time/(2*365))
+  
+  tf <- lapply(t[1:l],function(x){x[c("overall_treatment_failure")]}) %>% 
+    rbind_list_base() %>% 
+    reshape2::melt() %>% 
+    mutate(time=rep(1:l,1)) %>% 
+    ggplot(aes(x=time,y=value,color=variable)) + geom_line()
+  
   if(legend) {
-  cowplot::plot_grid(af_gg,lin_gg,rel_heights = heights,ncol=1)
+  cowplot::plot_grid(af_gg,lin_gg,tf,prev,rel_heights = heights,ncol=1)
   } else {
-    cowplot::plot_grid(af_gg+theme(legend.position = "none"),
-                       lin_gg+theme(legend.position = "none"),
+    cowplot::plot_grid(af_gg+theme(legend.position = "top"),
+                       lin_gg+theme(legend.position = "top")+ guides(col = guide_legend(ncol = bst)),
+                       tf+theme(legend.position = "top"),
+                       prev+theme(legend.position = "top"),
                        rel_heights = heights,ncol=1)
   }
   

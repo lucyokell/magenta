@@ -174,15 +174,15 @@ Pipeline <- function(EIR = 120,
                      only_allele_freqs = TRUE,
                      nmf_list = nmf_list_create(),
                      ...) {
-
-
+  
+  
   # PRE-SET UP HOUSEKEEPING ------------------------ ####
   # if no seed is specified then save the seed
   set.seed(seed)
   message("huh")
   message(paste0("Seed set to ", seed))
   message("magenta test1 v", utils::packageVersion("magenta"))
-
+  
   # simulation save variables
   strain_vars <- c(
     "Strain_infection_state_vectors",
@@ -190,7 +190,7 @@ Pipeline <- function(EIR = 120,
     "Strain_barcode_vectors"
   )
   human_vars <- c("Infection_States", "Zetas", "Ages")
-
+  
   # historic intervetnion grab if asked
   if (use_historic_interventions & length(years) > 1) {
     
@@ -201,18 +201,18 @@ Pipeline <- function(EIR = 120,
     ft <- ints$ft
   }
   
-
-
+  
+  
   # INITIALISATION --------------------------------- ####
   # If we don't have a saved state then we initialise first
   if (is.null(saved_state_path)) {
-
+    
     # Create parameter list, changine any key parameters, e.g. the average age
     mpl <- model_param_list_create(...)
-
+    
     # Create age brackets, either geometric or evenly spaced
     age_vector <- age_brackets(100, 40, TRUE)
-
+    
     # check to change the ft for the initial and odin to reflect 28 day failure rates
     lpfs <- unlist(lapply(drug_list$prob_of_lpf[seq_len(drug_list$number_of_drugs)],"[[",1))
     ft_odin <- ft * weighted.mean(lpfs, drug_list$partner_drug_ratios)
@@ -227,13 +227,13 @@ Pipeline <- function(EIR = 120,
       admin = admin,
       model_param_list = mpl
     )
-
+    
     # reset seed here as there is some randomness in equlibirum (Need?)
     set.seed(seed)
-
+    
     # Next create the starting state
     eqSS <- equilibrium_ss_create(eqInit = eqInit)
-
+    
     # and the barcode parms list
     plaf_matrix <- plaf_matrix_check(plaf, years)
     barcode_params <- barcode_params_create(
@@ -245,7 +245,7 @@ Pipeline <- function(EIR = 120,
       mutation_flag = mutation_flag,
       mutation_rate = mutation_rate
     )
-
+    
     # handle mutations parms
     if (length(mutation_flag) == 1) {
       mutation_flag <- rep(mutation_flag, ceiling(years))
@@ -265,7 +265,7 @@ Pipeline <- function(EIR = 120,
     } else {
       spatial_type <- 0
     }
-
+    
     # make spatial list
     spatial_incidence_matrix <- spl_matrix_check(spatial_incidence_matrix, years)
     spatial_mosquitoFOI_matrix <- spl_matrix_check(spatial_mosquitoFOI_matrix, years)
@@ -277,15 +277,15 @@ Pipeline <- function(EIR = 120,
       oocyst_freq_vector = ztrnbinom(10000, mean = oocyst_mean, size = oocyst_shape),
       plaf = plaf_matrix[1, ]
     )
-
-
+    
+    
     # handle drug parms
     resistance_flags <- drug_list$resistance_flag
     if (length(resistance_flags) == 1) {
       resistance_flags <- rep(resistance_flags, ceiling(years))
     }
     drug_list$resistance_flag <- resistance_flags[1]
-
+    
     # Now check and create the parameter list for use in the Rcpp simulation
     pl <- param_list_simulation_init_create(
       N = N, eqSS = eqSS,
@@ -298,17 +298,17 @@ Pipeline <- function(EIR = 120,
       mpl = mpl
     )
   } else {
-
+    
     # If we have provided the saved state then load this and then delete as can be large
     saved_state <- readRDS(saved_state_path)
     pl <- Param_List_Simulation_Saved_Init_Create(savedState = saved_state)
     rm(saved_state)
     gc()
   }
-
+  
   # Create model simulation state
   sim.out <- simulation_R(param_list = pl, seed = seed)
-
+  
   # If we just want the set up
   # INITIALISATIION ONLY --------------------------- ####
   if (set_up_only) {
@@ -316,7 +316,13 @@ Pipeline <- function(EIR = 120,
     # Now let's save the simulation in full
     pl2 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
     sim_save <- simulation_R(pl2, seed = seed)
-
+    
+    if (housekeeping_list$clear_up) {
+      pl5 <- param_list_simulation_finalizer_create(sim.out$Ptr)
+      sim.out <- simulation_R(pl5, seed = seed)
+      gc()
+    }
+    
     # If we want just the humans then get the keybits and save that instead
     if (full_save) {
       return(sim_save)
@@ -331,14 +337,14 @@ Pipeline <- function(EIR = 120,
       return(res)
     }
   }
-
+  
   # if it's metapopulation sim set up the necessary redis lists
   # set this up here anyway and then less if loops later
   # METAPOP SETUP (NOT FULLY IMPLEMENTED YET) ------ #####
   imported_barcodes <- NULL
   if (spatial_type == 2) {
     stop("metapopulation simulation not implemented yet")
-
+    
     # redis <- redux::hiredis(host = "fi--dideclusthn.dide.ic.ac.uk")
     # 
     # # create barcode as binary string
@@ -413,8 +419,8 @@ Pipeline <- function(EIR = 120,
     #     strsplit(x, "") %>% unlist() %>% as.numeric() %>% as.logical()
     #   })
   }
-
-
+  
+  
   # DETERMINISTIC MOSQUITO PRE-SIMULATION ---------- #####
   out <- mu_fv_create(
     eqInit = eqInit, ft = ft_odin, itn_cov = itn_cov,
@@ -424,24 +430,24 @@ Pipeline <- function(EIR = 120,
   if (length(ft) == 1) {
     ft <- rep(ft, years)
   }
-
-
+  
+  
   # SIMULATION WITH LOGGING ------------------------ #####
   # If we have specified a yearly save we iterate through
   # the total time in chunks saving the loggers at each stage
   if (update_save) {
-
+    
     # set up results list
     res <- list()
     length(res) <- round((years * 365) / update_length)
     times <- rep(0, length(res) - 1)
-
+    
     # and set up annual checks for variables that change discretely
     year <- 1
     next_drug_cycle <- drug_list$temporal_cycling
     ft_now <- ft[year]
-
-
+    
+    
     # messaging
     message("Starting Stochastic Simulation for ", years, " years")
     p <- progress::progress_bar$new(
@@ -449,26 +455,26 @@ Pipeline <- function(EIR = 120,
       total = length(res)
     )
     p_print <- progress_logging(housekeeping_list, res, p, initial = TRUE)
-
+    
     # START MAIN SIMULATION LOOP
     if (length(res) > 1) {
       for (i in 1:(length(res) - 1)) {
-
+        
         # messaging
         p_print <- progress_logging(housekeeping_list, res, p, i,
-          initial = FALSE, p_print = p_print
+                                    initial = FALSE, p_print = p_print
         )
         times[i] <- Sys.time()
-
+        
         # annual updates
         if ((floor((((update_length * (i - 1)) + 1) / 365))) == year) {
-
+          
           # update the year, ft and resistance flag
           year <- year + 1
           ft_now <- ft[year]
           drug_list$resistance_flag <- resistance_flags[year]
           barcode_params$mutation_flag <- mutation_flag[year]
-
+          
           # update the spatial list
           spatial_list <- spl_create(
             spatial_type = spatial_type,
@@ -479,7 +485,7 @@ Pipeline <- function(EIR = 120,
             plaf = plaf_matrix[year, ]
           )
         }
-
+        
         # prepare simulation for update
         pl2 <- param_list_simulation_update_create(
           years = update_length / 365,
@@ -491,10 +497,10 @@ Pipeline <- function(EIR = 120,
           barcode_params = barcode_params,
           statePtr = sim.out$Ptr
         )
-
+        
         # carry out simulation
         sim.out <- simulation_R(pl2, seed = seed)
-
+        
         # save what we want to save
         if (is.null(update_save_func)) {
           res <- update_saves(
@@ -518,7 +524,7 @@ Pipeline <- function(EIR = 120,
         # spatial export
         # Metapopulation not fully implemeted yet so commenting out
         if (spatial_type == 2) {
-
+          
           # # Push barcodes to redis
           # for (i in 1:length(export_proportions)) {
           #   if (!is.na(export_proportions[i])) {
@@ -553,17 +559,17 @@ Pipeline <- function(EIR = 120,
           #     strsplit(x, "") %>% unlist() %>% as.numeric() %>% as.logical()
           #   })
         }
-
+        
         # drug resistance updates
         if (i == 1) {
           drug_list <- drug_list_update(
-            drug_list, year, res[[i]]$treatment_failure
+            drug_list, year, res[[i]]$overall_treatment_failure
           )
         }
         else {
           drug_list <- drug_list_update(
             drug_list, year,
-            mean(c(res[[i - 1]]$treatment_failure, res[[i]]$treatment_failure))
+            mean(c(res[[i - 1]]$overall_treatment_failure, res[[i]]$overall_treatment_failure))
           )
         }
       }
@@ -585,15 +591,15 @@ Pipeline <- function(EIR = 120,
       statePtr = sim.out$Ptr
     )
     sim.out <- simulation_R(pl2, seed = seed)
-
+    
     # If we have specified a full save then we grab that and save
     # it or just the human bits of interest
     if (full_save || human_only_full_save) {
-
+      
       # Now let's save the simulation in full
       pl2 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
       sim_save <- simulation_R(pl2, seed = seed)
-
+      
       # If we want just the humans then get the keybits and save that instead
       if (human_only_full_save) {
         Strains <- sim_save$populations_event_and_strains_List[strain_vars]
@@ -608,10 +614,10 @@ Pipeline <- function(EIR = 120,
       # If we don't want a full save then just save the Loggers as usual
       res[[length(res)]] <- sim.out
     }
-
+    
     # OR SIMULATION NO LOGGING ----------------------- #####
   } else {
-
+    
     # Set up update for years long
     pl2 <- param_list_simulation_update_create(
       years = years, ft = min(ft[ft > 0]),
@@ -622,9 +628,9 @@ Pipeline <- function(EIR = 120,
       barcode_params = barcode_params,
       statePtr = sim.out$Ptr
     )
-
+    
     sim.out <- simulation_R(param_list = pl2, seed = seed)
-
+    
     # If we have specified a full save or human save then we grab that
     # and save it or just the human bits of interest
     if (full_save || human_only_full_save) {
@@ -632,7 +638,7 @@ Pipeline <- function(EIR = 120,
       # Now let's save the simulation in full
       pl2 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
       sim_save <- simulation_R(pl2, seed = seed)
-
+      
       # If we want just the humans then get the keybits and save that instead
       if (human_only_full_save & !full_save) {
         human_vars <- c("Infection_States", "Zetas", "Ages")
@@ -649,15 +655,26 @@ Pipeline <- function(EIR = 120,
       res <- sim.out
     }
   }
-
+  
   # FINISH ----------------------------------------- #####
   # append times
   if (update_save) {
     attr(res, "times") <- times
   }
-
+  
   # Save the seed as an attribute adn return the result
   seed_end <- .Random.seed
   attr(res, "seed") <- seed_end
+  
+  if (housekeeping_list$clear_up) {
+    pl5 <- param_list_simulation_finalizer_create(sim.out$Ptr)
+    sim.out <- simulation_R(pl5, seed = seed)
+    for(i in 1:length(res)){
+      if("Ptr" %in% names(res[[i]])) {
+       res[[i]]$Ptr <- NULL 
+      }
+    }
+    gc()
+  }
   return(res)
 }

@@ -105,8 +105,10 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   {
     u_ptr->parameters.g_percentage_imported_human_infections = Rcpp::as<double>(spatial_list["imported_cotransmissions_events"]);
     u_ptr->parameters.g_percentage_imported_mosquito_infections = Rcpp::as<double>(spatial_list["imported_oocyst_events"]);
-    u_ptr->parameters.g_spatial_total_imported_human_infections = u_ptr->parameters.g_percentage_imported_human_infections * u_ptr->parameters.g_total_human_infections;
-    u_ptr->parameters.g_spatial_total_imported_mosquito_infections = u_ptr->parameters.g_percentage_imported_mosquito_infections * u_ptr->parameters.g_total_mosquito_infections;
+    u_ptr->parameters.g_spatial_total_imported_human_infections = u_ptr->parameters.g_percentage_imported_human_infections * static_cast<double>(u_ptr->parameters.g_total_human_infections);
+    u_ptr->parameters.g_spatial_total_imported_mosquito_infections = u_ptr->parameters.g_percentage_imported_mosquito_infections * static_cast<double>(u_ptr->parameters.g_total_mosquito_infections);
+    u_ptr->parameters.g_spatial_total_imported_human_infections = rpoisson1(u_ptr->parameters.g_spatial_total_imported_human_infections);
+    u_ptr->parameters.g_spatial_total_imported_mosquito_infections = rpoisson1(u_ptr->parameters.g_spatial_total_imported_mosquito_infections);
   }
   
   // Other updates

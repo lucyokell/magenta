@@ -194,28 +194,36 @@ boost::dynamic_bitset<> Mosquito::sample_sporozoite() {
   // does the mosquito have more than one oocyst to pick from 
   if (m_ruptured_oocyst_count == 1)
   {
-    Strain::temp_barcode = Strain::generate_recombinant_barcode(
+    Strain::temp_barcode_pair = Strain::generate_recombinant_barcode(
       get_m_oocyst_barcode_male_vector(0),
       get_m_oocyst_barcode_female_vector(0)
     );
     
     // decrease the remaining  spz from this oocyst
-    m_oocyst_remaining_spz_count[0]--;
+    m_oocyst_remaining_spz_count[0] = m_oocyst_remaining_spz_count[0] - 2;
   } 
   else 
   {
     m_oocyst_pick = sample1_ints(m_oocyst_remaining_spz_count, (4*m_ruptured_oocyst_count)-m_generated_sporozoite_count);
-    Strain::temp_barcode = Strain::generate_recombinant_barcode(
+    Strain::temp_barcode_pair = Strain::generate_recombinant_barcode(
       m_oocyst_barcode_male_vector[m_oocyst_pick],
                                   m_oocyst_barcode_female_vector[m_oocyst_pick]
     );
     
     // decrease the number of remaining spz from this oocyst
-    m_oocyst_remaining_spz_count[m_oocyst_pick]--;
+    m_oocyst_remaining_spz_count[m_oocyst_pick] = m_oocyst_remaining_spz_count[m_oocyst_pick] - 2;
   }
   
-  m_generated_sporozoite_count++;
-  m_generated_sporozoites_vector.emplace_back(Strain::temp_barcode);
+  m_generated_sporozoite_count = m_generated_sporozoite_count + 2;
+  m_generated_sporozoites_vector.emplace_back(Strain::temp_barcode_pair[0]);
+  m_generated_sporozoites_vector.emplace_back(Strain::temp_barcode_pair[1]);
+  
+  // which one was then passed on
+  if(rbernoulli1(0.5)) {
+    return(Strain::temp_barcode_pair[0]);
+  } else {
+    return(Strain::temp_barcode_pair[1]);
+  }
   
   return(Strain::temp_barcode);
   

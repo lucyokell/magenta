@@ -160,7 +160,9 @@ public:
   // barcode drug related parameters
   bool g_resistance_flag;
   unsigned int g_number_of_resistance_loci;
+  std::vector<unsigned int> g_resistance_loci;
   std::vector<double> g_cost_of_resistance;
+  std::vector<unsigned int>  g_artemisinin_loci;
   std::vector<Drug> g_drugs;
 
   

@@ -56,7 +56,7 @@ bool Person::reciprocal_infection_boolean(const Parameters &pars)
       if(pars.g_gametocyte_sterilisation_flag){
         if(
           m_active_strains[n].get_m_day_of_strain_acquisition() < (pars.g_current_time - pars.g_delay_gam) ||
-            (m_active_strains[n].get_m_day_of_strain_acquisition() < (pars.g_current_time - pars.g_delay_gam/2) && m_active_strains[n].vector_adapted_boolean(pars))
+            (m_active_strains[n].get_m_day_of_strain_acquisition() < (pars.g_current_time - pars.g_delay_gam/2) && m_active_strains[n].resistant_at_any_loci_boolean(pars))
         ){
           m_gametocytogenic_strains.emplace_back(n);
           m_gametocytogenic_infections++;
@@ -74,6 +74,29 @@ bool Person::reciprocal_infection_boolean(const Parameters &pars)
   if (m_gametocytogenic_infections)
   {
     
+    // default contribution modifier for onward infection probability
+    double highest_contribution = 1.0;
+    
+    // if we are doing resistance then moderate the probability of infection 
+    // if the individual is asymptomatic and only has resistant strains
+    // if they are D or T then we assume they must be in a given parasitaemia range
+    if (pars.g_resistance_flag && (m_infection_state == ASYMPTOMATIC || m_infection_state == SUBPATENT)){
+      
+      // set this to 0 and then update according to the highest relative contribution of the strains
+      highest_contribution = 0.0;
+      double current_contribution = 0.0;
+      
+      for(auto m : m_gametocytogenic_strains){
+        current_contribution = m_active_strains[m].relative_contribution(pars);
+        if (current_contribution > highest_contribution){
+          highest_contribution = current_contribution;
+        }
+      }
+
+    }
+    
+    
+    
     // Match infection state and asses whether onward infection would have happened
     switch (m_infection_state)
     {
@@ -82,18 +105,18 @@ bool Person::reciprocal_infection_boolean(const Parameters &pars)
     case DISEASED:
       return(rbernoulli_cD());
     case ASYMPTOMATIC:
-      return(rbernoulli1(m_cA));
+      return(rbernoulli1(m_cA*highest_contribution));
     case SUBPATENT:
-      return(rbernoulli_cU());
+      return(rbernoulli1(pars.g_cU*highest_contribution));
     case TREATED:
-      return(rbernoulli_cT());
+      return(rbernoulli1(m_cA*highest_contribution));
     case PROPHYLAXIS:
       return(false);
     default:
       assert("Schedule Infection Status Change Error - person's infection status not S, D, A, U, T or P");
-    return(false);
+      return(false);
     }
-    
+
   } 
   else 
   {
@@ -152,7 +175,7 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
       // ammend contribuution to onwards infectiousness if the person is treated and the strain is not artemisinin resistant
       if(parameters.g_gametocyte_sterilisation_flag){
         if(m_infection_state == TREATED || (m_infection_state == ASYMPTOMATIC && m_treatment_outcome == LPF && m_day_last_treated > parameters.g_current_time - 10)){
-          if(!m_active_strains[m_gametocytogenic_strains[n]].barcode_position(0)){
+          if(Strain::all_at_positions(m_active_strains[m_gametocytogenic_strains[n]].get_m_barcode(),parameters.g_artemisinin_loci)){
             m_active_strain_contribution.back() *= parameters.g_gametocyte_sterilisation;
           }
         }
@@ -182,77 +205,6 @@ std::vector<boost::dynamic_bitset<>> Person::sample_two_barcodes(const Parameter
     
     return(temp_storage);
   }
-}
-
-// Work out if late parasitological failure happened
-bool Person::late_paristological_failure_boolean(const Parameters &parameters){
-  
-  // the default drug
-  m_drug_choice = parameters.g_drug_choice;
-  int time_ago = 0;
-  double prob_of_lpf = 0.0;
-  double temp_prob_lpf = 0.0;
-  
-  // set up our post treatment vectors
-  m_post_treatment_strains.clear();
-  m_resistant_strains.clear();
-  
-  m_post_treatment_strains.reserve(m_number_of_strains);
-  m_resistant_strains.reserve(m_number_of_strains);
-  
-  // are we doing mft, and if so what drug did they get this time
-  if(parameters.g_mft_flag) {
-    m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
-  }
-  
-  // loop through strains and work out the individuals prob of lpf
-  for(int ts = 0; ts < m_number_of_strains ; ts++){
-    
-    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
-    prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
-    
-    if (Strain::any_at_positions(m_active_strains[ts].get_m_barcode(),parameters.g_drugs[m_drug_choice].get_m_barcode_positions())) {
-      m_resistant_strains.emplace_back(m_active_strains[ts]);
-    }
-    
-  }
-  
-  // did they clear
-  if (rbernoulli1(prob_of_lpf)){
-    
-    bool at_least_one = true;
-    
-    // if so then loop through backwards and work out which strains survived
-    // we loop through backwards as it makes more sense to ensure the strain
-    // that we pick to definitely survived should be the most recent
-    for(int ts = (m_number_of_strains-1); ts >=0  ; ts--){
-      
-      // what is this strains lpf
-      temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
-      
-      // is this the same lpf as for the human and is this the first occurrence
-      if (at_least_one && (temp_prob_lpf == prob_of_lpf)) {
-        m_post_treatment_strains.emplace_back(m_active_strains[ts]);
-        at_least_one = false;
-      } 
-      else 
-      {
-        // if infection was more than dur_A ago then it is cleared for sure
-        time_ago = ( (parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
-          (m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition()));
-        
-        if( time_ago < 1 ) {
-          if(rbernoulli1(temp_prob_lpf * (1 - time_ago))) {
-            m_post_treatment_strains.emplace_back(m_active_strains[ts]);
-          }
-        }
-      }
-      
-    }
-  }
-  
-  return(m_post_treatment_strains.size());
-  
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -860,6 +812,7 @@ void Person::treatment_outcome(const Parameters &parameters) {
       } else {
         m_infection_state = PROPHYLAXIS;
         schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+        all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains (this includes pending strains)
       }
     }
   } else {
@@ -882,6 +835,8 @@ void Person::treatment_outcome(const Parameters &parameters) {
     }
   }
   
+  // update next event day
+  set_m_day_of_next_event();
 }
 
 // Late parasitological failure
@@ -919,6 +874,91 @@ void Person::late_paristological_failure(const Parameters &parameters) {
   
 }
 
+// Work out if late parasitological failure happened
+bool Person::late_paristological_failure_boolean(const Parameters &parameters){
+  
+  // the default drug
+  m_drug_choice = parameters.g_drug_choice;
+  int time_ago = 0;
+  double prob_of_lpf = 0.0;
+  double temp_prob_lpf = 0.0;
+  std::vector<double> probs_of_lpf(m_number_of_strains, 0.0);
+  
+  // set up our post treatment vectors
+  m_post_treatment_strains.clear();
+  m_resistant_strains.clear();
+  
+  m_post_treatment_strains.reserve(m_number_of_strains);
+  m_resistant_strains.reserve(m_number_of_strains);
+  
+  // are we doing mft, and if so what drug did they get this time
+  if(parameters.g_mft_flag) {
+    m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+  }
+  
+  // loop through strains and work out the individuals prob of lpf
+  for(int ts = 0; ts < m_number_of_strains ; ts++){
+    
+    // what's the probability of failure if the strain was in state T/D
+    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
+    
+    // how far through the infection is the strain
+    time_ago = ( (parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
+      (m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition()));
+
+    // if the strain is asymptomatic then alter the prop of lpf given the strain's age
+    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::ASYMPTOMATIC) {
+      temp_prob_lpf *= (1 - time_ago);
+    } 
+
+    // if the strain is subpatent then it always clears
+    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::SUBPATENT) {
+      temp_prob_lpf = 0;
+    }
+
+    prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
+    probs_of_lpf[ts] = temp_prob_lpf;
+
+    if (Strain::any_at_positions(m_active_strains[ts].get_m_barcode(),parameters.g_drugs[m_drug_choice].get_m_barcode_positions())) {
+      m_resistant_strains.emplace_back(m_active_strains[ts]);
+    }
+    
+  }
+  
+  // did they clear
+  if (rbernoulli1(prob_of_lpf)){
+    
+    bool at_least_one = true;
+    
+    // if so then loop through backwards and work out which strains survived
+    // we loop through backwards as it makes more sense to ensure the strain
+    // that we pick to definitely survived should be the most recent
+    for(int ts = (m_number_of_strains-1); ts >=0  ; ts--){
+      
+      // what is this strains lpf
+      temp_prob_lpf =  probs_of_lpf[ts];
+      
+      // is this the same lpf as for the human and is this the first occurrence
+      if (at_least_one && (temp_prob_lpf == prob_of_lpf)) {
+        m_post_treatment_strains.emplace_back(m_active_strains[ts]);
+        at_least_one = false;
+      } 
+      else 
+      {
+        if( time_ago > 0 ) {
+          if(rbernoulli1(temp_prob_lpf)) {
+            m_post_treatment_strains.emplace_back(m_active_strains[ts]);
+          }
+        }
+      }
+      
+    }
+  }
+  
+  return(m_post_treatment_strains.size());
+  
+}
+
 // Slow parasite clearance
 void Person::slow_treatment_clearance(const Parameters &parameters) {
   
@@ -950,8 +990,12 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
     
     // are they tested - if not we assume they are just given drugs in this situation
     if(rbernoulli1(parameters.g_prob_of_testing_nmf)) {
+      
       // are they detected
-      if(rbernoulli1(q_fun(parameters))){
+      if(detectable_malaria(parameters)){
+        
+        // are they currently not being treated
+        if(m_infection_state != TREATED) {
         
         // then trigger treatment
         m_infection_state = TREATED;
@@ -961,9 +1005,15 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
         m_infection_time_realisation_vector.clear();
         m_infection_state_realisation_vector.clear();
         m_infection_barcode_realisation_vector.clear();
+        
+        }
       }
+      
     } else {
       
+      // are they currently not being treated
+      if(m_infection_state != TREATED) {
+        
       // then trigger treatment
       m_infection_state = TREATED;
       schedule_m_day_of_InfectionStatus_change(parameters);
@@ -972,6 +1022,8 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
       m_infection_time_realisation_vector.clear();
       m_infection_state_realisation_vector.clear();
       m_infection_barcode_realisation_vector.clear();
+      
+      }
       
     }
     

@@ -118,6 +118,8 @@ Parameters::Parameters() {
   // barcode drug related parameters
   g_resistance_flag = false;
   g_number_of_resistance_loci = 0;
+  g_resistance_loci = std::vector<unsigned int> {};
+  g_artemisinin_loci = {1};
   g_cost_of_resistance = {1.0};
   
   // mutation parameters

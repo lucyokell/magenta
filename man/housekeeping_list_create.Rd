@@ -4,12 +4,16 @@
 \alias{housekeeping_list_create}
 \title{Create housekeeping parameter list}
 \usage{
-housekeeping_list_create(quiet = TRUE, cluster = TRUE)
+housekeeping_list_create(quiet = TRUE, cluster = TRUE,
+  clear_up = TRUE)
 }
 \arguments{
-\item{quiet}{Boolean for quiet simulation}
+\item{quiet}{Boolean for quiet simulation. Default = TRUE}
 
-\item{cluster}{Boolean for simulation being on cluster}
+\item{cluster}{Boolean for simulation being on cluster. Default = TRUE}
+
+\item{clear_up}{Boolean for whether to clear up the memory used by the 
+simulation. Default = TRUE}
 }
 \description{
 List for simulation housekeeping vars, e.g. quiet prints,

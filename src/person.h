@@ -285,10 +285,29 @@ public:
   // Work out if reciprocal infection happened
   std::vector<boost::dynamic_bitset<>> sample_two_barcodes(const Parameters &parameters);
   
-  // Work out chance of detecting malaria, q
+  // Work out chance of detecting malaria
   double q_fun(const Parameters &parms) {
+    
     double fd =  1 - ((1-parms.g_fD0) / (1 + pow((m_person_age/parms.g_aD),parms.g_gD)));
     return(parms.g_d1 + ((1-parms.g_d1) / (1 + pow((m_ID/parms.g_ID0),parms.g_kD)*fd)));
+    
+  }
+  
+  // Malaria Detected by RDT/Micrscopy
+  bool detectable_malaria(const Parameters &parms) {
+    
+    // are they high parasitaemia
+    if (m_infection_state == DISEASED || m_infection_state == TREATED) {
+      return(true);
+    }
+    
+    // are they asymptomatic if so use q_fun
+    if (m_infection_state == ASYMPTOMATIC) {
+      return(rbernoulli1(q_fun(parms)));
+    }
+    
+    return(false);
+    
   }
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

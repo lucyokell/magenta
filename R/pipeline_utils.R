@@ -346,15 +346,18 @@ mu_fv_create <- function(eqInit,
 #' 
 #' List for simulation housekeeping vars, e.g. quiet prints,
 #' 
-#' @param quiet Boolean for quiet simulation
-#' @param cluster Boolean for simulation being on cluster
-#' 
+#' @param quiet Boolean for quiet simulation. Default = TRUE
+#' @param cluster Boolean for simulation being on cluster. Default = TRUE
+#' @param clear_up Boolean for whether to clear up the memory used by the 
+#'   simulation. Default = TRUE
 
 housekeeping_list_create <- function(quiet = TRUE,
-                                     cluster = TRUE) {
+                                     cluster = TRUE,
+                                     clear_up = TRUE) {
   
   l <- list("quiet_print" = quiet,
-            "cluster" = cluster)
+            "cluster" = cluster,
+            "clear_up" = clear_up)
   
   return(l)
   
@@ -398,6 +401,8 @@ housekeeping_list_create <- function(quiet = TRUE,
 #'   E.g. the default is \code{list(c(1),c(2))}, which shows that for drug 1,
 #'   the prophylactic position is encoded in barcode position 1, and for drug 2
 #'   it is encoded at position 2.
+#' @param artemisinin_loci Numerics for barcode positions that confer artemisinin 
+#'   resistance
 #' @param dur_P Vector for the duration of prophylaxis for each drug. Default 
 #'   is \code{rep(25,number_of_drugs)}.
 #' @param dur_SPC Vector for the duration of slow parasite clearance for each 
@@ -422,6 +427,7 @@ drug_list_create <- function(resistance_flag = FALSE,
                              barcode_res_pos = list(c(0,1),
                                                     c(0,2)),
                              prophylactic_pos = list(c(1),c(2)),
+                             artemisinin_loci = 0,
                              dur_P = rep(25, number_of_drugs),
                              dur_SPC = rep(5, number_of_drugs),
                              mft_flag = FALSE,
@@ -442,10 +448,14 @@ drug_list_create <- function(resistance_flag = FALSE,
                                                    resistance_costs,
                                                    epistatic_logic)
   
+  resistance_loci <- sort(unique(unlist(barcode_res_pos)));
+  
   
   l <- list("resistance_flag" = resistance_flag,
             "number_of_resistance_loci" = number_of_resistance_loci,
             "cost_of_resistance" = resistance_costs,
+            "resistance_loci" = resistance_loci,
+            "artemisinin_loci" = artemisinin_loci,
             "prob_of_lpf" = prob_of_lpf,
             "barcode_res_pos" = barcode_res_pos,
             "prophylactic_pos" = prophylactic_pos,
@@ -642,6 +652,10 @@ update_saves <- function(res, i, sim.out, sample_states,
       
       if(any(is.na(res[[i]]$treatment_failure))) {
         res[[i]]$treatment_failure[is.na(res[[i]]$treatment_failure)] <- 0 
+      }
+      res[[i]]$overall_treatment_failure <- sum(res[[i]]$unsuccesful_treatments_lpf)/(sum(res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments))
+      if(is.na(res[[i]]$overall_treatment_failure)){
+        res[[i]]$overall_treatment_failure <- 0
       }
       
       # prevalence measures
