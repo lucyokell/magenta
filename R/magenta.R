@@ -17,6 +17,8 @@
 #' @importFrom graphics par plot
 #' @importFrom rlang .data
 #' @importFrom grDevices dev.off tiff dev.new hcl
+#' @importFrom ggplot2 geom_line scale_color_manual scale_shape_manual theme
+#' @importFrom ggplot2 guides guide_legend
 #' @importFrom odin odin
 #'
 "_PACKAGE"

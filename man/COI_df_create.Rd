@@ -4,9 +4,17 @@
 \alias{COI_df_create}
 \title{Create COI dataframe}
 \usage{
-COI_df_create(df, groupvars = c("age_bin", "clinical"),
-  breaks = c(-0.001, 5, 15, 100.1), barcodes = FALSE, ibd = FALSE,
-  n = Inf, reps = 1, nl = 24, mean_only = TRUE)
+COI_df_create(
+  df,
+  groupvars = c("age_bin", "clinical"),
+  breaks = c(-0.001, 5, 15, 100.1),
+  barcodes = FALSE,
+  ibd = FALSE,
+  n = Inf,
+  reps = 1,
+  nl = 24,
+  mean_only = TRUE
+)
 }
 \arguments{
 \item{df}{Output of \code{\link{pop_strains_df}}}

@@ -4,9 +4,14 @@
 \alias{summary_data_frames_from_sims}
 \title{Create summary prev and genetic dataframes}
 \usage{
-summary_data_frames_from_sims(res_list, update_length = 30, years = 35,
+summary_data_frames_from_sims(
+  res_list,
+  update_length = 30,
+  years = 35,
   age_breaks = c("(-0.001,5]", "(5,15]", "(15,100]"),
-  coi_detect = FALSE, ibd = FALSE)
+  coi_detect = FALSE,
+  ibd = FALSE
+)
 }
 \arguments{
 \item{res_list}{list of simulation outputs}

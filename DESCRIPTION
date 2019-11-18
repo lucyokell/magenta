@@ -2,7 +2,6 @@ Package: magenta
 Type: Package
 Title: Individual-based simulation model of malaria epidemiology and genomics
 Version: 1.1.0
-Date: 2019-08-21
 Author: OJ Watson & Bob Verity
 Maintainer: Oliver Watson <o.watson@imperial.ac.uk>
 Description: Individual-based simulation model of malaria epidemiology and genomics.
@@ -30,7 +29,7 @@ Remotes:
     richfitz/dde
 LinkingTo: Rcpp, BH
 LazyData: TRUE
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.0
 SystemRequirements: C++11
 Additional_repositories: https://mrc-ide.github.io/drat
 Suggests:

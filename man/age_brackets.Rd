@@ -4,8 +4,11 @@
 \alias{age_brackets}
 \title{Creates age brackets}
 \usage{
-age_brackets(max_age = 100, num_age_brackets = 20,
-  geometric_age_brackets = TRUE)
+age_brackets(
+  max_age = 100,
+  num_age_brackets = 20,
+  geometric_age_brackets = TRUE
+)
 }
 \arguments{
 \item{max_age}{Maximum age in years}

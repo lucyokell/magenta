@@ -634,7 +634,7 @@ Pipeline <- function(EIR = 120,
     # If we have specified a full save or human save then we grab that
     # and save it or just the human bits of interest
     if (full_save || human_only_full_save) {
-      #  browser()
+
       # Now let's save the simulation in full
       pl2 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
       sim_save <- simulation_R(pl2, seed = seed)

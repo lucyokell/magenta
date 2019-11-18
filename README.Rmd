@@ -1,0 +1,35 @@
+---
+output: github_document
+---
+```{r, echo = FALSE}
+library(knitr)
+opts_chunk$set(
+collapse = TRUE,
+comment = "#>",
+fig.path = "README-"
+)
+opts_knit$set(upload.fun = imgur_upload)
+```
+# icer
+
+[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+[![Travis-CI Build Status](https://travis-ci.org/ojwatson/magenta.png?branch=master)](https://travis-ci.org/ojwatson/magenta)
+
+
+## Motivation
+
+*magenta* is an individual-based simulation model of malaria epidemiology and genomics.
+*magenta* extends the imperial malaria model by tracking the infection history of 
+individuals. With this additional genetic characteristics of the parasite can be 
+assessed.
+
+---
+
+## Example
+
+
+```{r data}
+
+
+```
+

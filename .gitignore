@@ -22,3 +22,4 @@ src-x64
 ^.*\.zip$
 Link to MAGENTA.Rproj
 /*.R
+todo.txt

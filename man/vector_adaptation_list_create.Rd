@@ -4,11 +4,14 @@
 \alias{vector_adaptation_list_create}
 \title{Create vector adaptation list}
 \usage{
-vector_adaptation_list_create(vector_adaptation_loci,
-  vector_adaptation_flag = FALSE, local_oocyst_advantage = 0.5,
+vector_adaptation_list_create(
+  vector_adaptation_loci,
+  vector_adaptation_flag = FALSE,
+  local_oocyst_advantage = 0.5,
   gametocyte_sterilisation_flag = FALSE,
   gametocyte_sterilisation = 0.5,
-  oocyst_reduction_by_artemisinin = 0.2)
+  oocyst_reduction_by_artemisinin = 0.2
+)
 }
 \arguments{
 \item{vector_adaptation_loci}{Vector of integers detailing which loci

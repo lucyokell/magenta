@@ -630,15 +630,14 @@ plot_resistance_lineages <- function(t,legend=TRUE){
     lins <- FALSE
   }
   
-  
   af <- matrix(unlist(lapply(t[1:l],"[[","af")),ncol=bs,byrow=TRUE)
   
   if(lins) {
     lin <- matrix(unlist(lapply(t[1:l],"[[","lineage")),ncol=bst,byrow=TRUE)
   }
   
-  af_df <- data.frame("time"=1:l,"af"=as.numeric(af),"loci"=as.character(sort(rep(1:ncol(af),l))) ) 
-  af_gg <- ggplot(af_df, aes(x=time, y=af,color=loci)) + geom_point() + geom_line()
+  af_df <- data.frame("time"=1:l,"af"=as.numeric(af), "loci"=as.character(sort(rep(1:ncol(af),l))) ) 
+  af_gg <- ggplot(af_df, aes(x=.data$time, y=.data$af, color=.data$loci)) + geom_point() + geom_line()
   
   if(lins){
     lin_names <- apply(
@@ -662,7 +661,8 @@ plot_resistance_lineages <- function(t,legend=TRUE){
     
     colours <- rep(RColorBrewer::brewer.pal(8,"Paired"),2)
     
-    lin_gg <- ggplot(lin_df, aes(x=time, y=af, color=group, shape=group)) + geom_point() + geom_line() + 
+    lin_gg <- ggplot(lin_df, aes(x=.data$time, y=.data$af, color=.data$group, shape=.data$group)) + 
+      geom_point() + geom_line() + 
       scale_color_manual(name="barcode",labels=lin_names,values = colours) + 
       scale_shape_manual(name="barcode",labels=lin_names,values = c(rep(19,8),rep(17,8)))
     heights <- c(1,1,1,1)
@@ -676,25 +676,32 @@ plot_resistance_lineages <- function(t,legend=TRUE){
   prev <- lapply(t[1:l],function(x){x[c("pcr_prev","dat","micro_2_10")]}) %>% 
     rbind_list_base() %>% 
     reshape2::melt() %>% 
-    mutate(time=rep(1:l,3)) %>% 
-    ggplot(aes(x=time,y=value,color=variable)) + geom_line()
+    dplyr::mutate(time=rep(1:l,3)) %>% 
+    ggplot(aes(x=.data$time,y=.data$value,color=.data$variable)) + geom_line()
   
-  ntf <- lapply(tail(t,l/2),function(x){sum(x$unsuccesful_treatments_lpf,x$not_treated)}) %>% unlist %>% sum
-  ntf <- ntf/(t[[l+1]]$Loggers$Ages %>% length()/100)/round(t[[l+1]]$Loggers$Time/(2*365))
+  ntf <- lapply(tail(t,l/2),function(x){
+    sum(x$unsuccesful_treatments_lpf,x$not_treated)
+    }) %>% 
+    unlist %>% 
+    sum
+  
+  ntf <- ntf/(length(t[[l+1]]$Loggers$Ages)/100) / round(t[[l+1]]$Loggers$Time/(2*365))
   
   tf <- lapply(t[1:l],function(x){x[c("overall_treatment_failure")]}) %>% 
     rbind_list_base() %>% 
     reshape2::melt() %>% 
-    mutate(time=rep(1:l,1)) %>% 
-    ggplot(aes(x=time,y=value,color=variable)) + geom_line()
+    dplyr::mutate(time=rep(1:l,1)) %>% 
+    ggplot(aes(x=.data$time,y=.data$value,color=.data$variable)) + 
+    geom_line()
   
   if(legend) {
   cowplot::plot_grid(af_gg,lin_gg,tf,prev,rel_heights = heights,ncol=1)
   } else {
-    cowplot::plot_grid(af_gg+theme(legend.position = "top"),
-                       lin_gg+theme(legend.position = "top")+ guides(col = guide_legend(ncol = bst)),
-                       tf+theme(legend.position = "top"),
-                       prev+theme(legend.position = "top"),
+    cowplot::plot_grid(af_gg + theme(legend.position = "top"),
+                       lin_gg + theme(legend.position = "top") + 
+                         guides(col = guide_legend(ncol = bst)),
+                       tf + theme(legend.position = "top"),
+                       prev + theme(legend.position = "top"),
                        rel_heights = heights,ncol=1)
   }
   

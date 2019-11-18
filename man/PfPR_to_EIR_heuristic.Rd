@@ -4,8 +4,15 @@
 \alias{PfPR_to_EIR_heuristic}
 \title{Brute force conversion of PfPR and ft to an EIR}
 \usage{
-PfPR_to_EIR_heuristic(ft, PfPR = NULL, PfPR_micro = NULL, mv = NULL,
-  age_range = NULL, all_a = FALSE, ...)
+PfPR_to_EIR_heuristic(
+  ft,
+  PfPR = NULL,
+  PfPR_micro = NULL,
+  mv = NULL,
+  age_range = NULL,
+  all_a = FALSE,
+  ...
+)
 }
 \arguments{
 \item{ft}{Treatment seeking}

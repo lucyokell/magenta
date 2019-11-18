@@ -4,8 +4,16 @@
 \alias{equilibrium_init_create}
 \title{Equilibrium initialisation list creation}
 \usage{
-equilibrium_init_create(age_vector, het_brackets, ft, EIR,
-  model_param_list, country = NULL, admin = NULL, quiet = FALSE)
+equilibrium_init_create(
+  age_vector,
+  het_brackets,
+  ft,
+  EIR,
+  model_param_list,
+  country = NULL,
+  admin = NULL,
+  quiet = FALSE
+)
 }
 \arguments{
 \item{age_vector}{Vector of age brackets.}

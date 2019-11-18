@@ -4,8 +4,13 @@
 \alias{pop_strains_df}
 \title{Get ppopulation strain information}
 \usage{
-pop_strains_df(statePtr, seed, sample_size = 0, sample_states = 0:5,
-  ibd = FALSE)
+pop_strains_df(
+  statePtr,
+  seed,
+  sample_size = 0,
+  sample_states = 0:5,
+  ibd = FALSE
+)
 }
 \arguments{
 \item{statePtr}{Universe state pointer}

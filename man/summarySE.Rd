@@ -4,8 +4,12 @@
 \alias{summarySE}
 \title{Create summary statistics df}
 \usage{
-summarySE(data = NULL, measurevar = "COI", groupvars = c("Age_Bin",
-  "State"), conf.interval = 0.95)
+summarySE(
+  data = NULL,
+  measurevar = "COI",
+  groupvars = c("Age_Bin", "State"),
+  conf.interval = 0.95
+)
 }
 \arguments{
 \item{data}{Dataframe to be summarised}

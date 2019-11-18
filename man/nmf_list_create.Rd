@@ -4,11 +4,14 @@
 \alias{nmf_list_create}
 \title{Create nmf list}
 \usage{
-nmf_list_create(nmf_flag = FALSE, mean_nmf_frequency = c(148.578,
-  139.578, 141.564, 155.874, 179.364, 216.192, 233.478, 268.056, 312.858,
-  315.564, 285.156, 255.246, 238.302, 216.618),
-  nmf_age_brackets = c(-0.1, 365, 730, 1095, 1460, 1825, 2555, 3285,
-  4015, 4745, 5475, 7300, 9125, 10950, 36850), prob_of_testing_nmf = 0.5)
+nmf_list_create(
+  nmf_flag = FALSE,
+  mean_nmf_frequency = c(148.578, 139.578, 141.564, 155.874, 179.364, 216.192, 233.478,
+    268.056, 312.858, 315.564, 285.156, 255.246, 238.302, 216.618),
+  nmf_age_brackets = c(-0.1, 365, 730, 1095, 1460, 1825, 2555, 3285, 4015, 4745, 5475,
+    7300, 9125, 10950, 36850),
+  prob_of_testing_nmf = 0.5
+)
 }
 \arguments{
 \item{nmf_flag}{Boolean are we doing non malarial fevers}

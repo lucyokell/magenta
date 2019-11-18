@@ -4,9 +4,17 @@
 \alias{param_list_simulation_init_create}
 \title{Parameter List creation for magenta simulation initialisation}
 \usage{
-param_list_simulation_init_create(N = 10000, eqSS, barcode_params,
-  spatial_list, housekeeping_list, drug_list, nmf_list,
-  vector_adaptation_list, mpl)
+param_list_simulation_init_create(
+  N = 10000,
+  eqSS,
+  barcode_params,
+  spatial_list,
+  housekeeping_list,
+  drug_list,
+  nmf_list,
+  vector_adaptation_list,
+  mpl
+)
 }
 \arguments{
 \item{N}{Population size. Default = 1e4}

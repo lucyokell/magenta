@@ -4,8 +4,12 @@
 \alias{summarySE_mean_only}
 \title{Create summary statistics df}
 \usage{
-summarySE_mean_only(data = NULL, measurevar = "COI",
-  groupvars = c("Age_Bin", "State"), mean_only = TRUE)
+summarySE_mean_only(
+  data = NULL,
+  measurevar = "COI",
+  groupvars = c("Age_Bin", "State"),
+  mean_only = TRUE
+)
 }
 \arguments{
 \item{data}{Dataframe to be summarised}

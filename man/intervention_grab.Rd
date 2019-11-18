@@ -4,8 +4,14 @@
 \alias{intervention_grab}
 \title{Intervention grab}
 \usage{
-intervention_grab(country, admin, year_range, final_itn_cov = NULL,
-  final_irs_cov = NULL, final_ft = NULL)
+intervention_grab(
+  country,
+  admin,
+  year_range,
+  final_itn_cov = NULL,
+  final_irs_cov = NULL,
+  final_ft = NULL
+)
 }
 \arguments{
 \item{country}{Country string}

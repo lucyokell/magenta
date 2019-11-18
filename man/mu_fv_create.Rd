@@ -4,9 +4,16 @@
 \alias{mu_fv_create}
 \title{Create mosquito death and feeding vector}
 \usage{
-mu_fv_create(eqInit, ft, itn_cov, irs_cov, years, int_times = NULL,
-  full = FALSE, odin_model = system.file("extdata/odin_itn_irs.R",
-  package = "magenta"))
+mu_fv_create(
+  eqInit,
+  ft,
+  itn_cov,
+  irs_cov,
+  years,
+  int_times = NULL,
+  full = FALSE,
+  odin_model = system.file("extdata/odin_itn_irs.R", package = "magenta")
+)
 }
 \arguments{
 \item{eqInit}{Equilibrium Inititial Conditions}

@@ -4,8 +4,13 @@
 \alias{summarySE_mean_only_max_mean}
 \title{Create summary statistics df}
 \usage{
-summarySE_mean_only_max_mean(data = NULL, measurevar = "COI",
-  groupvars = c("Age_Bin", "State"), mean_only = TRUE, max = 0)
+summarySE_mean_only_max_mean(
+  data = NULL,
+  measurevar = "COI",
+  groupvars = c("Age_Bin", "State"),
+  mean_only = TRUE,
+  max = 0
+)
 }
 \arguments{
 \item{data}{Dataframe to be summarised}
