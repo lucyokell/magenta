@@ -4,7 +4,7 @@
 //
 //  Created: OJ Watson on 06/12/2015
 //
-//  NOT ACCURATE 
+//  NOT ACCURATE - DO NOT USE CURRENTLY
 //
 //  Distributed under the MIT software licence
 //
@@ -48,8 +48,6 @@ struct Universe {
 //' @param param_list parameter list generated with \code{Param_List_Simulation_Get_Create}
 //' @return list with ptr to model state and loggers describing the current model state
 //' @export
-//' 
-// [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List param_list)
 {

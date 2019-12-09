@@ -6,14 +6,13 @@
 #' @param eqInit Equilibrium initialisation state as
 #'   output from \code{equilibrium_init_create}
 #'
-#' @export
 
 equilibrium_ss_create <- function(eqInit) {
   
   maternal <- which.max(eqInit$age >= 20)
   
   ## create equilibrium state for return
-  Equilibrium_State <- list(
+  equilibrium_state <- list(
     "age_brackets" = eqInit$age_bounds,
     "het_brackets" = eqInit$het_bounds,
     "Smat" = eqInit$init_S[, , 1],
@@ -35,7 +34,7 @@ equilibrium_ss_create <- function(eqInit) {
     "theta" = seasonal_profile(eqInit$admin, eqInit$country)
   )
   
-  return(Equilibrium_State)
+  return(equilibrium_state)
 }
 
 

@@ -28,6 +28,8 @@ age_brackets <- function(max_age=100,
 #' @param country Country string
 #' @param admin Admin string
 #' @param year_range Year range
+#' 
+#' @export 
 
 spl_grab <- function(country, admin, year_range) {
   
@@ -108,13 +110,16 @@ spl_matrix_check <- function(matrix, years) {
   
   if(is.matrix(matrix)){
     if(dim(matrix)[1] != ceiling(years)){
-      matrix <- rbind(matrix(rep(matrix[1,],ceiling(years) - dim(matrix)[1]),ncol=dim(matrix)[2],byrow=TRUE),matrix)
+      matrix <- rbind(matrix(rep(matrix[1,], ceiling(years) - dim(matrix)[1]),
+                             ncol=dim(matrix)[2], 
+                             byrow=TRUE),
+                      matrix)
     }
   }
   
   if(is.vector(matrix)) {
     if(length(matrix) != ceiling(years)){
-      matrix <- c(rep(matrix[1],ceiling(years) - length(matrix)),matrix)
+      matrix <- c(rep(matrix[1],ceiling(years) - length(matrix)), matrix)
     }
     matrix <- as.matrix(matrix)
   }
@@ -161,7 +166,8 @@ plaf_matrix_check <- function(matrix, years) {
 #' @param final_itn_cov Final ITN coverage
 #' @param final_irs_cov Final IRS coverage
 #' @param final_ft Final treatment coverage
-#' 
+#'
+#' @export 
 
 intervention_grab <- function(country, admin, year_range, 
                               final_itn_cov = NULL,
@@ -321,7 +327,10 @@ mu_fv_create <- function(eqInit,
       if(grepl("_I",e)){
         eqInit[[e]] <- array(eqInit[[e]][,,1] , c(eqInit$na, eqInit$nh, eqInit$num_int))
       } else {
-        eqInit[[e]] <-  vapply(rep(1/eqInit$num_int,eqInit$num_int), FUN = function(x) { x * eqInit[[e]][,,1]}, mat)
+        eqInit[[e]] <-  vapply(rep(1/eqInit$num_int, eqInit$num_int), 
+                               FUN = function(x) { 
+                                 x * eqInit[[e]][,,1]
+                                 }, mat)
       }
     }
     

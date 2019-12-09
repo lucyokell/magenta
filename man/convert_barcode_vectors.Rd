@@ -30,5 +30,6 @@ Default = TRUE}
 \code{convert_barcode_vectors}}
 }
 \description{
-\code{convert_barcode_vectors} converts human barcode vectors to nums
+\code{convert_barcode_vectors} converts human barcode vectors to nums and 
+  calculated COIs.
 }

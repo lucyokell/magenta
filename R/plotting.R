@@ -1,7 +1,7 @@
 #---
 #' Plot ordered heatmap 
 #'
-#' \code{Heatmap_ordered_binary_plot} creates a heatmap of all human barcodes, 
+#' \code{heatmap_ordered_binary_plot} creates a heatmap of all human barcodes, 
 #' with the most common barcode grouped at the bottom
 #' 
 #' @param sim_save Saved output of simulation
@@ -10,38 +10,93 @@
 #' @param ordered Boolean for oredring heatmap. Default = TRUE
 #' @param save_path File path where tiff is saved to. Default = NULL
 #' 
-#' \code{Heatmap_ordered_binary_plot}
+#' \code{heatmap_ordered_binary_plot}
 #' 
-#' @export
 
 
-Heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, save_path=NULL){
+
+heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, save_path=NULL){
   
-  if("populations_event_and_strains_List" %in% names(sim_save)) {
-  mat <- matrix(as.numeric(unlist(sim_save$populations_event_and_strains_List$Strain_barcode_vectors)),ncol=24,byrow=T)
+  if ("populations_event_and_strains_List" %in% names(sim_save)) {
+    mat <-
+      matrix(as.numeric(
+        unlist(
+          sim_save$populations_event_and_strains_List$Strain_barcode_vectors
+        )
+      ), ncol = 24, byrow = T)
   } else {
-    mat <- matrix(as.numeric(unlist(sim_save$Strain_barcode_vectors)),ncol=24,byrow=T)
+    mat <-
+      matrix(as.numeric(unlist(sim_save$Strain_barcode_vectors)), ncol = 24, byrow =
+               T)
   }
   
-  if(ordered){
+  if (ordered) {
+    ID <- apply(mat, MARGIN = 1, FUN = bitsToInt)
+    tabled <- sort(table(ID), decreasing = TRUE)
+    sorted_row_pos <-
+      unlist(sapply(names(tabled), function(x) {
+        return(which(ID == as.numeric(x)))
+      }))
     
-    ID <- apply(mat,MARGIN = 1,FUN = bitsToInt)
-    tabled <- sort(table(ID),decreasing = TRUE)
-    sorted_row_pos <- unlist(sapply(names(tabled),function(x){return(which(ID==as.numeric(x)))}) )
-    
-    if(is.null(save_path)){
-      heatmap(mat[sorted_row_pos,],Rowv = NA,Colv = NA,main = paste0( years," years | EIR = ",EIR),scale="none",labRow = "")
+    if (is.null(save_path)) {
+      heatmap(
+        mat[sorted_row_pos, ],
+        Rowv = NA,
+        Colv = NA,
+        main = paste0(years, " years | EIR = ", EIR),
+        scale = "none",
+        labRow = ""
+      )
     } else {
-      tiff(save_path,width=620,height=620,units="mm",res=300,pointsize = 36, compression="lzw",family="Times New Roman")
-      heatmap(mat[sorted_row_pos,],Rowv = NA,Colv = NA,main = paste0( years," years | EIR = ",EIR),scale="none",labRow = "")
+      tiff(
+        save_path,
+        width = 620,
+        height = 620,
+        units = "mm",
+        res = 300,
+        pointsize = 36,
+        compression = "lzw",
+        family = "Times New Roman"
+      )
+      heatmap(
+        mat[sorted_row_pos, ],
+        Rowv = NA,
+        Colv = NA,
+        main = paste0(years, " years | EIR = ", EIR),
+        scale = "none",
+        labRow = ""
+      )
       dev.off()
     }
   } else {
-    if(is.null(save_path)){
-      heatmap(mat,Rowv = NA,Colv = NA,main = paste0( years," years | EIR = ",EIR),scale="none",labRow = "")  
+    if (is.null(save_path)) {
+      heatmap(
+        mat,
+        Rowv = NA,
+        Colv = NA,
+        main = paste0(years, " years | EIR = ", EIR),
+        scale = "none",
+        labRow = ""
+      )
     } else {
-      tiff(save_path,width=620,height=620,units="mm",res=300,pointsize = 36, compression="lzw",family="Times New Roman")
-      heatmap(mat,Rowv = NA,Colv = NA,main = paste0( years," years | EIR = ",EIR),scale="none",labRow = "")  
+      tiff(
+        save_path,
+        width = 620,
+        height = 620,
+        units = "mm",
+        res = 300,
+        pointsize = 36,
+        compression = "lzw",
+        family = "Times New Roman"
+      )
+      heatmap(
+        mat,
+        Rowv = NA,
+        Colv = NA,
+        main = paste0(years, " years | EIR = ", EIR),
+        scale = "none",
+        labRow = ""
+      )
       dev.off()
     }
   }
@@ -52,7 +107,8 @@ Heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, sa
 #---
 #' Convert human barcodes to numerics
 #'
-#' \code{convert_barcode_vectors} converts human barcode vectors to nums
+#' \code{convert_barcode_vectors} converts human barcode vectors to nums and 
+#'   calculated COIs.
 #' 
 #' @param sim_save Saved output of simulation
 #' @param ID Vector of detection immunities for the population
@@ -86,6 +142,7 @@ convert_barcode_vectors <- function(sim_save, ID,
   out <- sim_save$Strain_barcode_vectors
   n.strains <- lapply(out,length) %>% unlist()
   
+  # covnvert their barcodes into integers
   if(ibd){
     intout <- population_ibd_barcodes(out,nl = nl)
   } else {
@@ -102,9 +159,10 @@ convert_barcode_vectors <- function(sim_save, ID,
     )
   }
   
-  int.out <- lapply(lapply(intout,function(x){return(unlist(x))}),unlist)
+  int.out <- lapply(lapply(intout,function(x){return(unlist(x))}), unlist)
   
-  COI_pcr_imperial <- function(i){
+  # Calcuate COI based on PCR detectability defined in Imperial College Model
+  COI_pcr_imperial <- function(i) {
     a <- length(unique(int.out[[i]][which(sim_save$Strain_infection_state_vectors[[i]]==1)]))
     a <- a + round(length(unique(int.out[[i]][which(sim_save$Strain_infection_state_vectors[[i]]==2)]))*(micro_det[i]^mpl$alphaA))
     a <- a + round(length(unique(int.out[[i]][which(sim_save$Strain_infection_state_vectors[[i]]==3)]))*(micro_det[i]^mpl$alphaU))
@@ -112,7 +170,8 @@ convert_barcode_vectors <- function(sim_save, ID,
     return(a)
   }
   
-  COI_pcr_alternative <- function(i){
+  # Calculate COI based on alternative PCR detectability method
+  COI_pcr_alternative <- function(i) {
     st <- sim_save$Strain_infection_state_vectors[[i]]
     stch <- sim_save$Strain_day_of_infection_state_change_vectors[[i]]
     staying <- st==1 | st == 4 | st == 2
@@ -121,7 +180,8 @@ convert_barcode_vectors <- function(sim_save, ID,
     return(a)
   }
   
-  COI_patent <- function(i){
+  # Calculate COI based on if parasites are microscopically detected
+  COI_patent <- function(i) {
     st <- sim_save$Strain_infection_state_vectors[[i]]
     stch <- sim_save$Strain_day_of_infection_state_change_vectors[[i]]
     staying <- st==1 | st == 4 
@@ -130,8 +190,7 @@ convert_barcode_vectors <- function(sim_save, ID,
     return(a)
   }
   
-  
-  
+  # calculate the COIs
   if(!ibd){
     if(!sub_patents_included){
       COI <- rep(0,length(int.out))
@@ -153,6 +212,8 @@ convert_barcode_vectors <- function(sim_save, ID,
   } else {
     COI <- rep(1,length(int.out))
   }
+  
+  # Change NAs to 0
   COI[which(n.strains==0)] <- 0
   
   return(list("nums"=int.out,"COI"=COI))
@@ -172,14 +233,14 @@ convert_barcode_vectors <- function(sim_save, ID,
 #' @param COI_type type of COI calculation
 #' @inheritParams convert_barcode_vectors
 #' 
-#' 
-#' @export
 
 sample_coi <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90*365,2*365),
                        sub_patents_included=FALSE,reps=50, COI_type="pcr_imperial"){
   
   
-  COI_out <- convert_barcode_vectors(sim_save, ID, sub_patents_included = sub_patents_included,COI_type=COI_type)
+  COI_out <- convert_barcode_vectors(sim_save, ID, 
+                                     sub_patents_included = sub_patents_included,
+                                     COI_type=COI_type)
   
   grouped_ages_by_2 <- cut(sim_save$Ages,breaks = age_breaks,labels = 1:45)
   sample_groups <- round(sample_size * (age_densities*(1/sum(age_densities)))) 
@@ -194,7 +255,8 @@ sample_coi <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90
     
     for(j in names(tabled)){
       
-      id <- c(id,sample(x = which(grouped_ages_by_2==j & sim_save$Infection_States %in% c(1,2,3,4)),size = tabled[j],replace = T))
+      x <- which(grouped_ages_by_2==j & sim_save$Infection_States %in% c(1,2,3,4))
+      id <- c(id, sample(x = x, size = tabled[j],replace = T))
       
     }
     
@@ -219,16 +281,17 @@ sample_coi <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90
 #' @param max_coi max_coi
 #' @importFrom ggplot2 ggplot aes geom_smooth theme_bw geom_point xlim ylim
 #' 
-#' 
-#' @export
 
-coi_age_plot_sample_x <- function(sample_coi_out,x,span=0.6,ylimmax=NULL,xlimmax=NULL,max_coi=25){
-  
+coi_age_plot_sample_x <- function(sample_coi_out,
+                                  x,
+                                  span=0.6,
+                                  ylimmax=NULL,
+                                  xlimmax=NULL,
+                                  max_coi=25) {
   
   mround <- function(x,base){ 
     base*round(x/base) 
   } 
-  
   
   ids <- sample_coi_out$ids[,x]
   Ages <- sample_coi_out$sim_save$Ages[ids]/365
@@ -242,12 +305,14 @@ coi_age_plot_sample_x <- function(sample_coi_out,x,span=0.6,ylimmax=NULL,xlimmax
   if(is.null(xlimmax)) xlimmax <- max(df$Ages) + 1
   
   
-  gg <- ggplot(df,aes(Ages,COI)) + geom_point(alpha = 0.3, size=2, colour = "blue", fill="blue",shape=16) + geom_smooth(span=span,color="red",se=F) + theme_bw(base_size = 22) +
-    ylim(c(0,ylimmax)) + xlim(c(0,xlimmax))
-  #print(gg)
+  gg <- ggplot(df,aes(Ages,COI)) + 
+    geom_point(alpha = 0.3, size=2, colour = "blue", fill="blue",shape=16) + 
+    geom_smooth(span=span,color="red",se=F) + 
+    theme_bw(base_size = 22) +
+    ylim(c(0,ylimmax)) + 
+    xlim(c(0,xlimmax))
   
   invisible(gg)
-  
   
 }
 
@@ -265,10 +330,12 @@ coi_age_plot_sample_x <- function(sample_coi_out,x,span=0.6,ylimmax=NULL,xlimmax
 #'   Default = FALSE, i.e the true COI
 #' @param ibd Were we collecting info on IBD
 #' 
-summary_data_frames_from_sims <- function(res_list, update_length = 30,
+summary_data_frames_from_sims <- function(res_list, 
+                                          update_length = 30,
                                           years = 35, 
                                           age_breaks = c("(-0.001,5]","(5,15]","(15,100]"),
-                                          coi_detect=FALSE, ibd = FALSE){
+                                          coi_detect=FALSE, 
+                                          ibd = FALSE) {
   
   
   if(coi_detect) {

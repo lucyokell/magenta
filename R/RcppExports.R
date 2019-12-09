@@ -28,6 +28,11 @@ Simulation_Init_cpp <- function(param_list) {
     .Call('_magenta_Simulation_Init_cpp', PACKAGE = 'magenta', param_list)
 }
 
+#' Creates initial model simulation using a saved model state
+#'
+#' @param param_list parameter list generated with \code{Param_List_Simulation_Get_Create}
+#' @return list with ptr to model state and loggers describing the current model state
+#' @export
 Simulation_Saved_Init_cpp <- function(param_list) {
     .Call('_magenta_Simulation_Saved_Init_cpp', PACKAGE = 'magenta', param_list)
 }

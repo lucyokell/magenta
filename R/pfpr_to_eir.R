@@ -12,7 +12,7 @@
 #' @param ... Any other params to be fed to the model parameter list
 #' 
 
-PfPR_to_EIR_heuristic <- function(ft = 0, 
+pfpr_to_eir_heuristic <- function(ft = 0, 
                                   PfPR=NULL, PfPR_micro=NULL, mv=NULL, 
                                   age_range=NULL, all_a=FALSE,
                                   ...){

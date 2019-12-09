@@ -115,7 +115,7 @@ ztrnbinom <- function(n,mean,size) {
   return(nbs)
 }
 
-
+# get the clonality from a list of barcode numbers
 clonality_from_barcode_list <- function(barcode_list){
   
   tbl <- table(table(unlist(lapply(barcode_list,unique))))
@@ -128,6 +128,7 @@ clonality_from_barcode_list <- function(barcode_list){
   
 }
 
+# get the cou from a list of barcode numbers
 cou_from_barcode_list <- function(barcode_list){
   
   tbl <- table(unlist(lapply(barcode_list,unique)))
@@ -138,19 +139,7 @@ cou_from_barcode_list <- function(barcode_list){
 }
 
 
-
-pibd_from_barcode_list <- function(barcode_list, l_factor_i){
-   
-    t <- rbind_list_base(barcode_list)
-    if(nrow(t)>1){
-    z <- mean(apply(t,2,function(x) sum((tabulate(x,l_factor_i)/length(x))^2)))
-    return((z - (1/nrow(t)))/(1-(1/nrow(t))))
-    } else {
-      return(NA)
-    }
-}
-
-
+# convert ibd barcode of logicals to a vector of integers
 convert_ibd_barcode <- function(b, nl){
   
   ib <- length(b)/nl
@@ -165,6 +154,7 @@ convert_ibd_barcode <- function(b, nl){
   
 }
 
+# convert population's ibd barcodes to list of int vectors
 population_ibd_barcodes <- function(barcode_vec,nl){
   
   n.strains <- lapply(barcode_vec,length) %>% unlist()
@@ -177,6 +167,7 @@ population_ibd_barcodes <- function(barcode_vec,nl){
   
 }
 
+# covert populations' ibd barcodes to list of int vectors using c++
 population_ibd_barcodes_c <- function(barcode_vec,bl,nl,ib){
   
   n.strains <- lapply(barcode_vec,length) %>% unlist()
@@ -187,4 +178,17 @@ population_ibd_barcodes_c <- function(barcode_vec,bl,nl,ib){
     }
   )
   
+}
+
+
+# get the pIBD from a list of barcode numbers
+pibd_from_barcode_list <- function(barcode_list, l_factor_i){
+   
+    t <- rbind_list_base(barcode_list)
+    if(nrow(t)>1){
+    z <- mean(apply(t,2,function(x) sum((tabulate(x,l_factor_i)/length(x))^2)))
+    return((z - (1/nrow(t)))/(1-(1/nrow(t))))
+    } else {
+      return(NA)
+    }
 }
