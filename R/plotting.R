@@ -52,7 +52,7 @@ Heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, sa
 #---
 #' Convert human barcodes to numerics
 #'
-#' \code{Convert_Barcode_Vectors} converts human barcode vectors to nums
+#' \code{convert_barcode_vectors} converts human barcode vectors to nums
 #' 
 #' @param sim_save Saved output of simulation
 #' @param ID Vector of detection immunities for the population
@@ -60,36 +60,29 @@ Heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, sa
 #'   Default = TRUE
 #' @param ibd Boolean for IBD simulations. Default = FALSE
 #' @param nl Numeric for number of loci. Default = 24
-#' @param COI_type String for type of COI calculation. Default = "old"
+#' @param COI_type String for type of COI calculation. Default = "pcr_imperial"
 #' 
-#' \code{Convert_Barcode_Vectors}
+#' \code{convert_barcode_vectors}
 #' 
 #' @export
 
 
-Convert_Barcode_Vectors <- function(sim_save, ID, 
+convert_barcode_vectors <- function(sim_save, ID, 
                                     sub_patents_included=TRUE, 
                                     ibd = FALSE, nl=24, 
-                                    COI_type = "old"){
+                                    COI_type = "pcr_imperial"){
   
-  
-  
-  # function to calculate probability of strain being detected by microscopy
-  q_fun <- function(d1, ID, ID0, kD, fd) {
-    return(d1 + ((1-d1) / (1 + ((ID/ID0)^kD)*fd)))
+  if(!(COI_type %in% c("pcr_imperial", "pcr_alternative", "patent"))) {
+    stop("COI_type is not correct. Must be one of pcr_imperial, pcr_alternative, patent")
   }
   
-  fd <- function(age, fD0, aD, gammaD) {
-    return( 1 - ((1-fD0) / (1 + (age/aD)^gammaD)) )
-  }
-  
+  # grab their ages so we can work out their detection immunity
   ages <- sim_save$Ages
   ages[ages==0] <- 0.001
   mpl <- model_param_list_create()
   micro_det <- q_fun(mpl$d1,ID,mpl$ID0,mpl$kD,sapply(ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
   
-  
-  
+  # parasites strains
   out <- sim_save$Strain_barcode_vectors
   n.strains <- lapply(out,length) %>% unlist()
   
@@ -111,7 +104,7 @@ Convert_Barcode_Vectors <- function(sim_save, ID,
   
   int.out <- lapply(lapply(intout,function(x){return(unlist(x))}),unlist)
   
-  COI_old <- function(i){
+  COI_pcr_imperial <- function(i){
     a <- length(unique(int.out[[i]][which(sim_save$Strain_infection_state_vectors[[i]]==1)]))
     a <- a + round(length(unique(int.out[[i]][which(sim_save$Strain_infection_state_vectors[[i]]==2)]))*(micro_det[i]^mpl$alphaA))
     a <- a + round(length(unique(int.out[[i]][which(sim_save$Strain_infection_state_vectors[[i]]==3)]))*(micro_det[i]^mpl$alphaU))
@@ -119,7 +112,7 @@ Convert_Barcode_Vectors <- function(sim_save, ID,
     return(a)
   }
   
-  COI_new <- function(i){
+  COI_pcr_alternative <- function(i){
     st <- sim_save$Strain_infection_state_vectors[[i]]
     stch <- sim_save$Strain_day_of_infection_state_change_vectors[[i]]
     staying <- st==1 | st == 4 | st == 2
@@ -128,7 +121,7 @@ Convert_Barcode_Vectors <- function(sim_save, ID,
     return(a)
   }
   
-  COI_new_patent <- function(i){
+  COI_patent <- function(i){
     st <- sim_save$Strain_infection_state_vectors[[i]]
     stch <- sim_save$Strain_day_of_infection_state_change_vectors[[i]]
     staying <- st==1 | st == 4 
@@ -145,12 +138,12 @@ Convert_Barcode_Vectors <- function(sim_save, ID,
       for(i in 1:length(int.out)){
         if(n.strains[i]!=0){
           
-          if(COI_type=="old"){
-            COI[i] <- COI_old(i)
-          } else if (COI_type == "new"){
-            COI[i] <- COI_new(i)
+          if(COI_type == "pcr_imperial"){
+            COI[i] <- COI_pcr_imperial(i)
+          } else if (COI_type == "pcr_alternative"){
+            COI[i] <- COI_pcr_alternative(i)
           } else {
-            COI[i] <- COI_new_patent(i)
+            COI[i] <- COI_patent(i)
           }
         }
       }
@@ -169,7 +162,7 @@ Convert_Barcode_Vectors <- function(sim_save, ID,
 #---
 #' Sample x times from saved simulation and produce age COI data
 #'
-#' \code{Sample_COI} samples from a human save according to some age distirbution
+#' \code{sample_coi} samples from a human save according to some age distirbution
 #' 
 #' @param sim_save Saved output of simulation
 #' @param sample_size Numeric for sample size
@@ -177,16 +170,16 @@ Convert_Barcode_Vectors <- function(sim_save, ID,
 #' @param age_breaks Corresponding vector of age breaks for the density
 #' @param reps How many samples are made
 #' @param COI_type type of COI calculation
-#' @inheritParams Convert_Barcode_Vectors
+#' @inheritParams convert_barcode_vectors
 #' 
 #' 
 #' @export
 
-Sample_COI <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90*365,2*365),
-                       sub_patents_included=FALSE,reps=50, COI_type="old"){
+sample_coi <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90*365,2*365),
+                       sub_patents_included=FALSE,reps=50, COI_type="pcr_imperial"){
   
   
-  COI_out <- Convert_Barcode_Vectors(sim_save, ID, sub_patents_included = sub_patents_included,COI_type=COI_type)
+  COI_out <- convert_barcode_vectors(sim_save, ID, sub_patents_included = sub_patents_included,COI_type=COI_type)
   
   grouped_ages_by_2 <- cut(sim_save$Ages,breaks = age_breaks,labels = 1:45)
   sample_groups <- round(sample_size * (age_densities*(1/sum(age_densities)))) 
@@ -216,9 +209,9 @@ Sample_COI <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90
 #---
 #' Plot COI against age from random sample
 #'
-#' \code{Sample_COI} samples from a human save according to some age distirbution
+#' \code{sample_coi} samples from a human save according to some age distirbution
 #' 
-#' @param Sample_COI_out Output of Sample_COI
+#' @param sample_coi_out Output of sample_coi
 #' @param x Which sample to plot
 #' @param span Smoothing parameter for loess
 #' @param ylimmax ylim max
@@ -229,7 +222,7 @@ Sample_COI <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90
 #' 
 #' @export
 
-COI_age_plot_sample_x <- function(Sample_COI_out,x,span=0.6,ylimmax=NULL,xlimmax=NULL,max_coi=25){
+coi_age_plot_sample_x <- function(sample_coi_out,x,span=0.6,ylimmax=NULL,xlimmax=NULL,max_coi=25){
   
   
   mround <- function(x,base){ 
@@ -237,9 +230,9 @@ COI_age_plot_sample_x <- function(Sample_COI_out,x,span=0.6,ylimmax=NULL,xlimmax
   } 
   
   
-  ids <- Sample_COI_out$ids[,x]
-  Ages <- Sample_COI_out$sim_save$Ages[ids]/365
-  COI <- Sample_COI_out$COI[ids]
+  ids <- sample_coi_out$ids[,x]
+  Ages <- sample_coi_out$sim_save$Ages[ids]/365
+  COI <- sample_coi_out$COI[ids]
   df <- data.frame("Ages"=Ages,"COI"=COI)
   
   df$COI[df$COI>max_coi] <- sample(df$COI[df$COI<max_coi],sum(df$COI>max_coi))
@@ -704,6 +697,33 @@ plot_resistance_lineages <- function(t,legend=TRUE){
                        prev + theme(legend.position = "top"),
                        rel_heights = heights,ncol=1)
   }
+  
+}
+
+
+# function to calculate probability of strain being detected by microscopy
+q_fun <- function(d1, ID, ID0, kD, fd) {
+  return(d1 + ((1-d1) / (1 + ((ID/ID0)^kD)*fd)))
+}
+
+fd <- function(age, fD0, aD, gammaD) {
+  return( 1 - ((1-fD0) / (1 + (age/aD)^gammaD)) )
+}
+
+
+#'@noRd
+microscopy_detected <- function(ages, IDs, states, age_brackets = c(2*365, 10*365)) {
+
+  age_in <- ages < age_brackets[2] & ages > age_brackets(1)
+  dt <- sum(states %in% c(1, 4) & age_in) / sum(age_in)
+  mpl <- model_param_list_create()
+  
+  micro_det <- q_fun(mpl$d1,IDs,mpl$ID0,mpl$kD,
+                     sapply(ages,fd,mpl$fD0,mpl$aD,mpl$gammaD)) 
+  
+  a <- sum(states %in% 2 & age_in ) / sum(age_in) * mean(micro_det[age_in])
+
+  return(dt + a)
   
 }
 

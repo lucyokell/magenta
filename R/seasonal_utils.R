@@ -1,3 +1,19 @@
+#' @noRd
+match_clean <- function(a,b, quiet=TRUE){
+a <- gsub("[[:punct:][:space:]]","",tolower(stringi::stri_trans_general(a, "latin-ascii")))
+b <- gsub("[[:punct:][:space:]]","",tolower(stringi::stri_trans_general(b, "latin-ascii")))
+ret <- match(a,b)
+if(sum(is.na(ret)>0)){
+  dists <- stringdist::seq_distmatrix(lapply(a,utf8ToInt),lapply(b,utf8ToInt))
+  ret[is.na(ret)] <- apply(dists[which(is.na(ret)),,drop=FALSE],1,which.min)
+  if(!quiet){
+    print(unique(cbind(a,b[ret])))
+  }
+}
+return(ret)
+}
+
+
 #---
 #' Match admin region
 #'
@@ -14,20 +30,6 @@
 
 admin_match <- function(admin = NULL, country = NULL, quiet = FALSE) {
   ads <- magenta::admin_units_seasonal
-  
-  match_clean <- function(a,b, quiet=TRUE){
-    a <- gsub("[[:punct:][:space:]]","",tolower(stringi::stri_trans_general(a, "latin-ascii")))
-    b <- gsub("[[:punct:][:space:]]","",tolower(stringi::stri_trans_general(b, "latin-ascii")))
-    ret <- match(a,b)
-    if(sum(is.na(ret)>0)){
-      dists <- stringdist::seq_distmatrix(lapply(a,utf8ToInt),lapply(b,utf8ToInt))
-      ret[is.na(ret)] <- apply(dists[which(is.na(ret)),,drop=FALSE],1,which.min)
-      if(!quiet){
-        print(unique(cbind(a,b[ret])))
-      }
-    }
-    return(ret)
-  }
   
   # intiialise admin match as no match
   admin_matches <- 0
@@ -75,7 +77,7 @@ admin_match <- function(admin = NULL, country = NULL, quiet = FALSE) {
       admin_matches <- country_matches[admin_sub_matches]
     }
     
-    message("Requested: ",admin,
+    message("Requested: ",admin,", ",country,
             "\nReturned: ",ads$admin1[admin_matches],", ",ads$country[admin_matches])
   }
   

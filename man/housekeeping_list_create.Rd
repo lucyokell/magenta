@@ -4,7 +4,7 @@
 \alias{housekeeping_list_create}
 \title{Create housekeeping parameter list}
 \usage{
-housekeeping_list_create(quiet = TRUE, cluster = TRUE, clear_up = TRUE)
+housekeeping_list_create(quiet = TRUE, cluster = FALSE, clear_up = TRUE)
 }
 \arguments{
 \item{quiet}{Boolean for quiet simulation. Default = TRUE}

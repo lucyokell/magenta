@@ -25,25 +25,30 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
                                               spatial_list, housekeeping_list,
                                               drug_list, nmf_list,
                                               vector_adaptation_list,
-                                              mpl)
-{
+                                              mpl) {
   
   ## CHECKS ##
   ##---------------------------------------------
   if(class(eqSS)!="list") stop("eqSS is not of class list")
-
-    if(!identical(names(eqSS),
-                  c("age_brackets","het_brackets","Smat",
-                    "Dmat","Amat","Umat","Tmat","Pmat",
-                    "IBmat","ICAmat","ICMmat","IDmat",
-                    "FOI", "phi",
-                    "Sv","Ev","Iv","ICM_Init",
-                    "theta"))) stop("Incorrect variable names within equilibrium.steady.state")
+  
+  if(!identical(names(eqSS),
+                c("age_brackets","het_brackets","Smat",
+                  "Dmat","Amat","Umat","Tmat","Pmat",
+                  "IBmat","ICAmat","ICMmat","IDmat",
+                  "FOI", "phi",
+                  "Sv","Ev","Iv","ICM_Init",
+                  "theta"))) {
+    stop("Incorrect variable names within equilibrium.steady.state")
+  }
   
   dims.1 <- lapply(eqSS,function(x){return(dim(x)[1])})
   dims.2 <- lapply(eqSS,function(x){return(dim(x)[2])})
-  if(unique(unlist(dims.1[grep("mat",names(eqSS))]))!=length(eqSS$age_brackets)) stop("Dimensions 1 error in equilibrium.stead.state matrices")
-  if(unique(unlist(dims.2[grep("mat",names(eqSS))]))!=length(eqSS$het_brackets)) stop("Dimensions 2 error in equilibrium.stead.state matrices")
+  if(unique(unlist(dims.1[grep("mat",names(eqSS))]))!=length(eqSS$age_brackets)) {
+    stop("Dimensions 1 error in equilibrium.stead.state matrices")
+  }
+  if(unique(unlist(dims.2[grep("mat",names(eqSS))]))!=length(eqSS$het_brackets)) { 
+    stop("Dimensions 2 error in equilibrium.stead.state matrices")
+  }
   
   numerics <- which(!unlist(lapply(eqSS,is.numeric)))
   if (length(numerics)!=0) stop(paste(names(numerics),"provided not numeric"))
@@ -52,12 +57,12 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
   
   # Create paramlist
   param_list <- list(N = N, eqSS = eqSS, barcode_params = barcode_params, 
-                    spatial_list = spatial_list,
-                    housekeeping_list = housekeeping_list,
-                    drug_list = drug_list,
-                    nmf_list = nmf_list,
-                    vector_adaptation_list = vector_adaptation_list,
-                    core_parameter_list = mpl)
+                     spatial_list = spatial_list,
+                     housekeeping_list = housekeeping_list,
+                     drug_list = drug_list,
+                     nmf_list = nmf_list,
+                     vector_adaptation_list = vector_adaptation_list,
+                     core_parameter_list = mpl)
   
   return(param_list)
   
@@ -88,8 +93,7 @@ param_list_simulation_update_create <- function(years = 1, ft = 0.4,
                                                 statePtr, 
                                                 spatial_list, 
                                                 drug_list,
-                                                barcode_params)
-{
+                                                barcode_params) {
   
   ## CHECKS ##
   ##---------------------------------------------
@@ -97,10 +101,14 @@ param_list_simulation_update_create <- function(years = 1, ft = 0.4,
   if(!is.numeric(years)) stop("years provided is not numeric")
   if(!is.numeric(ft)) stop("ft provided is not numeric")
   if(!is.null(mu_vec)){
-    if(!(length(mu_vec) == floor(years*365))) stop("mu_vec not long enough")
+    if(!(length(mu_vec) == floor(years*365))) {
+      stop("mu_vec not long enough")
+    }
   }
   if(!is.null(fv_vec)){
-    if(!(length(fv_vec) == floor(years*365))) stop("fv_vec not long enough")
+    if(!(length(fv_vec) == floor(years*365))) {
+      stop("fv_vec not long enough")
+    }
   }
   
   ##---------------------------------------------
@@ -116,11 +124,11 @@ param_list_simulation_update_create <- function(years = 1, ft = 0.4,
   
   # Create paramlist
   param_list <- list(years = years, ft = ft, mu_vec = mu_vec,
-                    fv_vec = fv_vec,
-                    statePtr = statePtr, 
-                    spatial_list = spatial_list,
-                    drug_list = drug_list,
-                    barcode_params = barcode_params)
+                     fv_vec = fv_vec,
+                     statePtr = statePtr, 
+                     spatial_list = spatial_list,
+                     drug_list = drug_list,
+                     barcode_params = barcode_params)
   
   return(param_list)
   
@@ -137,12 +145,13 @@ param_list_simulation_update_create <- function(years = 1, ft = 0.4,
 #' 
 #' @export
 
-param_list_simulation_get_create <- function(statePtr)
-{
+param_list_simulation_get_create <- function(statePtr) {
   
   ## CHECKS ##
   ##---------------------------------------------
-  if(class(statePtr)!="externalptr") stop("state.ptr is not of class externalptr")
+  if(class(statePtr)!="externalptr") {
+    stop("state.ptr is not of class externalptr")
+  }
   
   ##---------------------------------------------
   
@@ -163,12 +172,13 @@ param_list_simulation_get_create <- function(statePtr)
 #' 
 #' @export
 
-param_list_simulation_finalizer_create <- function(statePtr)
-{
+param_list_simulation_finalizer_create <- function(statePtr) {
   
   ## CHECKS ##
   ##---------------------------------------------
-  if(class(statePtr)!="externalptr") stop("state.ptr is not of class externalptr")
+  if(class(statePtr)!="externalptr") {
+    stop("state.ptr is not of class externalptr")
+  }
   
   ##---------------------------------------------
   
@@ -183,25 +193,30 @@ param_list_simulation_finalizer_create <- function(statePtr)
 #------------------------------------------------
 #' Parameter List creation for loading saved magenta simulation
 #'
-#' \code{Param_List_Simulation_Saved_Init_Create} creates suitable parameter list for
-#' \code{simulation_R} for continuing a simulation from memory within the active
-#' session.
+#' \code{param_list_simulation_saved_init_create} creates 
+#' suitable parameter list for \code{simulation_R} for continuing a 
+#' simulation from memory within the active session.
 #'
-#' @param savedState Saved state generated by \code{simulation_R} when provided with 
-#' a \code{param_list_simulation_get_create} parameter list
+#' @param savedState Saved state generated by 
+#'   \code{simulation_R} when provided with a 
+#'   \code{param_list_simulation_get_create} parameter list
 #' 
 #' @export
 
-Param_List_Simulation_Saved_Init_Create <- function(savedState)
-{
+param_list_simulation_saved_init_create <- function(savedState) {
   
   ## CHECKS ##
   ##---------------------------------------------
-  if(class(savedState)!="list") stop("savedState is not of class list")
-  if(!identical(names(savedState),c("population_List","populations_event_and_strains_List","scourge_List","parameters_List"))) stop("Incorrect variable names within savedState")
- 
-  ## TODO: More checks here
-  ##---------------------------------------------
+  if(class(savedState)!="list") {
+    stop("savedState is not of class list")
+  }
+  if(!identical(names(savedState),
+                c("population_List",
+                  "populations_event_and_strains_List",
+                  "scourge_List",
+                  "parameters_List"))) {
+    stop("Incorrect variable names within savedState")
+  }
   
   # Create paramlist
   param_list <- list(savedState = savedState)
@@ -216,8 +231,9 @@ Param_List_Simulation_Saved_Init_Create <- function(savedState)
 #'
 #' This function triggers the main magenta simulation from the R side
 #'
-#' @param param_list paramlist passed from \code{param_list_simulation_init_create}
-#' or from \code{param_list_simulation_update_create}
+#' @param param_list paramlist passed from 
+#'   \code{param_list_simulation_init_create} or from 
+#'   \code{param_list_simulation_update_create}
 #' @param seed Seed for the simulation
 #' @export
 
@@ -227,42 +243,41 @@ Param_List_Simulation_Saved_Init_Create <- function(savedState)
 #' @useDynLib magenta
 #' @importFrom Rcpp evalCpp
 
-simulation_R <- function(param_list, seed)
-{
+simulation_R <- function(param_list, seed) {
   
   # check that this function is working
   #print("R function is working!")
   stopifnot(is.list(param_list))
   
-  ## Decide whether the param_list is from initialisation, memory-continutation or continuation
+  ## Decide whether the param_list is from initialisation, 
+  ## memory-continutation or continuation
   
   ## -----------------------------------
   ## 1. From initialisation
   ## -----------------------------------
-  if(!is.null(param_list$eqSS)){
+  if(!is.null(param_list$eqSS)) {
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(param_list))
-    if(length(param_list)==9)
-    {
-      stopifnot(identical(names(param_list), c("N","eqSS","barcode_params","spatial_list", 
-                                               "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list",
-                                               "core_parameter_list")))  
-    }
-    # if it is length one it may be an unpacked list in which case unpack and check
-    # this might happen in the future when a list of param_lists is fed directly to this
+    
+    # if it is length one it may be an unpacked 
+    # list in which case unpack and check
+    # this might happen in the future when 
+    # a list of param_lists is fed directly to this
     # fucntion in a cluster way
-    else if(length(param_list)==9)
+    if(length(param_list) == 1)
     {
       param_list <- param_list[[1]]
-      stopifnot(identical(names(param_list), c("N", "eqSS", "barcode_params","spatial_list", 
-                                               "housekeeping_list", "drug_list", "nmf_list","vector_adaptation_list",
-                                               "core_parameter_list")))  
-    } 
-    else 
-    {
+    }
+    
+    if(length(param_list) != 9) {
       stop("param_list not correct length")
     }
+    stopifnot(identical(names(param_list), 
+                        c("N","eqSS","barcode_params","spatial_list", 
+                          "housekeeping_list", "drug_list", 
+                          "nmf_list","vector_adaptation_list",
+                          "core_parameter_list")))  
     
     # ---------------------- RUN C CODE ------------------------------------- #
     
@@ -278,14 +293,15 @@ simulation_R <- function(param_list, seed)
   ## -----------------------------------
   ## 2. From memory-continutation
   ## -----------------------------------
-  if(!is.null(param_list$years) & !is.null(param_list$statePtr)){
+  if(!is.null(param_list$years) & !is.null(param_list$statePtr)) {
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(param_list))
     if(length(param_list)==8)
     {
       stopifnot(identical(names(param_list), 
-                          c("years","ft","mu_vec","fv_vec","statePtr", "spatial_list", "drug_list","barcode_params")))  
+                          c("years","ft","mu_vec","fv_vec","statePtr", 
+                            "spatial_list", "drug_list","barcode_params")))  
     }
     else 
     {
@@ -305,7 +321,9 @@ simulation_R <- function(param_list, seed)
   ## -----------------------------------
   ## 3. From memory-continutation to saving
   ## -----------------------------------
-  if(is.null(param_list$finalizer) & is.null(param_list$years) & !is.null(param_list$statePtr)){
+  if(is.null(param_list$finalizer) & 
+     is.null(param_list$years) & 
+     !is.null(param_list$statePtr)) {
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(param_list))
@@ -331,7 +349,7 @@ simulation_R <- function(param_list, seed)
   ## -----------------------------------
   ## 4. From saved state
   ## -----------------------------------
-  if(!is.null(param_list$savedState)){
+  if(!is.null(param_list$savedState)) {
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(param_list))
@@ -357,7 +375,7 @@ simulation_R <- function(param_list, seed)
   ## -----------------------------------
   ## 5. Finalizer
   ## -----------------------------------
-  if(!is.null(param_list$finalizer)){
+  if(!is.null(param_list$finalizer)) {
     
     ## Check if paramlist is correct length and has right variable names
     stopifnot(is.list(param_list))

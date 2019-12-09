@@ -1,5 +1,6 @@
 
-# function for pooling resistance results from cluster
+# function for pooling resistance results from didehpc cluster
+#' @noRd
 pool_res <- function(grp,nl=3,N=100000, reps = 10, 
                      methods = c(rep("Sequential Cycling",reps),
                                  rep("Multiple First Line Therapies",reps),
@@ -195,8 +196,8 @@ pool_res <- function(grp,nl=3,N=100000, reps = 10,
   return(l)
 }
 
-# function for looping over cluster results 
-
+# function for looping over didehpc cluster results 
+#' @noRd
 create_res_list <- function(gs,nms,nums,nl=2,reps=50,methods=rep(reps,NA),list_returns=1:5,remove_zeros=FALSE){
   
   grab_number <- function(x,y){

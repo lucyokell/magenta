@@ -82,8 +82,7 @@ summarySE_mean_only_max_mean <- function(data=NULL,
   }
 }
 
-
-
+# zero truncated geometric integers
 ztrgeomintp <- function(n, mean, p){
   
   ngs <- rgeom(n*1.5,prob = 1/mean)
@@ -101,6 +100,7 @@ ztrgeomintp <- function(n, mean, p){
   
 }
 
+# zero truncated negative binomial
 ztrnbinom <- function(n,mean,size) {
   
   
@@ -114,7 +114,6 @@ ztrnbinom <- function(n,mean,size) {
   nbs <- sample(nbs,size = n,replace=FALSE)
   return(nbs)
 }
-
 
 
 clonality_from_barcode_list <- function(barcode_list){

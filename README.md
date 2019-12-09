@@ -1,56 +1,68 @@
+
 # magenta
 
-Individual-based simulation model of malaria epidemiology and genomics.
+[![Project Status: WIP – Initial development is in progress, but there
+has not yet been a stable, usable release suitable for the
+public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+[![Travis-CI Build
+Status](https://travis-ci.org/ojwatson/magenta.png?branch=master)](https://travis-ci.org/ojwatson/magenta)
 
-## Version History
+## Motivation
 
-18.03.2017  Individual mosquitos added
+*magenta* is an individual-based simulation model of malaria
+epidemiology and parasite genetics, which was designed to extends the
+Imperial malaria model by tracking the infection history of individuals.
+With this addition, genetic characteristics of the parasite can be
+assessed for looking at both neutral genetic variation as well as loci
+under selection.
 
-22.02.2017  State pointer passing
+The model is written in C++/Rcpp and interfaced with R, incorporating
+both the deterministic version of the Imperial College Transmission
+model developed by Joel Hellewell and Hannah Slater, which helps
+initialise the model near equilbrium. In addition it is used to quickly
+the mosquito feeding behaviour, which is passed to `magenta` in order to
+increase its speed.
 
-16.02.2017  No mosquito/strain version checked 
+-----
 
-06.12.2016  Package initialised
+## Installation
 
-### What is this?
+You can also install `rdhs` from github with:
 
-*magenta* is an individual-based simulation model of malaria epidemiology and genomics.
-*magenta* extends the imperial malaria model by tracking the infection history of 
-individuals. With this additional genetic characteristics of the parasite can be 
-assessed.
-
-***
-> To view the tutorial please click [here](https://github.com/bobverity/magenta/blob/master/tutorials/magenta_tutorial.md)
-
-***
-
-### Installing *magenta*
-
-To install the development version from github the package [*devtools*](https://github.com/hadley/devtools) is required.
-
-In order to install devtools you need to make sure you have a working development environment:
-
-1. **Windows**: Install **[Rtools](https://cran.r-project.org/bin/windows/Rtools/)**. For help on how to install **Rtools** please see the following [guide](https://github.com/stan-dev/rstan/wiki/Install-Rtools-for-Windows).
-
-2. **Mac**: Install Xcode from the Mac App Store.
-
-3. **Linux**: Install a compiler and various development libraries (details vary across different flavors of Linux).
-
-Once a working development environment is ready, then devtools can be installed from CRAN:
-
-```r
-install.packages("devtools")
-library(devtools)
+``` r
+#install.packages("devtools")
+devtools::install_github("OJwatson/rdhs")
 ```
-Once installed, the package can be installed and loaded using:
 
-```r
-devtools::install_github("OJWatson/magenta")
+Note that on Windows, a toolkit (Rtools) needs to be installed
+separately for devtools to work.
+
+Once installed, the package can be loaded using:
+
+``` r
+# Load the package
 library(magenta)
 ```
 
-***
+## Documentation
 
-#### Asking a question
+*magenta* is documented on a [dedicated
+website](https://ojwatson.github.io/magenta).
 
-For bug reports, feature requests, contributions, use github's [issue system.](https://github.com/OJWatson/magenta/issues)
+This includes the following vignettes:
+
+  - **`Introduction`**: general introduction to the design of `magenta`
+    and how to use it
+  - **`Loggers`**: brief overview of the logging information returned by
+    `magenta`
+  - **`Resistance`**: (under development) description of how to simulate
+    resistance
+
+## Contributors
+
+  - [OJ Watson](https://github.com/ojwatson)
+  - [Bob Verity](https://github.com/bobverity)
+  - [Joel Hellewell](https://github.com/jhellewell14)
+  - [Hannah Slater](https://github.com/hannahslater)
+
+**Maintainer:** OJ Watson (<oj.watson@imperial.ac.uk>)

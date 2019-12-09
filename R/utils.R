@@ -112,6 +112,16 @@ person_make <- function(o,n){
 }
 
 #' @noRd
+func_call <- function(args, call) {
+  paste0(as.character(call)[1],
+         "(", 
+         paste0(mapply(paste, names(args), args, sep="="),collapse=", "), 
+         ")")
+}
+
+## Assertions
+
+#' @noRd
 assert_null_and_func <- function(x, func, name = deparse(substitute(x))){
   if (!is.null(x)) {
     func(x, name)

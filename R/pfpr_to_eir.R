@@ -1,7 +1,7 @@
 #------------------------------------------------
 #' Brute force conversion of PfPR and ft to an EIR
 #'
-#' @param ft Treatment seeking
+#' @param ft Treatment seeking. Default = 0
 #' @param PfPR Parasite prevaence by PCR
 #' @param PfPR_micro Parasite prevaence by microscopy. Default = NULL
 #' @param mv Mosquito size if it's known. Default = NULL
@@ -12,7 +12,7 @@
 #' @param ... Any other params to be fed to the model parameter list
 #' 
 
-PfPR_to_EIR_heuristic <- function(ft, 
+PfPR_to_EIR_heuristic <- function(ft = 0, 
                                   PfPR=NULL, PfPR_micro=NULL, mv=NULL, 
                                   age_range=NULL, all_a=FALSE,
                                   ...){

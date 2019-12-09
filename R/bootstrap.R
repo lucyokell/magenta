@@ -1,6 +1,7 @@
 # metric functions
 ## --------------------------------------
 
+#' @noRd
 unique_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_func){
   if(!unphased){
     t <- c(unlist(r[[year0]][["ints"]][samp[pos<=ss]]), unlist(r[[year]][["ints"]][samp[pos>ss]]))
@@ -11,6 +12,7 @@ unique_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab
   }
 }
 
+#' @noRd
 cou_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_func){
   l_factor_i <- attr(r[[year0]],"l") + attr(r[[year]],"l") 
   if(!unphased){
@@ -24,6 +26,7 @@ cou_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_fu
   }
 }
 
+#' @noRd
 pibd_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_func){
   l_factor_i <- attr(r[[year0]],"l") + attr(r[[year]],"l") 
   if(!unphased){
@@ -37,6 +40,7 @@ pibd_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_f
   }
 }
 
+#' @noRd
 mean_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_func){
   mean(c(r[[year0]][[metric]][samp[pos<=ss]],r[[year]][[metric]][samp[pos>ss]]),na.rm = TRUE)
 }
@@ -45,8 +49,6 @@ mean_function <- function(r, year0, year, ss, unphased, metric, samp, pos, tab_f
 bootstrap <- function(sim = "M:/OJ/magenta_Results/scripts/fig3_r1.rds", year0 = 21, year = 22,
                       ss=10, sub_sample=100, less = TRUE, conf = .95, permutations = 100,
                       metric = "coi", unphased = FALSE, ages = c(5,15), states = c(1,2,4)){
-  
-  message("bootstrapping new 1")
   
   # possible metric list
   metrics <- c("% Polygenomic"="polygenom","% Unique"="unique", 

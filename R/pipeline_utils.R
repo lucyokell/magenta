@@ -41,7 +41,11 @@ spl_grab <- function(country, admin, year_range) {
   cc <- strsplit(imp_nms, "|", fixed = TRUE) %>% 
     lapply(function(x) x[1]) %>% 
     unlist 
-  imp_match <- which(cc == country & ads == admin)
+  imp_match <- which(cc == unique(cc)[match_clean(country, unique(cc))] & 
+                       ads == unique(ads)[match_clean(admin, unique(ads))])
+  
+  message("Requested: ",admin,", ",country,
+          "\nReturned: ",ads[imp_match],", ",cc[imp_match])
   
   incidence <- lapply(importations,function(x) x$incidence[imp_match,]) %>% 
     unlist() %>% 
@@ -170,8 +174,11 @@ intervention_grab <- function(country, admin, year_range,
   admin_units_seasonal <- magenta::admin_units_seasonal
   
   # incorporate hitoric interventions
-  itn_cov <- itn_2000_2015$value[which(itn_2000_2015$admin==admin & itn_2000_2015$country==country)]
-  irs_cov <- irs_2000_2015$value[which(irs_2000_2015$admin==admin & irs_2000_2015$country==country)]
+  ad_mat <- itn_2000_2015$admin[match_clean(admin, itn_2000_2015$admin)]
+  c_mat <- itn_2000_2015$country[match_clean(country, itn_2000_2015$country)]
+  
+  itn_cov <- itn_2000_2015$value[which(itn_2000_2015$admin==ad_mat & itn_2000_2015$country==c_mat)]
+  irs_cov <- irs_2000_2015$value[which(irs_2000_2015$admin==ad_mat & irs_2000_2015$country==c_mat)]
   
   # admatch for ft
   if(is.null(options("quiet_admin"))) {
@@ -322,11 +329,16 @@ mu_fv_create <- function(eqInit,
     odin_model_path <- odin_model
     gen <- odin::odin(odin_model_path,verbose=FALSE)
     state <- eqInit[names(eqInit) %in% names(formals(gen))]
+    
+    # weird catach for when init_ICM values fall below 5e-32 that must catch
+    state$init_ICM
+    
     model <- gen(user=state,use_dde=TRUE)
+    
     
     #create model and simulate
     tt <- seq(1,round(years*365),1)
-    mod_run <- model$run(t = tt,n_history = 1000)
+    mod_run <- model$run(t = tt, n_history = 1000, step_size_max = 10)
     out <- model$transform_variables(mod_run)
     
     if(!full){
@@ -352,7 +364,7 @@ mu_fv_create <- function(eqInit,
 #'   simulation. Default = TRUE
 
 housekeeping_list_create <- function(quiet = TRUE,
-                                     cluster = TRUE,
+                                     cluster = FALSE,
                                      clear_up = TRUE) {
   
   l <- list("quiet_print" = quiet,
@@ -541,16 +553,6 @@ drug_list_update <- function(drug_list, year, tf){
   
 } 
 
-
-# function to calculate probability of strain being detected by microscopy
-q_fun <- function(d1, ID, ID0, kD, fd) {
-  return(d1 + ((1-d1) / (1 + ((ID/ID0)^kD)*fd)))
-}
-
-fd <- function(age, fD0, aD, gammaD) {
-  return( 1 - ((1-fD0) / (1 + (age/aD)^gammaD)) )
-}
-
 # convert allele frequencies
 pop_alf <- function(nums,nl,weighted=FALSE){ 
   if(class(nums %>% unlist)=="raw") {
@@ -585,6 +587,7 @@ lineages <- function(nums,nl){
 # what to save in update_saves
 update_saves <- function(res, i, sim.out, sample_states,
                          sample_size, sample_reps, mean_only,
+                         age_breaks = c(-0.001, 5, 15, 100.1),
                          barcode_params, num_loci, full_update_save=FALSE,
                          genetics_df_without_summarising, save_lineages = FALSE,
                          human_update_save, summary_saves_only,
@@ -629,12 +632,14 @@ update_saves <- function(res, i, sim.out, sample_states,
         if(i%%12 == 0 && i >= (length(res)-180)){
           res[[i]] <- COI_df_create(df, barcodes=TRUE, 
                                     ibd = barcode_params$barcode_type,
+                                    breaks = age_breaks,
                                     n = sample_size, 
                                     reps = sample_reps, 
                                     mean_only = mean_only)
         } else {
           res[[i]] <- COI_df_create(df, barcodes=FALSE, 
                                     ibd = barcode_params$barcode_type,
+                                    breaks = age_breaks, 
                                     n = sample_size, 
                                     reps = sample_reps, 
                                     mean_only = mean_only)
@@ -647,7 +652,7 @@ update_saves <- function(res, i, sim.out, sample_states,
       res[[i]]$unsuccesful_treatments_lpf <- sim.out$Loggers$Treatments$Unsuccesful_Treatments_LPF
       res[[i]]$not_treated <- sim.out$Loggers$Treatments$Not_Treated
       res[[i]]$treatment_failure <-  res[[i]]$unsuccesful_treatments_lpf / (res[[i]]$unsuccesful_treatments_lpf + res[[i]]$succesfull_treatments) 
-      res[[i]]$daily_pop_eir <-  sim.out$Loggers$Treatments$daily_infectious_bite_counters/sim.out$Loggers$Log_Counter*365
+      res[[i]]$daily_pop_eir <-  sim.out$Loggers$Treatments$daily_infectious_bite_counters / sim.out$Loggers$Log_Counter*365 / length(sim.out$Loggers$Ages )
       res[[i]]$mutations <-  sim.out$Loggers$daily_mutations_per_loci
       
       if(any(is.na(res[[i]]$treatment_failure))) {
@@ -679,7 +684,7 @@ update_saves <- function(res, i, sim.out, sample_states,
         "Strain_day_of_infection_state_change_vectors",
         "Strain_barcode_vectors"
       )
-      human_vars <- c("Infection_States", "Zetas", "Ages")
+      human_vars <- c("Infection_States", "Zetas", "Ages", "ID")
       
       pl3 <- param_list_simulation_get_create(statePtr = sim.out$Ptr)
       sim_save <- simulation_R(pl3, seed = seed)

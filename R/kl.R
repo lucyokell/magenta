@@ -1,5 +1,5 @@
 # kullback-leibler calculation
-kl <- function(res_path, loc, df_real, densities, sample_sizes, sub_patents_included=TRUE,COI_type="old") {
+kl <- function(res_path, loc, df_real, densities, sample_sizes, sub_patents_included=TRUE,COI_type="pcr_imperial") {
   
   # calcualation of KL entropy as taken from entropy package
   kl_ent <- function(t){
@@ -40,7 +40,7 @@ kl <- function(res_path, loc, df_real, densities, sample_sizes, sub_patents_incl
   pos <- length(x)
   
   # sample from the simulation the COIs
-  s <- Sample_COI(x[[pos]],
+  s <- sample_coi(x[[pos]],
                   ID = x[[pos - 1]]$ID,
                   sample_size = sample_sizes[loc],
                   age_densities = densities[, loc],

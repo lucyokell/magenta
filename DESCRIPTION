@@ -36,6 +36,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat,
+    lattice,
     RColorBrewer,
     cowplot
 Encoding: UTF-8

@@ -1,6 +1,6 @@
 #' Pipeline for cluster submission
 #'
-#' \code{Pipeline} steps through creating the parameter list, the equilibrium
+#' \code{pipeline} steps through creating the parameter list, the equilibrium
 #' initialisation and steady state creation before checking and passing suitable
 #' parameters to the simulation. This is then saved. If a path to a
 #' savedState is provided then this state is loaded and continued.
@@ -10,8 +10,6 @@
 #' @param N Population Size. Default = 100000
 #' @param ft Vector of treatment frequency. Default = 0.4
 #' @param years Lenth of simulation. Default = 20
-#' @param update_length How long each update is run for in days.
-#'   Default = 365
 #' @param EIR Numeric for desired annual EIR. Default = 120
 #' @param country Character for country within which admin2 is in.
 #'   Default = NULL
@@ -79,6 +77,8 @@
 #' component of the simulation is saved within full_save. Default = FALSE
 #' @param update_save Boolean detailing whether the logging output is saved
 #' each update_length up to years. Default = FALSE
+#' @param update_length How long each update is run for in days.
+#'   Default = 365
 #' @param human_update_save Boolean detailing if the human state is also
 #' saved during each update_length. Default = FALSE
 #' @param summary_saves_only Boolean if summary tables about COI are saved
@@ -109,6 +109,8 @@
 #' @param sample_states Numeric for which sample infection states are to be
 #'   included in sampling. Default = 0:5 (i.e. all states). 1:4 for example 
 #'   would ensure only infected individuals are included. 
+#' @param age_breaks What age breaks are used when summarising the population. 
+#'   Default is `c(-0.001, 5, 15, 100.1)`
 #' @param sample_reps Numeric for how many sample reps are done. Default = 1.
 #' 
 #' # Parameter Lists
@@ -123,11 +125,11 @@
 #' @param seed Random seed. Default is Random
 #' @param ... Other parameters to model_param_list_create
 #'
-#' \code{Pipeline}
+#' \code{pipeline}
 #'
 #' @export
 
-Pipeline <- function(EIR = 120,
+pipeline <- function(EIR = 120,
                      ft = 0.4,
                      itn_cov = 0,
                      irs_cov = 0,
@@ -167,6 +169,7 @@ Pipeline <- function(EIR = 120,
                      seed = as.integer(runif(1, 1, 1000000000)),
                      sample_size = Inf,
                      sample_states = 0:5,
+                     age_breaks = c(-0.001, 5, 15, 100.1),
                      sample_reps = 1,
                      housekeeping_list = housekeeping_list_create(),
                      drug_list = drug_list_create(),
@@ -175,13 +178,16 @@ Pipeline <- function(EIR = 120,
                      nmf_list = nmf_list_create(),
                      ...) {
   
+  # grab the function call for reproducibility
+  args <- append(as.list(environment()), list(...))
+  call <- match.call(expand.dots = TRUE)
+  call$seed <- args$seed
   
   # PRE-SET UP HOUSEKEEPING ------------------------ ####
   # if no seed is specified then save the seed
   set.seed(seed)
-  message("huh")
   message(paste0("Seed set to ", seed))
-  message("magenta test1 v", utils::packageVersion("magenta"))
+  message("magenta v", utils::packageVersion("magenta"))
   
   # simulation save variables
   strain_vars <- c(
@@ -189,7 +195,7 @@ Pipeline <- function(EIR = 120,
     "Strain_day_of_infection_state_change_vectors",
     "Strain_barcode_vectors"
   )
-  human_vars <- c("Infection_States", "Zetas", "Ages")
+  human_vars <- c("Infection_States", "Zetas", "Ages", "ID")
   
   # historic intervetnion grab if asked
   if (use_historic_interventions & length(years) > 1) {
@@ -200,8 +206,6 @@ Pipeline <- function(EIR = 120,
     irs_cov <- ints$irs_cov
     ft <- ints$ft
   }
-  
-  
   
   # INITIALISATION --------------------------------- ####
   # If we don't have a saved state then we initialise first
@@ -301,7 +305,7 @@ Pipeline <- function(EIR = 120,
     
     # If we have provided the saved state then load this and then delete as can be large
     saved_state <- readRDS(saved_state_path)
-    pl <- Param_List_Simulation_Saved_Init_Create(savedState = saved_state)
+    pl <- param_list_simulation_saved_init_create(savedState = saved_state)
     rm(saved_state)
     gc()
   }
@@ -657,24 +661,48 @@ Pipeline <- function(EIR = 120,
   }
   
   # FINISH ----------------------------------------- #####
-  # append times
+  
+  # Save the seed and function call
+  meta <- list()
+  meta$call <- call
+  meta$seed <- seed
+  meta$Ptr <- sim.out$Ptr
+  meta$version <- utils::packageVersion("magenta")
+  
+  # append times if an update simulation was done
   if (update_save) {
-    attr(res, "times") <- times
+    meta$times <- times
   }
   
-  # Save the seed as an attribute adn return the result
-  seed_end <- .Random.seed
-  attr(res, "seed") <- seed_end
+  # add this as an attribute
+  attr(res, "meta") <- meta
   
+  # if we want all memory to be freed
   if (housekeeping_list$clear_up) {
-    pl5 <- param_list_simulation_finalizer_create(sim.out$Ptr)
-    sim.out <- simulation_R(pl5, seed = seed)
-    for(i in 1:length(res)){
-      if("Ptr" %in% names(res[[i]])) {
-       res[[i]]$Ptr <- NULL 
-      }
-    }
-    gc()
+    res <- return_sim_memory(res)
   }
   return(res)
 }
+
+
+#' @noRd
+return_sim_memory <- function(sim) {
+  
+  meta <- attr(sim, "meta")
+  pl <- param_list_simulation_finalizer_create(meta$Ptr)
+  sim_fin <- simulation_R(pl, seed = meta$seed)
+  for(i in 1:length(sim)){
+    if("Ptr" %in% names(sim[[i]])) {
+      sim[[i]]$Ptr <- NULL 
+    }
+  }
+  
+  meta$Ptr <- NULL
+  if("Ptr" %in% names(sim)) {
+    sim$Ptr <- NULL
+  }
+  attr(sim, "meta") <- meta
+  gc()
+  return(sim)
+}
+  
