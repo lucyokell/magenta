@@ -130,7 +130,7 @@
         "name": "Comprehensive R Archive Network (CRAN)",
         "url": "https://cran.r-project.org"
       },
-      "sameAs": "https://github.com/richfitz/dde"
+      "sameAs": "https://github.com/mrc-ide/dde"
     },
     {
       "@type": "SoftwareApplication",
@@ -284,6 +284,5 @@
   ],
   "releaseNotes": "https://github.com/OJWatson/magenta/blob/master/NEWS.md",
   "contIntegration": "https://travis-ci.org/ojwatson/magenta",
-  "developmentStatus": "https://www.repostatus.org/#wip",
-  "fileSize": "13827.493KB"
+  "developmentStatus": "https://www.repostatus.org/#wip"
 }

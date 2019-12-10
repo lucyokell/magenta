@@ -33,7 +33,7 @@ Imports:
     stringi
 Remotes: 
     mrc-ide/odin,
-    richfitz/dde
+    mrc-ide/dde
 LinkingTo: Rcpp, BH
 LazyData: TRUE
 RoxygenNote: 7.0.0

@@ -26,3 +26,5 @@ README\.Rmd
 vignettes_src
 ^_pkgdown\.yml$
 ^codemeta\.json$
+^docs$
+docs
