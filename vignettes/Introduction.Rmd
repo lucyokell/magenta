@@ -506,6 +506,7 @@ abline(v = 10)
 ```
 
 ![](https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/infected mosquites-1.png)<!-- -->
+
 `magenta` incorporates vector based interventions by first running an equivalent deterministic version of the malaria transmission model with vector based intervetnions in. The output of the determininistic model is used to estimate the changing mosquito mortality rate and anthrophagy at each day as a result of the intervention changes. These are then fed through to the indivdual-based simulation to adjust the behaviour of the individual mosquitoes. 
 
 ### Space 
@@ -595,6 +596,7 @@ matplot(plafs)
 ```
 
 ![](https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/importation-1.png)<!-- -->
+
 ### Seasonality and Specific Locations
 
 Included in `magenta` are the historic interventions and seasonality profiles for admin level one regions in sub-Saharan African countries. These can then be used to draw up the required parameter sets for a given region. E.g. to simulate for Kinsasha from 1980:2015
@@ -715,6 +717,7 @@ points(2000:2015, map_prev)
 ```
 
 ![](https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/country example-1.png)<!-- -->
+
 The above is similar to how the model fitting simulations were laid out and it gives the user a chance to check that the parameter sets being used are the correct parameters. However, you can use `use_historic_interventions` as `TRUE` and provide the year range and `pipeline` will conduct the above parameter searching for you.
 
 As an aside, `magenta` has a multitude of little helped functions like `microscopy_detected` that are not exported currently, due to their use in mainly assisting downstream analysis rather than being for simulation directly. 

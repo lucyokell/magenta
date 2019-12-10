@@ -345,7 +345,8 @@
 <a class="sourceLine" id="cb72-2" data-line-number="2">time &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span>(out9, <span class="cf">function</span>(x) {x<span class="op">$</span>Time}))<span class="op">/</span><span class="dv">365</span></a>
 <a class="sourceLine" id="cb72-3" data-line-number="3"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(time, infected_mosquitoes, <span class="dt">xlab =</span> <span class="st">"Time (Years)"</span>, <span class="dt">ylab =</span> <span class="st">"Infected Mosquitoes"</span>)</a>
 <a class="sourceLine" id="cb72-4" data-line-number="4"><span class="kw"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span>(<span class="dt">v =</span> <span class="dv">10</span>)</a></code></pre></div>
-<p><img src="https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/infected%20mosquites-1.png"><!-- --><code>magenta</code> incorporates vector based interventions by first running an equivalent deterministic version of the malaria transmission model with vector based intervetnions in. The output of the determininistic model is used to estimate the changing mosquito mortality rate and anthrophagy at each day as a result of the intervention changes. These are then fed through to the indivdual-based simulation to adjust the behaviour of the individual mosquitoes.</p>
+<p><img src="https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/infected%20mosquites-1.png"><!-- --></p>
+<p><code>magenta</code> incorporates vector based interventions by first running an equivalent deterministic version of the malaria transmission model with vector based intervetnions in. The output of the determininistic model is used to estimate the changing mosquito mortality rate and anthrophagy at each day as a result of the intervention changes. These are then fed through to the indivdual-based simulation to adjust the behaviour of the individual mosquitoes.</p>
 </div>
 <div id="space" class="section level3">
 <h3 class="hasAnchor">
@@ -391,7 +392,11 @@
 <div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb84-1" data-line-number="1">pos &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span>(<span class="kw"><a href="https://rdrr.io/r/base/length.html">length</a></span>(out11) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)</a>
 <a class="sourceLine" id="cb84-2" data-line-number="2">plafs &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span>(rbind,<span class="kw"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span>(out11[pos], <span class="cf">function</span>(x) {x<span class="op">$</span>barcode_freq}))</a>
 <a class="sourceLine" id="cb84-3" data-line-number="3"><span class="kw"><a href="https://rdrr.io/r/graphics/matplot.html">matplot</a></span>(plafs)</a></code></pre></div>
-<p><img src="https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/importation-1.png"><!-- --> ### Seasonality and Specific Locations</p>
+<p><img src="https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/importation-1.png"><!-- --></p>
+</div>
+<div id="seasonality-and-specific-locations" class="section level3">
+<h3 class="hasAnchor">
+<a href="#seasonality-and-specific-locations" class="anchor"></a>Seasonality and Specific Locations</h3>
 <p>Included in <code>magenta</code> are the historic interventions and seasonality profiles for admin level one regions in sub-Saharan African countries. These can then be used to draw up the required parameter sets for a given region. E.g. to simulate for Kinsasha from 1980:2015</p>
 <div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb85-1" data-line-number="1"><span class="co"># set up the years</span></a>
 <a class="sourceLine" id="cb85-2" data-line-number="2">year_range &lt;-<span class="st"> </span><span class="dv">1980</span><span class="op">:</span><span class="dv">2015</span></a>
@@ -465,7 +470,8 @@
 <a class="sourceLine" id="cb98-14" data-line-number="14"><span class="kw"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(time, prev_<span class="dv">2</span>_<span class="dv">10</span>_micro, <span class="dt">xlim =</span> <span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">2000</span>,<span class="dv">2015</span>), </a>
 <a class="sourceLine" id="cb98-15" data-line-number="15">     <span class="dt">ylab =</span> <span class="st">"Micro 2-10"</span>, <span class="dt">type =</span> <span class="st">"l"</span>)</a>
 <a class="sourceLine" id="cb98-16" data-line-number="16"><span class="kw"><a href="https://rdrr.io/r/graphics/points.html">points</a></span>(<span class="dv">2000</span><span class="op">:</span><span class="dv">2015</span>, map_prev)</a></code></pre></div>
-<p><img src="https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/country%20example-1.png"><!-- --> The above is similar to how the model fitting simulations were laid out and it gives the user a chance to check that the parameter sets being used are the correct parameters. However, you can use <code>use_historic_interventions</code> as <code>TRUE</code> and provide the year range and <code>pipeline</code> will conduct the above parameter searching for you.</p>
+<p><img src="https://github.com/OJWatson/magenta/raw/master/vignettes/Introduction_files/figure-html/country%20example-1.png"><!-- --></p>
+<p>The above is similar to how the model fitting simulations were laid out and it gives the user a chance to check that the parameter sets being used are the correct parameters. However, you can use <code>use_historic_interventions</code> as <code>TRUE</code> and provide the year range and <code>pipeline</code> will conduct the above parameter searching for you.</p>
 <p>As an aside, <code>magenta</code> has a multitude of little helped functions like <code>microscopy_detected</code> that are not exported currently, due to their use in mainly assisting downstream analysis rather than being for simulation directly.</p>
 </div>
 <div id="ibd-simulations" class="section level3">
