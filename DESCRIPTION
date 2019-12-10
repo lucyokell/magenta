@@ -38,6 +38,7 @@ LinkingTo: Rcpp, BH
 LazyData: TRUE
 RoxygenNote: 7.0.0
 SystemRequirements: C++11
+VignetteBuilder: knitr
 Additional_repositories: https://mrc-ide.github.io/drat
 Suggests:
     knitr,

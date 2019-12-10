@@ -1,5 +1,8 @@
 {
-  "@context": ["https://doi.org/10.5063/schema/codemeta-2.0", "http://schema.org"],
+  "@context": [
+    "https://doi.org/10.5063/schema/codemeta-2.0",
+    "http://schema.org"
+  ],
   "@type": "SoftwareSourceCode",
   "identifier": "magenta",
   "description": "Individual-based simulation model of malaria epidemiology and genomics.\n  magenta extends the imperial malaria model by tracking the infection history of \n  individuals. With this additional genetic characteristics of the parasite can be \n  assessed.",
@@ -281,5 +284,6 @@
   ],
   "releaseNotes": "https://github.com/OJWatson/magenta/blob/master/NEWS.md",
   "contIntegration": "https://travis-ci.org/ojwatson/magenta",
-  "developmentStatus": "https://www.repostatus.org/#wip"
+  "developmentStatus": "https://www.repostatus.org/#wip",
+  "fileSize": "13827.493KB"
 }
