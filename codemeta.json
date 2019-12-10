@@ -283,5 +283,5 @@
   "codeRepository": "https://ojwatson.github.io/magenta/",
   "contIntegration": "https://travis-ci.org/ojwatson/magenta",
   "developmentStatus": "https://www.repostatus.org/#wip",
-  "issueTracker": "https://github.com/ojwatson/magenta/issues"
+  "issueTracker": "https://github.com/OJWatson/magenta/issues"
 }
