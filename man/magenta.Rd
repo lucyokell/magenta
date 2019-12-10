@@ -10,3 +10,15 @@ magenta is an individual-based simulation model of malaria epidemiology and geno
 magenta extends the imperial malaria model by tracking the infection history of individuals. 
 With this additional genetic characteristics of the parasite can be assessed.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://ojwatson.github.io/magenta/}
+  \item Report bugs at \url{https://github.com/OJWatson/magenta/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: OJ Watson \email{oj.watson@hotmail.co.uk} (\href{https://orcid.org/0000-0003-2374-0741}{ORCID})
+
+}

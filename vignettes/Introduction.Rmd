@@ -1,19 +1,25 @@
 ---
 title: "How to use magenta"
 author: "OJ Watson"
-date: "2019-12-09"
-output: rmarkdown::html_vignette
+date: "2019-12-10"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 7 
+    fig_height: 5 
+    fig_align: center
 vignette: >
   %\VignetteIndexEntry{How to use magenta}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
+
+
 ## Overview
 
-*magenta* is an individual-based simulation model of malaria epidemiology and parasite genetics. 
+`**magenta**` is an individual-based simulation model of malaria epidemiology and parasite genetics. 
 
-*magenta* extends the Imperial malaria model by tracking the infection history of individuals. With this additional genetic characteristics of the parasite can be assessed for looking at both neutral genetic variation as well as loci under selection. 
+`magenta` extends the Imperial malaria model by tracking the infection history of individuals. With this additional genetic characteristics of the parasite can be assessed for looking at both neutral genetic variation as well as loci under selection. 
 
 The model is written in C++/Rcpp and interfaced with R.  
 
@@ -39,20 +45,14 @@ library(magenta)
 
 ### Base Model
 
-The *magenta* simulation model is run using the `pipeline` function, which handles creating needed parameter objects, starting the simulation, summarising the simulation model state at desired intervals and handling how to save the final model output and state. 
+The `magenta` simulation model is run using the `pipeline` function, which handles creating needed parameter objects, starting the simulation, summarising the simulation model state at desired intervals and handling how to save the final model output and state. 
 
 For example to run the model for 10 years at an EIR of 1 and no seasonality for a population of 10,000. 
 
 
 ```r
 out1 <- pipeline(EIR = 1, years = 10, N = 10000)
-```
-
-```
 ## Seed set to 693175740
-```
-
-```
 ## magenta v1.1.0
 ```
 
@@ -61,9 +61,6 @@ By default, magenta will run the simulation for the entire duration and return a
 
 ```r
 as.data.frame(tail(out1$Loggers, 6))
-```
-
-```
 ##           S           D          A          U           T           P
 ## 1 0.8550562 0.001561178 0.09800211 0.03924784 0.001086384 0.005046247
 ```
@@ -77,21 +74,9 @@ If we want to save information about the model state over time we set `update_sa
 out2 <- pipeline(EIR = 1, years = 10, N = 10000, 
                  update_save = TRUE, update_length = 30,
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 10 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
 ```
 
@@ -115,22 +100,13 @@ In the last simulation run, the random seed was provided, which is used to allow
 ```r
 meta <- attr(out2, "meta")
 print(meta$call)
-```
-
-```
 ## pipeline(EIR = 1, N = 10000, years = 10, update_length = 30, 
 ##     update_save = TRUE, seed = 123456789L)
-```
-
-```r
 print(meta$version)
-```
-
-```
 ## [1] '1.1.0'
 ```
 
-*magenta* primarily characterises parasite populations in terms of a genetic barcode, in which the barcode is a vector of bits representing whether the parasite possesses the major or minor allele at the loci of interest. By default the barcode used is 24 bases long. To see what this looks like, we can request for magenta to return the human population rather than the `Loggers` as the last list element.
+`magenta` primarily characterises parasite populations in terms of a genetic barcode, in which the barcode is a vector of bits representing whether the parasite possesses the major or minor allele at the loci of interest. By default the barcode used is 24 bases long. To see what this looks like, we can request for magenta to return the human population rather than the `Loggers` as the last list element.
 
 
 ```r
@@ -138,21 +114,9 @@ out3 <- pipeline(EIR = 1, years = 10, N = 10000,
                  update_save = TRUE, update_length = 30, 
                  human_only_full_save = TRUE, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 10 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
 ```
 
@@ -161,9 +125,6 @@ We can now look at what is returned in the last list element.
 
 ```r
 names(out3[[length(out3)]])
-```
-
-```
 ## [1] "Infection_States"                             "Zetas"                                        "Ages"                                         "ID"                                          
 ## [5] "Strain_infection_state_vectors"               "Strain_day_of_infection_state_change_vectors" "Strain_barcode_vectors"
 ```
@@ -178,9 +139,6 @@ n <- length(out3)
 # first individual who is infected, i.e. not in states S or P (order goes S, D, A, U, T, P) 
 i <- which.min(out3[[n]]$Infection_States %in% c(0, 5))
 out3[[n]]$Strain_barcode_vectors[i]
-```
-
-```
 ## [[1]]
 ## [[1]][[1]]
 ##  [1] FALSE  TRUE FALSE  TRUE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE  TRUE  TRUE FALSE FALSE  TRUE FALSE FALSE FALSE  TRUE FALSE  TRUE FALSE FALSE
@@ -203,18 +161,9 @@ With the parasite barcode information we can work out what an individual's compl
 ```r
 m <- which.max(n_strains)
 message("Individual ", m, " has ", n_strains[m], " strains")
-```
-
-```
 ## Individual 782 has 19 strains
-```
-
-```r
 un <- length(unique(out3[[n]]$Strain_barcode_vectors[[m]]))
 message("Individual ", m, " has ", un, " unique strains")
-```
-
-```
 ## Individual 782 has 17 unique strains
 ```
 The reason we also return the age and the detection immunity, `ID`, is that these are useful for when we want to estimate the COI in terms of what strains are likely to be observed based on their parasitaemia, which is inferred by their detection immunity, `ID`. These can be estimated using `convert_barcode_vectors` as follows, which below is used to show the COI of parsaites that have sufficiently high parasite density to be detected by microscopy if that was the only parasite strain in the infection. 
@@ -241,29 +190,11 @@ out4 <- pipeline(EIR = 1, years = 10, N = 10000,
                  update_save = TRUE, update_length = 30, 
                  full_save = TRUE, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 10 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
-```
-
-```r
 names(out4[[n]])
-```
-
-```
 ## [1] "population_List"                    "populations_event_and_strains_List" "scourge_List"                       "parameters_List"
 ```
 The last list element now contains 4 lists:
@@ -289,23 +220,12 @@ out5 <- pipeline(EIR = 1, years = 10, N = 10000,
                  summary_saves_only = FALSE,
                  full_save = TRUE, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 10 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
 ```
+
 From this we could then calculate the population COI at each monthly interval amongst other genetic traits. However, saving all this information to file quickly takes up a lot of memory. Instead, we can request for the information to be summarised using `summary_saves_only`:
 
 
@@ -316,31 +236,17 @@ out6 <- pipeline(EIR = 1, years = 10, N = 10000,
                  summary_saves_only = TRUE,
                  full_save = TRUE, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 10 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
 ```
+
 When saving summaries of the genetic information, the mean COI, % polygenomic infections, % unique barcodes and coefficient of uniqueness (see manuscript for definition) are recorded for seperate age and infection status groups. In addition, the overall clonality is recorded (how many of each barcode were there) and the population level allele frequency are saved. Lastly, some extra summaries of the population are saved, which include treatments given in the preceeding month, EIR and prevalence. For full explanation see [Loggers vignette](https://ojwatson.github.io/magenta/articles/loggers.html). For example, for COI the following data is stored:
 
 
 ```r
 out6[[1]]$summary_coi
-```
-
-```
 ##       age_bin     clinical    N     mean
 ## 1  (-0.001,5] Asymptomatic  139 3.820144
 ## 2  (-0.001,5]     Clinical    2 1.000000
@@ -355,6 +261,7 @@ out6[[1]]$summary_coi
 ## 11   (15,100]            P   23 0.000000
 ## 12   (15,100]            S 3927 0.000000
 ```
+
 We can then plot the population mean COI over time as follows, using the last 100 values after an approximate burnin period:
 
 
@@ -362,12 +269,12 @@ We can then plot the population mean COI over time as follows, using the last 10
 # We don't want the last element as the last save
 pos <- 1:(length(out6) - 1)
 COI <- unlist(lapply(out6[pos], function(x) { 
-  inf <- x$summary_coi$clinical %in% c("Asymptomatic","Clinical")
-  weighted.mean(x$summary_coi$mean[inf], x$summary_coi$N[inf]) 
+    inf <- x$summary_coi$clinical %in% c("Asymptomatic","Clinical")
+    weighted.mean(x$summary_coi$mean[inf], x$summary_coi$N[inf]) 
 }))
 prev <- unlist(lapply(out6[pos], function(x) {x$pcr_prev}))
 
-par(mfrow=c(2,1))
+par(mfrow=c(2,1), mar=c(2,4,1,2))
 plot(tail(COI,100), xlab = "", ylab = "COI")
 plot(tail(prev,100), xlab = "", ylab = "PCR PfPR")
 ```
@@ -387,21 +294,9 @@ out7 <- pipeline(EIR = 1, years = 10, N = 10000,
                  summary_saves_only = TRUE,
                  full_save = TRUE, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 10 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
 ```
 
@@ -428,29 +323,11 @@ out8 <- pipeline(EIR = 1, years = 10, N = 10000,
                  summary_saves_only = TRUE,
                  full_save = TRUE, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 10 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
-```
-
-```r
 out8[[1]]$summary_coi
-```
-
-```
 ##      age_bin     clinical   N     mean
 ## 1 (-0.001,5] Asymptomatic 139 3.820144
 ## 2 (-0.001,5]     Clinical   2 1.000000
@@ -475,30 +352,12 @@ out9 <- pipeline(EIR = 4, years = 20, N = 10000,
                  update_save = TRUE, 
                  update_length = 30, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## 
 ## Running Deterministic Model for 20 years
-```
-
-```
 ## Starting Stochastic Simulation for 20 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
-```
-
-```r
 infected_mosquitoes <- unlist(lapply(out9, function(x) {x$Mosquitoes$Mos_I}))
 time <- unlist(lapply(out9, function(x) {x$Time}))/365
 plot(time, infected_mosquitoes, xlab = "Time (Years)", ylab = "Infected Mosquitoes")
@@ -525,21 +384,9 @@ out10 <- pipeline(EIR = 1,
                  summary_saves_only = TRUE,
                  full_save = TRUE, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 25 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
 ```
 
@@ -571,25 +418,10 @@ out11 <- pipeline(EIR = 1,
                  summary_saves_only = TRUE,
                  full_save = TRUE, 
                  seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 25 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
-```
-
-```r
 pos <- 1:(length(out11) - 1)
 plafs <- do.call(rbind,lapply(out11[pos], function(x) {x$barcode_freq}))
 matplot(plafs)
@@ -612,24 +444,12 @@ admin <- "Kinshasa"
 ints <- intervention_grab(country = country, 
                           admin = admin,
                           year_range = year_range)
-```
-
-```
 ## Requested: Kinshasa, Democratic Republic of the Congo
 ## Returned: Kinshasa, Democratic Republic of the Congo
-```
-
-```r
 # grab the importation from the migration model
 spl <- spl_grab(country, admin, year_range)
-```
-
-```
 ## Requested: Kinshasa, Democratic Republic of the Congo
 ## Returned: Kinshasa_City, Democratic Republic of the Congo
-```
-
-```r
 # get the intervention parmeters
 ft <- ints$ft
 itn_cov <- ints$itn_cov
@@ -643,13 +463,7 @@ MAP <- data.table::fread(MAP_file)
 # work out the EIR for the prevalence in year 2000 (i.e. pre interventions)
 pfpr_micro <- MAP$`2000`[which(MAP$Name==admin)]
 EIR <- magenta:::pfpr_to_eir_heuristic(ft = 0, PfPR_micro = pfpr_micro)
-```
-
-```
 ## 0.00152858753907675
-```
-
-```r
 # run the simulation
 out12 <- pipeline(
   EIR = EIR,
@@ -669,35 +483,14 @@ out12 <- pipeline(
   human_update_save = FALSE,
   summary_saves_only = FALSE,
 )
-```
-
-```
 ## Seed set to 693175740
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Requested: Kinshasa, Democratic Republic of the Congo
 ## Returned: Kinshasa, Democratic Republic of the Congo
-```
-
-```
 ## 
 ## Running Deterministic Model for 36 years
-```
-
-```
 ## Starting Stochastic Simulation for 36 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
-```
-
-```r
 # Grab the microscopy prevalence over time in 2-10s
 pos <- 1:(length(out12)-1)
 time <- 1980 + unlist(lapply(out12[pos], "[[", "Time"))/365
@@ -742,25 +535,10 @@ out13 <- pipeline(EIR = 1,
                   summary_saves_only = TRUE,
                   full_save = TRUE, 
                   seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Set Up Grab
-```
-
-```r
 names(out13)
-```
-
-```
 ## [1] "population_List"                    "populations_event_and_strains_List" "scourge_List"                       "parameters_List"
 ```
 
@@ -772,9 +550,6 @@ infected <- which(out13$population_List$Infection_States %in% c(1:4))
 strains <- out13$populations_event_and_strains_List$Strain_barcode_vectors[infected]
 
 strains[1]
-```
-
-```
 ## [[1]]
 ## [[1]][[1]]
 ##   [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
@@ -810,14 +585,12 @@ strains[1]
 ## [417] FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
 ## [449] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
 ```
+
 The first infected individual is infected with two parasites as indicated with the two strain barcode vectors. The first is the binary representation of `rep(0, 24)` and the next is `rep(1,24)`. To convert these to integer vectors we can use the unexported `convert_ibd_barcode` passing in the barcode and the number of loci (`nl`) being simulated. So the first parasite in the second infected individual should be represented by a barcode of 2s give that the first individual had two strains (i.e. the 0s and the 1s).
 
 
 ```r
 magenta:::convert_ibd_barcode(strains[[2]][[1]], nl = 24)
-```
-
-```
 ##  [1] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
 ```
 
@@ -827,11 +600,9 @@ We can then work out how many parasites have been allocated in the simulation to
 ```r
 last_infected <- tail(strains,1)[[1]]
 magenta:::convert_ibd_barcode(last_infected[[length(last_infected)]], nl = 24)
-```
-
-```
 ##  [1] 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607 607
 ```
+
 Clearly `2^20` will be plenty, even if we add in substantial importation, with importation in the IBD model importing the next integer barcode, i.e. `rep(608, 24)`. Just remember you need to factor in both the rate of importation, the length of the simulation and the size of the population. We can do the same check at the end of the simulation to make sure we allocated sufficient bits. 
 
 
@@ -850,25 +621,10 @@ out14 <- pipeline(EIR = 1,
                   summary_saves_only = TRUE,
                   full_save = TRUE, 
                   seed = 123456789L)
-```
-
-```
 ## Seed set to 123456789
-```
-
-```
 ## magenta v1.1.0
-```
-
-```
 ## Starting Stochastic Simulation for 10 years
-```
-
-```
 ## Running: [=========================================================================================================================================================================] 100% eta: 0s
-```
-
-```r
 l <- length(out14)
 strains <- out14[[l]]$populations_event_and_strains_List$Strain_barcode_vectors
 infected <- which(out14[[l]]$population_List$Infection_States %in% c(1:4))
@@ -878,11 +634,9 @@ converted_barcodes <- lapply(strains[infected], function(x) {
 })
 
 max(unlist(converted_barcodes))
-```
-
-```
 ## [1] 9025
 ```
+
 Definitely plenty.
 
 As when simulating normal barcodes, a summary of the genetics is made at each update interval. For simulations of IBD, we save the population level IBD (pIBD in the manuscript) as `summary_ibd` and the within host IBD (iIBD in the manuscript) as `summary_within_ibd`. The same system is used for how to bin the population into clinical infection and age groups:
@@ -890,9 +644,6 @@ As when simulating normal barcodes, a summary of the genetics is made at each up
 
 ```r
 out14[[1]]$summary_ibd
-```
-
-```
 ##       age_bin     clinical  N         mean
 ## 1  (-0.001,5] Asymptomatic 14 9.751341e-06
 ## 2  (-0.001,5]            P  0          NaN
@@ -911,9 +662,6 @@ And for iIBD:
 
 ```r
 out14[[1]]$summary_within_ibd
-```
-
-```
 ##       age_bin     clinical  N       mean
 ## 1  (-0.001,5] Asymptomatic  9 0.02314815
 ## 2  (-0.001,5]            P  0        NaN

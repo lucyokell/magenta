@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Creates age brackets — age_brackets • magenta</title>
+<title>Changelog • magenta</title>
 
 
 <!-- jquery -->
@@ -35,9 +35,7 @@
 
 
 
-<meta property="og:title" content="Creates age brackets — age_brackets" />
-<meta property="og:description" content="Makes age brackets given, number of brackets, max age, and spacing" />
-<meta name="twitter:card" content="summary" />
+<meta property="og:title" content="Changelog" />
 
 
 
@@ -56,7 +54,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-topic">
+    <div class="container template-news">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -130,47 +128,47 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Creates age brackets</h1>
-    
-    <div class="hidden name"><code>age_brackets.Rd</code></div>
+      <h1>Changelog <small></small></h1>
+      
     </div>
 
-    <div class="ref-description">
-    <p>Makes age brackets given, number of brackets, max age, and spacing</p>
-    </div>
-
-    <pre class="usage"><span class='fu'>age_brackets</span>(
-  <span class='kw'>max_age</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>num_age_brackets</span> <span class='kw'>=</span> <span class='fl'>20</span>,
-  <span class='kw'>geometric_age_brackets</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
-)</pre>
-
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>max_age</th>
-      <td><p>Maximum age in years</p></td>
-    </tr>
-    <tr>
-      <th>num_age_brackets</th>
-      <td><p>Number of age brackets</p></td>
-    </tr>
-    <tr>
-      <th>geometric_age_brackets</th>
-      <td><p>Boolean for geometric brackets</p></td>
-    </tr>
-    </table>
-
-
+    <div id="magenta-1-2-0" class="section level2">
+<h2 class="hasAnchor">
+<a href="#magenta-1-2-0" class="anchor"></a>magenta 1.2.0</h2>
+<ul>
+<li>Documentation for base model</li>
+<li>
+<code><a href="https://rdrr.io/pkg/dde/man/dopri.html">dde::dopri</a></code> fix that caused deterministic model to fail below very small EIR</li>
+</ul>
+</div>
+    <div id="magenta-1-1-0" class="section level2">
+<h2 class="hasAnchor">
+<a href="#magenta-1-1-0" class="anchor"></a>magenta 1.1.0</h2>
+<ul>
+<li>New <code>param_list_simulation_finalizer_create</code> used within <code>pipeline</code> to return Rcpp memory</li>
+</ul>
+</div>
+    <div id="magenta-1-0-0" class="section level2">
+<h2 class="hasAnchor">
+<a href="#magenta-1-0-0" class="anchor"></a>magenta 1.0.0</h2>
+<ul>
+<li>New major version for stable base model for publication. Versioning now incremental.</li>
+<li>New version fixes minor changes to historic strain clearing in resistance</li>
+</ul>
+</div>
   </div>
+
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-    </ul>
-
+    <div id="tocnav">
+      <h2>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+        <li><a href="#magenta-1-2-0">1.2.0</a></li>
+        <li><a href="#magenta-1-1-0">1.1.0</a></li>
+        <li><a href="#magenta-1-0-0">1.0.0</a></li>
+      </ul>
+    </div>
   </div>
+
 </div>
 
 

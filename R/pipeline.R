@@ -680,6 +680,7 @@ pipeline <- function(EIR = 120,
   # if we want all memory to be freed
   if (housekeeping_list$clear_up) {
     res <- return_sim_memory(res)
+    meta$Ptr <- NULL
   }
   return(res)
 }
