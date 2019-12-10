@@ -1,0 +1,9 @@
+pandoc: 2.3.1
+pkgdown: 1.4.1
+pkgdown_sha: ~
+articles:
+  Introduction: Introduction.html
+urls:
+  reference: https://ojwatson.github.io/magenta//reference
+  article: https://ojwatson.github.io/magenta//articles
+

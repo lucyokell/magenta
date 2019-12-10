@@ -17,7 +17,7 @@ pfpr_to_eir_heuristic <- function(ft = 0,
                                   age_range=NULL, all_a=FALSE,
                                   ...){
   
-  mpl <- model_param_list_create(eta = 1/(21*365),...)
+  mpl <- model_param_list_create(eta = 1/(21*365), ...)
   
   num_het_brackets <- 5
   num_age_brackets <- 20
@@ -27,8 +27,10 @@ pfpr_to_eir_heuristic <- function(ft = 0,
   age.vector <- 0.1 * ratio ** (1:num_age_brackets)
   age.vector[1] <- 0
   
-  bm <- read.csv(system.file("extdata/bm.txt",package = "magenta"),sep=",",header = T)
-  
+  bm <- read.csv(system.file("extdata/bm.txt",package = "magenta"),
+                 sep=",",
+                 header = T)
+    
   if(!is.null(PfPR)){
     PR <- PfPR
     EIR <- bm$EIRY_eq[which.min(abs(bm$pcr_pos_all.final..1 - PR))]

@@ -2,13 +2,11 @@
 output: github_document
 ---
 ```{r, echo = FALSE}
-library(knitr)
-opts_chunk$set(
+knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "README-"
 )
-opts_knit$set(upload.fun = imgur_upload)
 ```
 # magenta
 

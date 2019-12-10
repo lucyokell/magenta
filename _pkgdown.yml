@@ -1,0 +1,69 @@
+url: https://ojwatson.github.io/magenta/
+
+template:
+  params:
+    bootswatch: flatly
+
+reference:
+  - title: "Simulation"
+    desc: "Functions for running magenta."
+    contents:
+      - pipeline
+  - title: "Pipeline Misc"
+    desc: >
+      "Functions that are actually being called by pipeline that trigger the 
+      simulation to run. These consist of functions that create the parameter 
+      lists to be passed to the functions that call the similarly named Rcpp
+      functions. Lastly, two functions that are used to summarise the population
+      genetics using Rcpp functions. "
+    contents:
+      - param_list_simulation_finalizer_create
+      - param_list_simulation_get_create
+      - param_list_simulation_init_create
+      - param_list_simulation_saved_init_create
+      - param_list_simulation_update_create
+      - simulation_R
+      - Simulation_Finalizer_cpp
+      - Simulation_Get_cpp
+      - Simulation_Init_cpp
+      - Simulation_Saved_Init_cpp
+      - Simulation_Update_cpp
+      - population_get_genetics_df_n
+      - population_get_genetics_ibd_df_n
+  - title: "Pipeline Parameter Creation"
+    desc: >
+      "Functions to create parameters to be passed to pipeline" 
+    contents:
+      - drug_list_create
+      - model_param_list_create
+      - spl_grab
+      - intervention_grab
+      - equilibrium_init_create
+  - title: "Barcode Misc"
+    desc: "Functions for converting and manipualting barcodes"
+    contents:
+      - convert_barcode_vectors
+    
+navbar:
+  type: default
+  left:
+    - href: index.html
+      icon: fa-home
+    - text: Introduction
+      href: articles/Introduction.html
+    - text: Reference
+      href: reference/index.html
+    - text: Articles
+      menu:
+      - text: Introduction to magenta (Overview)
+        href: articles/Introduction.html
+      - text: -------
+      - text: Logger Definitions
+        href: articles/Loggers.html
+      - text: Resistance
+        href: articles/Resistnace.html
+    - text: News
+      href: news/index.html
+  right:
+    - icon: fa-github
+      href: https://github.com/ojwatson/magenta

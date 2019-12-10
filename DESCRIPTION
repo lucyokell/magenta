@@ -2,8 +2,15 @@ Package: magenta
 Type: Package
 Title: Individual-based simulation model of malaria epidemiology and genomics
 Version: 1.1.0
-Author: OJ Watson & Bob Verity
+Authors@R: 
+    c(person(given = "OJ",
+             family = "Watson",
+             role = c("aut", "cre"),
+             email = "oj.watson@hotmail.co.uk",
+             comment = c(ORCID = "0000-0003-2374-0741")))
 Maintainer: Oliver Watson <o.watson@imperial.ac.uk>
+URL: https://ojwatson.github.io/magenta/
+BugReports: https://github.com/ojwatson/magenta/issues
 Description: Individual-based simulation model of malaria epidemiology and genomics.
   magenta extends the imperial malaria model by tracking the infection history of 
   individuals. With this additional genetic characteristics of the parasite can be 

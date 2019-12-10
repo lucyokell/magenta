@@ -51,6 +51,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   
   // Initialise parameters object
   Parameters parameters;
+  parameters.g_identity_id = 0;
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: UNPACKING PARAMETERS
