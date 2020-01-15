@@ -28,3 +28,4 @@ vignettes_src
 ^codemeta\.json$
 ^docs$
 docs
+submission_data

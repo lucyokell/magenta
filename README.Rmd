@@ -57,4 +57,4 @@ Contributors
 - [Joel Hellewell](https://github.com/jhellewell14)
 - [Hannah Slater](https://github.com/hannahslater)
 
-**Maintainer:** OJ Watson (oj.watson@imperial.ac.uk)
+**Maintainer:** OJ Watson (oj.watson@hotmail.co.uk)

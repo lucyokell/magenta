@@ -1,0 +1,106 @@
+Site/City/Village,Country,Diagnostic,Age,Prevalence LM,Prevalence PCR,Mean MOI,Error/Range on MOI,Study,Journal,Year,Source
+South Yemen,Yemen,Microscopy,All,0.14,N/A,1.6,N/A,Al-abd,PloS One,2013,Karl et al Review
+Brazzaville,Congo,RDT+Microscopy,5.3,0.19,N/A,1.6,N/A,Ntoumi,BMC Public Health,2013,Karl et al Review
+Ndaka Soussou,Congo,RDT+Microscopy,6.2,0.15,N/A,1.8,N/A,Ntoumi,BMC Public Health,2013,Karl et al Review
+Mugil,PNG,LM/PCR,2-10,0.381,0.56,2.01 ,1–11,Barry,AJTMH,2013,Karl et al Review
+Matukar/Bunu,PNG,LM/PCR,2-10,0.418,0.56,2.12,1–11,Barry,AJTMH,2013,Karl et al Review
+Karkum,PNG,LM/PCR,2-10,0.394,0.55,2.07,1–10,Barry,AJTMH,2013,Karl et al Review
+Dimer,PNG,LM/PCR,2-10,0.459,0.55,1.53,1–4,Barry,AJTMH,2013,Karl et al Review
+MALALA,PNG,LM/PCR,2-10,0.355,0.45,1.59 ,1–8,Barry,AJTMH,2013,Karl et al Review
+Wakorma,PNG,LM/PCR,2-10,0.381,0.46,1.44,1–4,Barry,AJTMH,2013,Karl et al Review
+Malala/Suraten,PNG,LM/PCR,2-10,0.328,0.45,1.5,1–8,Barry,AJTMH,2013,Karl et al Review
+Amiten/Susure,PNG,LM/PCR,2-10,0.335,0.42,1.77,1–5,Barry,AJTMH,2013,Karl et al Review
+UTU,PNG,LM/PCR,2-10,0.452,0.50,1.97 ,1–13,Barry,AJTMH,2013,Karl et al Review
+Utu,PNG,LM/PCR,2-10,0.452,0.50,1.97,1–13,Barry,AJTMH,2013,Karl et al Review
+WOSERA,PNG,LM/PCR,2-10,0.249,0.36,1.72 ,1−6,Barry,AJTMH,2013,Karl et al Review
+Gwinyingi,PNG,LM/PCR,2-10,0.229,0.49,1.69,1–6,Barry,AJTMH,2013,Karl et al Review
+Patigo,PNG,LM/PCR,2-10,0.069,0.16,1,1–1,Barry,AJTMH,2013,Karl et al Review
+Kausagu,PNG,LM/PCR,2-10,0.091,0.01,2,2–2,Barry,AJTMH,2013,Karl et al Review
+Nindigo,PNG,LM/PCR,2-10,0.419,0.56,1.66,1–5,Barry,AJTMH,2013,Karl et al Review
+Kitikum,PNG,LM/PCR,2-10,0.284,0.48,2.08,1–5,Barry,AJTMH,2013,Karl et al Review
+Wisokum,PNG,LM/PCR,2-10,0.163,0.22,1.62,1–5,Barry,AJTMH,2013,Karl et al Review
+Tatemba,PNG,LM/PCR,2-10,0.296,0.32,1.84,1–5,Barry,AJTMH,2013,Karl et al Review
+Brazzaville,Congo,PCR,1-9,0.16,N/A,1.35,N/A,Ntoumi,Malaria Journal,2012,Karl et al Review
+Rural/Urban, Burkina Faso,N/A,1-5,0.4,N/A,3,N/A,Soulama,Malaria Journal,2009,Karl et al Review
+Dihouine & Toucar,Senegal,PCR,2-10,0.44,N/A,2.5,N/A,Vafa,Malaria Journal,2008,Karl et al Review
+Dihouine & Toucar,Senegal,PCR,2-10,0.51,N/A,4.1,N/A,Vafa,Malaria Journal,2008,Karl et al Review
+Manhiça ,Mozambique,PCR,Adults,0.42,N/A,1.9,N/A,Mayor,Malaria Journal,2007,Karl et al Review
+Ouagadougou,Burkina Faso,Microscopy,3-6,0.65,N/A,3,N/A,Bolad,Acta Tropica,2004,Karl et al Review
+Ouagadougou,Burkina Faso,Microscopy,3-6,0.82,N/A,3.5,N/A,Bolad,Acta Tropica,2004,Karl et al Review
+Wosera,PNG,Microscopy,All,0.52,N/A,1.45,N/A,Cortes,Experimental Parasitlogy,2004,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,0.34,0.075,0.31,1.6,0.3,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,0.5,0.077,0.30,1.3,0.1,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,1,0.125,0.25,1.4,0.3,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,0–1.9,0.138,0.29,1.6,0.3,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,2–3.9,0.185,0.30,2,0.3,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,4–5.9,0.251,0.43,2.4,0.5,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,6–7.9,0.236,0.60,2.5,0.5,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,8–10,0.49,0.64,2.4,0.5,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,15–19.9,0.289,0.66,2.2,0.4,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,20–29.9,0.145,0.53,1.8,0.4,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,30–39.9,0.128,0.40,1.6,0.6,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,40–49.9,0.075,0.29,1.7,0.9,Mayor,TMIH,2003,Karl et al Review
+Manhiça ,Mozambique,LM/PCR,>50,0.064,0.27,1.4,0.3,Mayor,TMIH,2003,Karl et al Review
+Northern Ghana,Ghana,LM/PCR,<1,0.16,0.19,1.8,N/A,Owusu-Aegyi,TMIH,2002,Karl et al Review
+Northern Ghana,Ghana,LM/PCR,1–2,0.29,0.28,2.5,N/A,Owusu-Aegyi,TMIH,2002,Karl et al Review
+Northern Ghana,Ghana,LM/PCR,3–4,0.29,0.33,3.6,N/A,Owusu-Aegyi,TMIH,2002,Karl et al Review
+Northern Ghana,Ghana,LM/PCR,5–9,0.34,0.38,4.7,N/A,Owusu-Aegyi,TMIH,2002,Karl et al Review
+Northern Ghana,Ghana,LM/PCR,10–19,0.39,0.48,3.6,N/A,Owusu-Aegyi,TMIH,2002,Karl et al Review
+Northern Ghana,Ghana,LM/PCR,20–39,0.29,0.31,1.9,N/A,Owusu-Aegyi,TMIH,2002,Karl et al Review
+Northern Ghana,Ghana,LM/PCR,40–59,0.18,0.25,1.6,N/A,Owusu-Aegyi,TMIH,2002,Karl et al Review
+Northern Ghana,Ghana,LM/PCR,60+,0.23,0.30,1.9,N/A,Owusu-Aegyi,TMIH,2002,Karl et al Review
+West Uganda,Uganda,PCR filter pap,All,0.310344827586207,0.55,2.1,,Peyrl-Hoffmann,TMIH,2001,Karl et al Review
+Ndiop,Senegal,LM/PCR,Pregnant Women,0.29,0.85,2.2,0.5,Schleiermacher,AJTMH,2001,Karl et al Review
+Ndiop,Senegal,LM/PCR,Pregnant Women,0.175,0.78,1.5,0.25,Schleiermacher,AJTMH,2002,Karl et al Review
+Ndiop,Senegal,LM/PCR,Pregnant Women,0.351,0.90,2.35,0.7,Schleiermacher,AJTMH,2003,Karl et al Review
+Ndiop,Senegal,LM/PCR,Pregnant Women,0.121,0.75,1.27,0.27,Schleiermacher,AJTMH,2004,Karl et al Review
+Ndiop,Senegal,LM/PCR,Pregnant Women,0.205,0.80,1.6,0.3,Schleiermacher,AJTMH,2005,Karl et al Review
+Ndiop,Senegal,LM/PCR,Pregnant Women,0.337,0.90,2.5,0.65,Schleiermacher,AJTMH,2006,Karl et al Review
+Agunu,Nigeria,PCR,5–7,N/A,1.00,4.5,1.9,Engelbecht,Acta Tropica,2000,Karl et al Review
+Agunu,Nigeria,PCR,8–10,N/A,1.00,5.4,2.4,Engelbecht,Acta Tropica,2000,Karl et al Review
+Agunu,Nigeria,PCR,11–15,N/A,0.83,5.1,1.8,Engelbecht,Acta Tropica,2000,Karl et al Review
+Agunu,Nigeria,PCR,16–20,N/A,1.00,3.6,1.5,Engelbecht,Acta Tropica,2000,Karl et al Review
+Agunu,Nigeria,PCR,21–30,N/A,0.93,2.6,1.6,Engelbecht,Acta Tropica,2000,Karl et al Review
+Agunu,Nigeria,PCR,31–40,N/A,0.90,3.2,1.6,Engelbecht,Acta Tropica,2000,Karl et al Review
+Agunu,Nigeria,PCR,41–70,N/A,0.87,2.6,1.3,Engelbecht,Acta Tropica,2000,Karl et al Review
+Dielmo 1992,Senegal,PCR,All,N/A,0.96,3,1-12,Konate,Transactions,1999,Karl et al Review
+Dielmo 1994,Senegal,PCR,All,N/A,0.87,3,1-6,Konate,Transactions,2000,Karl et al Review
+Ndiop 1994,Senegal,PCR,All,N/A,0.60,1.45,1-4,Konate,Transactions,2001,Karl et al Review
+Idete,Tanzania,PCR,Infants,N/A,0.61,2.3,N/A,Felger,Transactions,1999,Karl et al Review
+Ifakara,Tanzania,PCR,Infants,N/A,0.06,3.12,N/A,Beck,Transactions,1999,Karl et al Review
+Ifakara,Tanzania,PCR,Infants,N/A,0.07,2.4,N/A,Beck,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.97,2.56,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.70,2.81,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.72,3.05,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.78,2.56,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.65,3.19,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.67,3.29,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.68,3.08,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.94,3.04,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.84,3.12,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.84,3.02,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.87,2.43,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.77,2.82,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.72,2.86,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Ifakara/Kiberege,Tanzania,PCR,0.4-2,N/A,0.82,3.33,N/A,Fraser Hurt,Transactions,1999,Karl et al Review
+Djobouti,Djibouti,Seroprevalenve,All,N/A,0.06,1,N/A,Khaireh,Malaria Journal,2013,Karl et al Review
+Pahang,Malaysia,PCR,All,N/A,0.02,1.2,N/A,Atroosh,Parasites & Vectors,2012,Karl et al Review
+Butare,Rwanda,PCR,<5,N/A,0.11,2.05,1-5,Gahutu,Malaria Journal,2011,Karl et al Review
+Butare,Rwanda,PCR,<5,N/A,0.17,1.95,1-4,Gahutu,Malaria Journal,2011,Karl et al Review
+Butare,Rwanda,PCR,<5,N/A,0.10,1.92,1-4,Gahutu,Malaria Journal,2011,Karl et al Review
+Sudan,Sudan,PCR,All,N/A,0.13,1.4,N/A,A-Elbasit,Parasitol Research,2007,Karl et al Review
+MaeSot,Thailand,PCR,All,N/A,0.03,1.32,N/A,Luxemburger/Paul,Transactions,1996/1999,Karl et al Review
+Obom,Ghana,Microscopy,6-45,0.3375,N/A,1.366,1-5,Abukari,Genes,2019,doi:10.3390/genes10060434
+Asutsare,Ghana,Microscopy,3-66,0.375,N/A,1,N/A,Abukari,Genes,2019,doi:10.3390/genes10060434
+Madibou,Republic of Congo,LM/PCR,Pregnant Women,0.079,0.308,1.4,0.01,Mbouamboua,Acta Tropica,2019,doi.org/10.1016/j.actatropica.2019.03.001
+Madibou,Republic of Congo,LM/PCR,Pregnant Women,0.027,0.194,1.2,0.01,Mbouamboua,Acta Tropica,2019,doi.org/10.1016/j.actatropica.2019.03.001
+Madibou,Republic of Congo,LM/PCR,Pregnant Women,0,0.095,1.4,0.01,Mbouamboua,Acta Tropica,2019,doi.org/10.1016/j.actatropica.2019.03.001
+Shai Osudoku,Ghana,LM/PCR,Children,0.029,0.187,3.13,1.11,Lamptey,Malaria Journal,2018,doi.org/10.1186/s12936-018-2479-y
+Shai Osudoku,Ghana,LM/PCR,Adults,0.021,0.104,2.75,0.62,Lamptey,Malaria Journal,2018,doi.org/10.1186/s12936-018-2479-y
+Shai Osudoku,Ghana,LM/PCR,Pregnant Women,0.0275,0.122,3.9,1.14,Lamptey,Malaria Journal,2018,doi.org/10.1186/s12936-018-2479-y
+Madibou,Republic of Congo,LM/PCR,Pregnant Women,0.07,0.19,1.6,1-4,Francine,Acta Tropica,2016,doi.org/10.1016/j.actatropica.2015.10.009
+Sandougou-soba,Côte d’Ivoire,LM/PCR,10.2,N/A,0.574,2.32,1.33,Mara ,Malaria Journal,2013,doi.org/10.1186/1475-2875-12-419
+Mélapleu,Côte d’Ivoire,LM/PCR,10.1,N/A,0.885,3.41,1.75,Mara ,Malaria Journal,2013,doi.org/10.1186/1475-2875-12-419
+Bloleu,Côte d’Ivoire,LM/PCR,10,N/A,0.897,3.29,1.72,Mara ,Malaria Journal,2013,doi.org/10.1186/1475-2875-12-419
+Bogouiné II,Côte d’Ivoire,LM/PCR,10.1,N/A,0.87,2.32,1.38,Mara ,Malaria Journal,2013,doi.org/10.1186/1475-2875-12-419
+Brong Ahafo,Ghana,Microscopy,All,0.58,N/A,6.1,N/A,Owusu-Aegyi,Malaria Journal,2008,doi.org/10.1186/1475-2875-8-220
