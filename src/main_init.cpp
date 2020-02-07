@@ -62,7 +62,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   
   // Unpack the R equilibirum state parameter list object and barcode object
   Rcpp::List eqSS = param_list["eqSS"];
-  Rcpp::List barcode_params  = param_list["barcode_params"];
+  Rcpp::List barcode_list  = param_list["barcode_list"];
   Rcpp::List spatial_list  = param_list["spatial_list"];
   Rcpp::List housekeeping_list = param_list["housekeeping_list"];
   Rcpp::List drug_list = param_list["drug_list"];
@@ -84,14 +84,16 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   // Un pack barcode parms
   // -------------------------------------------------
   
-  parameters.g_num_loci = Rcpp::as<unsigned int>(barcode_params["num_loci"]);
-  parameters.g_ibd_length = Rcpp::as<unsigned int>(barcode_params["ibd_length"]);
+  parameters.g_num_loci = Rcpp::as<unsigned int>(barcode_list["num_loci"]);
+  parameters.g_ibd_length = Rcpp::as<unsigned int>(barcode_list["ibd_length"]);
   parameters.g_barcode_length = static_cast<int>(parameters.g_num_loci * parameters.g_ibd_length);
-  parameters.g_plaf = Rcpp::as<std::vector<double> >(barcode_params["plaf"]);
-  parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(barcode_params["prob_crossover"]);
-  parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_params["barcode_type"]));
-  parameters.g_mutation_flag = Rcpp::as<bool>(barcode_params["mutation_flag"]);
-  parameters.g_mutation_rate = Rcpp::as<double>(barcode_params["mutation_rate"]);
+  parameters.g_plaf = Rcpp::as<std::vector<double> >(barcode_list["plaf"]);
+  parameters.g_prob_crossover = Rcpp::as<std::vector<double> >(barcode_list["prob_crossover"]);
+  parameters.g_barcode_type = static_cast<Parameters::g_barcode_type_enum>(Rcpp::as<unsigned int>(barcode_list["barcode_type"]));
+  parameters.g_mutation_flag = Rcpp::as<bool>(barcode_list["mutation_flag"]);
+  parameters.g_mutation_rate = Rcpp::as<std::vector<double> >(barcode_list["mutation_rate"]);
+  parameters.g_mutation_treated_modifier = Rcpp::as<double>(barcode_list["mutation_treated_modifier"]);
+  
   parameters.g_mutations_today = std::vector<unsigned int>(parameters.g_num_loci,0);
   
   // Un pack drug parameters
@@ -99,6 +101,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   
   // barcode drug related parameters
   parameters.g_resistance_flag = Rcpp::as<bool>(drug_list["resistance_flag"]);
+  parameters.g_absolute_fitness_cost_flag = Rcpp::as<bool>(drug_list["absolute_fitness_cost_flag"]);
   parameters.g_number_of_resistance_loci= Rcpp::as<unsigned int>(drug_list["number_of_resistance_loci"]);
   parameters.g_cost_of_resistance = Rcpp::as<std::vector<double> >(drug_list["cost_of_resistance"]);
   parameters.g_resistance_loci = Rcpp::as<std::vector<unsigned int> >(drug_list["resistance_loci"]);
@@ -112,13 +115,20 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   parameters.g_drugs.reserve(parameters.g_number_of_drugs);
   
   for (unsigned int i = 0; i < parameters.g_number_of_drugs ; i++) {
+    
+    Rcpp::List drug = Rcpp::as<Rcpp::List>(drug_list["drugs"])[i];
     parameters.g_drugs.emplace_back(
-      Rcpp::as<std::vector<double> >(Rcpp::as<Rcpp::List>(drug_list["prob_of_lpf"])[i]),
-      Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["barcode_res_pos"])[i]),     
-      Rcpp::as<std::vector<unsigned int> >(Rcpp::as<Rcpp::List>(drug_list["prophylactic_pos"])[i]),     
-      Rcpp::as<std::vector<double> >(drug_list["dur_P"])[i], 
-      Rcpp::as<std::vector<double> >(drug_list["dur_SPC"])[i]                                                    
+      Rcpp::as<std::vector<double> >(drug["lpf"]),
+      Rcpp::as<std::vector<unsigned int> >(drug["barcode_positions"]),
+      Rcpp::as<std::vector<unsigned int> >(drug["prophylactic_positions"]),
+      Rcpp::as<double>(drug["dur_P"]),                                                    
+      Rcpp::as<double>(drug["dur_SPC"]),                                                    
+      Rcpp::as<double>(drug["hill_n"]),                                                    
+      Rcpp::as<double>(drug["hill_kA"]),                                                    
+      Rcpp::as<double>(drug["hill_res_n"]),                                                    
+      Rcpp::as<double>(drug["hill_res_kA"])                                                    
     );
+    
   }
   
   // vector adaptation parameters
@@ -230,7 +240,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   // Draw barcodes as needed
   unsigned int expected_infections = static_cast<unsigned int>(parameters.g_N*infection_sum);
   rcpp_out(parameters.g_h_quiet_print, "expected = " + std::to_string(expected_infections));
-  double starting_ibd = Rcpp::as<double>(barcode_params["starting_ibd"]);
+  double starting_ibd = Rcpp::as<double>(barcode_list["starting_ibd"]);
   std::vector<boost::dynamic_bitset<> > predrawn_barcodes(expected_infections);
   std::vector<double> ibd_sample_prob(expected_infections, 0.0);
   rcpp_out(parameters.g_h_quiet_print, "Pre - predrawn!\n");

@@ -7,7 +7,7 @@
 param_list_simulation_init_create(
   N = 10000,
   eqSS,
-  barcode_params,
+  barcode_list,
   spatial_list,
   housekeeping_list,
   drug_list,
@@ -21,7 +21,7 @@ param_list_simulation_init_create(
 
 \item{eqSS}{Output of \code{equilibrium_steady_state_create}}
 
-\item{barcode_params}{List of barcode/genetic parameters}
+\item{barcode_list}{List of barcode/genetic parameters}
 
 \item{spatial_list}{Spatial parmeters to come in}
 

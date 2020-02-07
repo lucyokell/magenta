@@ -20,6 +20,7 @@
 #include <bitset>
 #include <random>
 #include <boost/dynamic_bitset.hpp>
+#include "probability.h"
 #include "Rcpp.h"
 
 class Drug {
@@ -34,6 +35,10 @@ private:
   std::vector<unsigned int> m_prophylactic_positions; // which positions in the barcode correspond to the prophylactic
   double m_dur_P;					// duration of prophylaxis
   double m_dur_SPC;					// duration of slow parasite clearance
+  double m_hill_n; // Hill function parameter n for curve detailing pretective efficacy
+  double m_hill_kA; // Hill function parameter kA for curve detailing pretective efficacy
+  double m_hill_res_n; // Hill function parameter n for curve detailing pretective efficacy when challenged by resistant parasite
+  double m_hill_res_kA; // Hill function parameter kA for curve detailing pretective efficacy when challenged by resistant parasite
   
 public:
   
@@ -45,14 +50,22 @@ public:
   Drug(std::vector<double> lpf, 
        std::vector<unsigned int> barcode_positions, 
        std::vector<unsigned int> prophylactic_positions, 
-       double dur_P = 25, double m_dur_SPC = 5) : 
+       double dur_P, 
+       double dur_SPC,
+       double hill_n,
+       double hill_kA,
+       double hill_res_n,
+       double hill_res_kA) : 
   
   m_lpf(lpf), 
   m_barcode_positions(barcode_positions),
   m_prophylactic_positions(prophylactic_positions),
   m_dur_P(dur_P),
-  m_dur_SPC(m_dur_SPC)
-  
+  m_dur_SPC(dur_SPC),
+  m_hill_n(hill_n),
+  m_hill_kA(hill_kA),
+  m_hill_res_n(hill_res_n),
+  m_hill_res_kA(hill_res_kA)
   {};
 
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -71,8 +84,20 @@ public:
   // Get drug duration of prophylaxis
   double get_m_dur_P() const { return(m_dur_P); }		
   
-  // Get  duration of slow parasite clearance
+  // Getduration of slow parasite clearance
   double get_m_dur_SPC() const { return(m_dur_SPC); }		
+  
+  // Get Hill function parameter n for curve detailing pretective efficacy
+  double get_m_hill_n() const { return(m_hill_n); }	
+  
+  // Get Hill function parameter kA for curve detailing pretective efficacy
+  double get_m_hill_kA() const { return(m_hill_kA); }	
+  
+  // Get Hill function parameter n for curve detailing pretective efficacy when challenged by resistant parasite
+  double get_m_hill_res_n() const { return(m_hill_res_n); }	
+  
+  // Get Hill function parameter kA for curve detailing pretective efficacy when challenged by resistant parasite
+  double get_m_hill_res_kA() const { return(m_hill_res_kA); }	
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // Setters
@@ -93,6 +118,18 @@ public:
   // Set  duration of slow parasite clearance
   void set_m_dur_SPC(double x) { m_dur_SPC = x; }
   
+  // Set Hill function parameter n for curve detailing pretective efficacy
+  void set_m_hill_n(double x) { m_hill_n = x; }	
+  
+  // Set Hill function parameter kA for curve detailing pretective efficacy
+  void set_m_hill_kA(double x) { m_hill_kA = x; }	
+  
+  // Set Hill function parameter n for curve detailing pretective efficacy when challenged by resistant parasite
+  void set_m_hill_res_n(double x) { m_hill_res_n = x; }	
+  
+  // Set Hill function parameter kA for curve detailing pretective efficacy when challenged by resistant parasite
+  void set_m_hill_res_kA(double x) { m_hill_res_kA = x; }	
+  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // Extra
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -100,7 +137,7 @@ public:
   // Get prob of lpf
   double get_prob_of_lpf_x(unsigned int x) const { return(m_lpf[x]); }
   
-  // Get prob of lpf
+  // Get prob of lpf at position
   double get_prob_of_lpf_barcode(boost::dynamic_bitset<> &x) const { 
     
     unsigned long mask = 1;
@@ -118,10 +155,20 @@ public:
   // Does the provided barcode have resistant loci
   bool resistance_to_drug(boost::dynamic_bitset<> &x) const { 
     
-    // start as true and then and assign AND
-    bool resistant = true;
+    // start as false and then and assign
+    bool resistant = false;
+    
+    // what is the strain's lpf and def(ault)
+    double def = get_prob_of_lpf_x(0);
+    double lpf = get_prob_of_lpf_barcode(x);
+    
+    // if it is lower then check if this is because it has prophylactic resistance positions
+    if (lpf < def) {
+    
     for (unsigned int p : m_prophylactic_positions) {
-      resistant = resistant && x[p];
+      resistant = resistant || x[p];
+    }
+    
     }
     
     return(resistant);
@@ -134,19 +181,23 @@ public:
                          unsigned int day_of_change,
                          unsigned int day_treated) const { 
     
-    // start as true and then and assign AND
+    // is the infecting strain resistant at prophylactic positions
     bool resistant = resistance_to_drug(x);
     
-    // if it was resistant then check for early infetction
+    // what is their drug concentration
+    double drug_conc = R::dexp(current_time - day_treated, 
+                               1.0/(day_of_change - day_treated), 
+                               false);
+    
+    // if it was resistant then check for early reinfection using resistant hill parameters
     if (resistant) {
       
-      if (current_time > (day_of_change - ((day_of_change - day_treated)/2))) {
-        return(true);
-      } else {
-        return(false);
-      }
+      return(rbernoulli1(hill_function(drug_conc, m_hill_res_n, m_hill_res_kA)));
+      
     } else {
-      return(false);
+      
+      return(rbernoulli1(hill_function(drug_conc, m_hill_n, m_hill_kA)));
+      
     }
     
   }
@@ -167,7 +218,11 @@ public:
         Rcpp::Named("m_barcode_positions")=m_barcode_positions,
         Rcpp::Named("m_prophylactic_positions")=m_prophylactic_positions,
         Rcpp::Named("m_dur_P")=m_dur_P,
-        Rcpp::Named("m_dur_SPC")=m_dur_SPC
+        Rcpp::Named("m_dur_SPC")=m_dur_SPC,
+        Rcpp::Named("m_hill_n")=m_hill_n,
+        Rcpp::Named("m_hill_kA")=m_hill_kA,
+        Rcpp::Named("m_hill_res_n")=m_hill_res_n,
+        Rcpp::Named("m_hill_res_kA")=m_hill_res_kA
       )
     );
   }
@@ -179,7 +234,11 @@ public:
     m_barcode_positions(Rcpp::as<std::vector<unsigned int> >(list["m_barcode_positions"])), 
     m_prophylactic_positions(Rcpp::as<std::vector<unsigned int> >(list["m_prophylactic_positions"])), 
     m_dur_P(Rcpp::as<double>(list["dur_P"])),
-    m_dur_SPC(Rcpp::as<double>(list["dur_SPC"]))
+    m_dur_SPC(Rcpp::as<double>(list["dur_SPC"])),
+    m_hill_n(Rcpp::as<double>(list["m_hill_n"])),
+    m_hill_kA(Rcpp::as<double>(list["m_hill_kA"])),
+    m_hill_res_n(Rcpp::as<double>(list["m_hill_res_n"])),
+    m_hill_res_kA(Rcpp::as<double>(list["m_hill_res_kA"]))
     
   {};
   

@@ -12,7 +12,7 @@ param_list_simulation_update_create(
   statePtr,
   spatial_list,
   drug_list,
-  barcode_params
+  barcode_list
 )
 }
 \arguments{
@@ -32,7 +32,7 @@ will result in rep(1/3,floor(years*365))}
 
 \item{drug_list}{Drug list}
 
-\item{barcode_params}{Barcode parameter list}
+\item{barcode_list}{Barcode parameter list}
 }
 \description{
 \code{param_list_simulation_update_create} creates suitable parameter list for

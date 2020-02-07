@@ -361,170 +361,6 @@ mu_fv_create <- function(eqInit,
 }
 
 
-
-
-#' Create housekeeping parameter list
-#' 
-#' List for simulation housekeeping vars, e.g. quiet prints,
-#' 
-#' @param quiet Boolean for quiet simulation. Default = TRUE
-#' @param cluster Boolean for simulation being on cluster. Default = TRUE
-#' @param clear_up Boolean for whether to clear up the memory used by the 
-#'   simulation. Default = TRUE
-
-housekeeping_list_create <- function(quiet = TRUE,
-                                     cluster = FALSE,
-                                     clear_up = TRUE) {
-  
-  l <- list("quiet_print" = quiet,
-            "cluster" = cluster,
-            "clear_up" = clear_up)
-  
-  return(l)
-  
-}
-
-
-#' Create drug list
-#' 
-#' List for simulating drug usage for resistance/mft variables
-#' 
-#' @param resistance_flag Boolean are we simulating resistance
-#' @param number_of_resistance_loci Numeric for number of res. loci
-#' @param resistance_costs Numeric vector for costs of res. 
-#' @param epistatic_logic Is there compensatory relationships. i.e. what loci 
-#'   need to be true for resistance cost to exist. Default of NULL means that 
-#'   this becomes seq_len(number_of_resistance_loci), i.e. only dependent on 
-#'   their own loci. (TODO: Change this to be a list of length norl)
-#' @param prob_of_lpf List of probabiliteis of lpf. Each list element should 
-#'   be a vector of the prob of lpf for each relevent barcode combination for 
-#'   a given drug. E.g. The default is:
-#'   
-#'   \code{list(c(1.0,0.97,0.80,0.55), c(1.0,0.98,0.7,0.51))} 
-#'   
-#'   The first list vector is length 4, and so 2 barcode positions change the 
-#'   prob of lpf. If the parasite is 0,0 then the prob of lpf is 0 (1-1), 
-#'   but if it was 0,1 it would be 0.2. 
-#'   The second list vecotr is also length 4, so the second possible drug also
-#'   only involves two loci. However if it was 8 long then 3 loci would be 
-#'   involved. 
-#' @param barcode_res_pos List for which barcode positions correspond to which
-#'   drug resistance mechanism. E.g. the default is:
-#'   
-#'   \code{list(c(0,1),c(0,2))}
-#'   
-#'   Resistance to drug 1 is encoded at barcode position 0 and 1
-#'   Resistance to drug 2 is encoded at barcode position 0 and 2
-#'   The shared barcode position in this example reflects say 2 different ACTs,
-#'   which both have artemisinin as one component, but a different partner drug.
-#' @param prophylactic_pos List for which barcode positions determine the
-#'   impact of drug resistance in shortening the effective prophylactic period.
-#'   E.g. the default is \code{list(c(1),c(2))}, which shows that for drug 1,
-#'   the prophylactic position is encoded in barcode position 1, and for drug 2
-#'   it is encoded at position 2.
-#' @param artemisinin_loci Numerics for barcode positions that confer artemisinin 
-#'   resistance
-#' @param dur_P Vector for the duration of prophylaxis for each drug. Default 
-#'   is \code{rep(25,number_of_drugs)}.
-#' @param dur_SPC Vector for the duration of slow parasite clearance for each 
-#'   drug. Default is \code{rep(5,number_of_drugs)}.
-#' @param mft_flag Boolean are we doing mft
-#' @param temporal_cycling Numeric for when in years a drug switch occurs
-#' @param sequential_cycling Numeric for what perc. treatment failure before switch
-#' @param sequential_update How long does it take in years for sequential to be implemented
-#' @param number_of_drugs Numeric for number of drugs used
-#' @param drug_choice What's the default drug choice to begin. Default = 0
-#' @param partner_drug_ratios Numeric vector for ratio of first line drugs used
-#' 
-#' @export
-
-drug_list_create <- function(resistance_flag = FALSE,
-                             number_of_drugs = 2,
-                             number_of_resistance_loci = 3,
-                             resistance_costs = c(0.99,0.99,0.98),
-                             epistatic_logic = NULL, 
-                             prob_of_lpf = list(c(1.0,0.97,0.80,0.55),
-                                                c(1.0,0.98,0.7,0.51)),
-                             barcode_res_pos = list(c(0,1),
-                                                    c(0,2)),
-                             prophylactic_pos = list(c(1),c(2)),
-                             artemisinin_loci = 0,
-                             dur_P = rep(25, number_of_drugs),
-                             dur_SPC = rep(5, number_of_drugs),
-                             mft_flag = FALSE,
-                             temporal_cycling = -1,
-                             sequential_cycling = -1,
-                             sequential_update = 3,
-                             drug_choice = 0,
-                             partner_drug_ratios = rep(1/number_of_drugs,number_of_drugs)) {
-  
-  
-  # TODO: More check for formatting here that you have enough prophylactic etc
-  
-  if(temporal_cycling > 0 && sequential_cycling > 0) {
-    stop ("Both sequential and temporal cycling can't be greater than 0")
-  }
-  
-  resistance_costs <- resistance_cost_table_create(number_of_resistance_loci, 
-                                                   resistance_costs,
-                                                   epistatic_logic)
-  
-  resistance_loci <- sort(unique(unlist(barcode_res_pos)));
-  
-  
-  l <- list("resistance_flag" = resistance_flag,
-            "number_of_resistance_loci" = number_of_resistance_loci,
-            "cost_of_resistance" = resistance_costs,
-            "resistance_loci" = resistance_loci,
-            "artemisinin_loci" = artemisinin_loci,
-            "prob_of_lpf" = prob_of_lpf,
-            "barcode_res_pos" = barcode_res_pos,
-            "prophylactic_pos" = prophylactic_pos,
-            "dur_P" = dur_P,
-            "dur_SPC" = dur_SPC,
-            "mft_flag" = mft_flag,
-            "temporal_cycling" = temporal_cycling,
-            "next_temporal_cycle" = temporal_cycling,
-            "sequential_cycling" = sequential_cycling,
-            "sequential_update" = sequential_update,
-            "number_of_drugs" = number_of_drugs,
-            "drug_choice" = drug_choice,
-            "partner_drug_ratios" = partner_drug_ratios)
-  
-  return(l)
-  
-}
-
-resistance_cost_table_create <- function(number_of_resistance_loci, 
-                                         resistance_costs, 
-                                         epistatic_logic=NULL){
-  
-  if(length(resistance_costs)>number_of_resistance_loci) {
-    resistance_costs <- resistance_costs[seq_len(number_of_resistance_loci)]
-  }
-  
-  if (is.null(epistatic_logic)) {
-    epistatic_logic <- seq_len(number_of_resistance_loci)
-  }
-  
-  max_bits <- (2^(number_of_resistance_loci))-1
-  barcode_poss <- matrix(intToBits(0:max_bits),ncol=32,byrow=T)[,1:(number_of_resistance_loci)]
-  results <- rep(1, nrow(barcode_poss))
-  count <- 1
-  
-  for(j in 1:nrow(barcode_poss)){
-    comp <- epistatic_logic[as.logical(barcode_poss[j,])]
-    res <- as.logical(barcode_poss[j,])
-    res[which(res)] <- comp %in% which(res)
-    results[count] <- prod(resistance_costs[res])
-    count <- count+1
-  }
-  
-  return(results)
-  
-}
-
-
 drug_list_update <- function(drug_list, year, tf){
   
   
@@ -597,7 +433,7 @@ lineages <- function(nums,nl){
 update_saves <- function(res, i, sim.out, sample_states,
                          sample_size, sample_reps, mean_only,
                          age_breaks = c(-0.001, 5, 15, 100.1),
-                         barcode_params, num_loci, full_update_save=FALSE,
+                         barcode_list, num_loci, full_update_save=FALSE,
                          genetics_df_without_summarising, save_lineages = FALSE,
                          human_update_save, summary_saves_only,
                          only_allele_freqs, mpl, seed, weighted=FALSE) {
@@ -613,12 +449,12 @@ update_saves <- function(res, i, sim.out, sample_states,
       if(length(sample_size)>1){
         df <- pop_strains_df(sim.out$Ptr, sample_size = 0, 
                              sample_states = sample_states, 
-                             ibd = barcode_params$barcode_type,
+                             ibd = barcode_list$barcode_type,
                              seed = seed)
       } else {
         df <- pop_strains_df(sim.out$Ptr, sample_size = sample_size*sample_reps, 
                              sample_states = sample_states, 
-                             ibd = barcode_params$barcode_type,
+                             ibd = barcode_list$barcode_type,
                              seed = seed)
         
       }
@@ -640,14 +476,14 @@ update_saves <- function(res, i, sim.out, sample_states,
         
         if(i%%12 == 0 && i >= (length(res)-180)){
           res[[i]] <- COI_df_create(df, barcodes=TRUE, 
-                                    ibd = barcode_params$barcode_type,
+                                    ibd = barcode_list$barcode_type,
                                     breaks = age_breaks,
                                     n = sample_size, 
                                     reps = sample_reps, 
                                     mean_only = mean_only)
         } else {
           res[[i]] <- COI_df_create(df, barcodes=FALSE, 
-                                    ibd = barcode_params$barcode_type,
+                                    ibd = barcode_list$barcode_type,
                                     breaks = age_breaks, 
                                     n = sample_size, 
                                     reps = sample_reps, 
@@ -723,71 +559,3 @@ update_saves <- function(res, i, sim.out, sample_states,
   
 }
 
-
-#' Create vector adaptation list
-#' 
-#' List for vector adaptations relating to oocyst success
-#' 
-#' @param vector_adaptation_loci Vector of integers detailing which loci
-#'   in the barcode correspond to the vector adaptation phenotype
-#' @param vector_adaptation_flag Boolean are we doing vector adaptation.
-#' @param local_oocyst_advantage Numeric for probability that non adapated
-#'   parasites will get through. Default = 0.5 
-#' @param gametocyte_sterilisation_flag Boolean for whether we are doing
-#'   gametocye sterilisation as a result from artemisinin. Default = FALSE
-#' @param gametocyte_sterilisation Numeric for theimpact of artemisinin on 
-#'   male gametocytes. Default = 0.5, which causes the probability that a 
-#'   wild type male gametocyte will be chosen to be in oocysts is halved. 
-#' @param oocyst_reduction_by_artemisinin Numeric for reduction in oocyst 
-#'   under artemisinin drug pressure. default = 0.2
-#' 
-
-vector_adaptation_list_create <- function(vector_adaptation_loci,
-                                          vector_adaptation_flag = FALSE,
-                                          local_oocyst_advantage = 0.5,
-                                          gametocyte_sterilisation_flag = FALSE,
-                                          gametocyte_sterilisation = 0.5,
-                                          oocyst_reduction_by_artemisinin = 0.2){
-  
-  l <- list("vector_adaptation_flag" = vector_adaptation_flag,
-            "vector_adaptation_loci" = vector_adaptation_loci,
-            "local_oocyst_advantage" = local_oocyst_advantage,
-            "gametocyte_sterilisation_flag" = gametocyte_sterilisation_flag,
-            "gametocyte_sterilisation" = gametocyte_sterilisation,
-            "oocyst_reduction_by_artemisinin" = oocyst_reduction_by_artemisinin)
-  
-  return(l)
-  
-}
-
-
-#' Create nmf list
-#' 
-#' List for simulating non malarial fever
-#' 
-#' @param nmf_flag Boolean are we doing non malarial fevers
-#' @param mean_nmf_frequency Vector for mean number of days between fevers for
-#'   the age bracket considered 
-#' @param nmf_age_brackets Vector for age brackets
-#' @param prob_of_testing_nmf Numeric for probability that a NMF is tested by 
-#'   RDT before being treated with antimalarials. 
-#' 
-#' 
-
-nmf_list_create <- function(nmf_flag = FALSE,
-                            mean_nmf_frequency = c(148.578,139.578,141.564,155.874,179.364,
-                                                   216.192,233.478,268.056,312.858,315.564,
-                                                   285.156,255.246,238.302,216.618),
-                            nmf_age_brackets = c(-0.1, 365.0, 730.0, 1095.0, 1460.0, 1825.0, 
-                                                 2555.0, 3285.0, 4015.0, 4745.0, 5475.0, 
-                                                 7300.0, 9125.0, 10950.0, 36850.0),
-                            prob_of_testing_nmf = 0.5){
-  
-  l <- list("nmf_flag" = nmf_flag,
-            "mean_nmf_frequency" = mean_nmf_frequency,
-            "nmf_age_brackets" = nmf_age_brackets,
-            "prob_of_testing_nmf" = prob_of_testing_nmf)
-  
-  return(l)
-  
-}
