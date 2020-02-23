@@ -26,7 +26,7 @@ pool_res <- function(grp,nl=3,N=100000, reps = 10,
       af <- lapply(r[1:(length(r)-1)],function(x) pop_alf(x$df$nums[unlist(lapply(x$df$barcode_states,length))>0],nl)) %>% unlist
     }
     times <- sort(rep(seq(30,by = 30,length.out = (length(r)-1)),nl))
-    loci <- rep(c("Artemisinin",paste0("PD",1:(nl-1))),(length(r)-1))
+    loci <- rep(c(paste0("L",1:(nl))),(length(r)-1))
     df <- data.frame("AF"=af,"Time"=times/365,"Drug_Locus"=loci)
     df$rep <- i
     df$Method <- method
@@ -41,8 +41,11 @@ pool_res <- function(grp,nl=3,N=100000, reps = 10,
   make_treat_fail_df <- function(r,i,method){
     
     treatment_failures <- lapply(r[1:(length(r)-1)],function(x) x$overall_treatment_failure) %>% unlist
+    unsuccesful_treatments_lpf <- lapply(r[1:(length(r)-1)],function(x) x$unsuccesful_treatments_lpf) %>% unlist
     times <- sort(rep(seq(30,by = 30,length.out = (length(r)-1)),1))
-    df <- data.frame("Treatment_Failure"=treatment_failures,"Time"=times/365)
+    df <- data.frame("Treatment_Failure"=treatment_failures,
+                     "Num_Treatment_Failures"=unsuccesful_treatments_lpf,
+                     "Time"=times/365)
     df$rep <- i
     df$Method <- method
 
@@ -86,7 +89,7 @@ pool_res <- function(grp,nl=3,N=100000, reps = 10,
 
     muts <-  lapply(r[1:(length(r)-1)],function(x) x$mutations) %>% unlist
     times <- sort(rep(seq(30,by = 30,length.out = (length(r)-1)),nl))
-    loci <- rep(c("Artemisinin",paste0("PD",1:(nl-1))),(length(r)-1))
+    loci <- rep(c(paste0("L",1:(nl))),(length(r)-1))
     df <- data.frame("Mutations"=muts,"Time"=times/365,"Drug_Locus"=loci)
     df$rep <- i
     df$Method <- method
@@ -94,7 +97,7 @@ pool_res <- function(grp,nl=3,N=100000, reps = 10,
     
     if(remove_zeros){
       df <- na.omit(df)
-      df <- df[!df$muts==0,]
+      df <- df[!df$Mutations==0,]
     }
     return(df)
   }
@@ -106,7 +109,7 @@ pool_res <- function(grp,nl=3,N=100000, reps = 10,
   mutation_list <- list()
   
   for(i in 1:length(methods)){
-    message(paste0(i," "),appendLF = FALSE)
+    #message(paste0(i," "),appendLF = FALSE)
     found <- FALSE
     if(non_cluster){
       r <- grp[[i]]
@@ -175,19 +178,29 @@ pool_res <- function(grp,nl=3,N=100000, reps = 10,
   if (!is.null(meta)) {
     for(m in seq_len(length(meta))){
       if(1 %in% list_returns){
+        if(nrow(af_df)>0) {
       af_df[names(meta[m])] <- meta[[m]]
+        }
       }
       if(2 %in% list_returns){
+        if(nrow(mutation_df)>0) {
       mutation_df[names(meta[m])] <- meta[[m]]
+        }
       }
       if(3 %in% list_returns){
+        if(nrow(fail_df)>0) {
       fail_df[names(meta[m])] <- meta[[m]]
+        }
       }
       if(4 %in% list_returns){
+        if(nrow(prev_df)>0) {
       prev_df[names(meta[m])] <- meta[[m]]
+        }
       }
       if(5 %in% list_returns){
+        if(nrow(lineage_df)>0) {
       lineage_df[names(meta[m])] <- meta[[m]]
+        }
       }
     }
   }
@@ -201,7 +214,7 @@ pool_res <- function(grp,nl=3,N=100000, reps = 10,
 create_res_list <- function(gs,nms,nums,nl=2,reps=50,methods=rep(reps,NA),list_returns=1:5,remove_zeros=FALSE){
   
   grab_number <- function(x,y){
-    na.omit(sapply(strsplit(x,"_|N_")[[1]],as.numeric))[y]
+    na.omit(sapply(strsplit(x,"_|N_|starting")[[1]],as.numeric))[y]
   }
   
   pb <- progress::progress_bar$new(total = length(gs))
@@ -214,7 +227,7 @@ create_res_list <- function(gs,nms,nums,nl=2,reps=50,methods=rep(reps,NA),list_r
       for(m in seq_along(nms)){
         meta[[nms[m]]] <- grab_number(nm,nums[m])
       }
-      res_list[[nm]] <- pool_res(gs[[i]],nl = nl,reps = reps,methods=methods,meta=meta,remove_zeros=FALSE)
+      res_list[[nm]] <- pool_res(gs[[i]],nl = nl,reps = reps,methods=methods,meta=meta,remove_zeros=remove_zeros)
       res_list[[nm]] <- res_list[[nm]][list_returns]
     }
   }
