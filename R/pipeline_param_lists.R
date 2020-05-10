@@ -306,8 +306,8 @@ drug_create_asaq <- function() {
   dur_aq_short <- 11.6
   shape_aq <- 16.8
   
-  aq <- 1 - pgamma(x, shape = shape_aq, rate = shape_aq/dur_aq_long)
-  aq_res <- 1 - pgamma(x, shape = shape_aq, rate = shape_aq/dur_aq_short)
+  aq <- 1 - pgamma(seq(0, 60, 0.2),, shape = shape_aq, rate = shape_aq/dur_aq_long)
+  aq_res <- 1 - pgamma(seq(0, 60, 0.2), shape = shape_aq, rate = shape_aq/dur_aq_short)
   
   
   drug <- drug_create(prob_of_lpf = drug_table$ASAQ,

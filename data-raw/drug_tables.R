@@ -42,4 +42,6 @@ new_drug_table <- new_drug_table[match(ordered_options, new_drug_table$Genotype)
 
 # assign as drug table
 drug_table <- new_drug_table
+
+# and remove 
 usethis::use_data(drug_table, overwrite = TRUE)
