@@ -41,6 +41,11 @@ svg("fig1a.svg",width = 12,height = 5)
 gg1a
 dev.off()
 
+fig1a_table <- fig1a %>% group_by(Age, Admin, source) %>% 
+  summarise(COI = round(mean(COI),2)) %>% 
+  pivot_wider(names_from = Age, values_from = COI)
+write.table(fig1a_table,row.names = F, file = "supp_table1.txt")
+
 # Fig 1b -----------------------------------------------------------------------
 
 fig1b <- readRDS("fig1b.rds")
@@ -534,11 +539,11 @@ cowplot::save_plot(filename = "supp_fig2.png",gg_sub2, base_height = 12*1.2,base
 fig5a_data <- readRDS("fig5a.rds")
 fig5b_data <- readRDS("fig5b.rds")
 
-gg5a <- ggplot(fig5a_data,aes(x=Observed.PCR.PfPR, y = Predicted.PCR.PfPR ,color = Origin,size=Origin)) + 
+gg5a <- ggplot(fig5a_data,aes(x=Observed.Microscopy2.10.PfPR, y = Predicted.Microscopy2.10.PfPR ,color = Origin,size=Origin)) + 
   geom_abline(slope = 1,intercept = 0) + 
   geom_point() + 
   geom_text(aes(label=Location),nudge_x = c(0.055,-0.035,0.03,-0.03,0.05), nudge_y=c(-0.002,0.01,-0.02,0.03,0.006)) + 
-  mytheme + xlim(c(0,0.65)) + ylim(c(0,0.65)) + scale_size_manual(name = "Origin of Data:", values = c(1.5,4)) + 
+  mytheme  + scale_size_manual(name = "Origin of Data:", values = c(1.5,4)) + 
   theme(legend.position = "top",legend.text = element_text(size=14), legend.title = element_text(size=16)) +
   scale_color_manual(name = "Origin of Data:",values = c("#e62400","#002366")) + 
   labs(x=expression("Observed Microscopy Prevalence "["2-10"]),
