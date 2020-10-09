@@ -4,7 +4,8 @@
 \name{importations}
 \alias{importations}
 \title{Importation data}
-\format{A list of length 18
+\format{
+A list of length 18
 
   \code{importations}: A list of length 18, with each list representing a year. In each
   year is then a further 2 lists which are:
@@ -15,7 +16,8 @@
       \item mosquitoFOI: Proportion of the force of infection towards mosquitoes that originated
       from outside admin units, i.e. the proportion of mosquitoes that are infected from infected
       individuals who travelled from admin j into admin i. 
-    }}
+    }
+}
 \usage{
 importations
 }

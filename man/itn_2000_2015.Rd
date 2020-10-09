@@ -4,7 +4,8 @@
 \name{itn_2000_2015}
 \alias{itn_2000_2015}
 \title{ITN for 2000 to 2015}
-\format{A dataframe of 5 elements:
+\format{
+A dataframe of 5 elements:
 
   \code{itn_2000_2015}: A dataframe of admin units and their seasonal parameters
     \itemize{
@@ -13,7 +14,8 @@
       \item admin: Admin string
       \item year: Numeric year
       \item value: Value for ITN coverage
-    }}
+    }
+}
 \usage{
 itn_2000_2015
 }

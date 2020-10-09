@@ -5,7 +5,8 @@
 \alias{irs_2000_2015}
 \alias{irs_2010_2015}
 \title{IRS for 2000 to 2015}
-\format{A dataframe of 5 elements:
+\format{
+A dataframe of 5 elements:
 
   \code{$irs_2000_2015}: A dataframe of admin units and their seasonal parameters
     \itemize{
@@ -14,7 +15,8 @@
       \item admin: Admin string
       \item year: Numeric year
       \item value: Value for IRS coverage
-    }}
+    }
+}
 \usage{
 irs_2000_2015
 }

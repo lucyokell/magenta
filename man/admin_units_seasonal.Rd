@@ -4,7 +4,8 @@
 \name{admin_units_seasonal}
 \alias{admin_units_seasonal}
 \title{Admin level 1 africa seasonal parameters}
-\format{A dataframe of 850 observations of 15 variables:
+\format{
+A dataframe of 850 observations of 15 variables:
 
   \code{admin_units_seasonal}: A dataframe of admin units and their seasonal parameters
     \itemize{
@@ -23,7 +24,8 @@
       \item theta_c: Rainfall normalising constant
       \item dide_code: DIDE geo plotting code
       \item ft: Treatment Coverage
-    }}
+    }
+}
 \usage{
 admin_units_seasonal
 }
