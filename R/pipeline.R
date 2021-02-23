@@ -435,8 +435,8 @@ pipeline <- function(EIR = 120,
     irs_cov = irs_cov, years = years
   )
   
-  if (length(ft) == 1) {
-    ft <- rep(ft, years)
+  if (length(ft) == 1 && update_save) {
+    ft <- rep(ft, ceiling(years))
   }
   
   

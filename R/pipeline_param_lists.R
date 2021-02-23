@@ -57,7 +57,7 @@ drug_list_create <- function(resistance_flag = FALSE,
                              absolute_fitness_cost_flag = FALSE,
                              epistatic_logic = NULL, 
                              number_of_drugs = 1,
-                             drugs = list(),
+                             drugs = list(drug_create_default_no_resistance()),
                              mft_flag = FALSE,
                              temporal_cycling = -1,
                              sequential_cycling = -1,
@@ -306,8 +306,8 @@ drug_create_asaq <- function() {
   dur_aq_short <- 11.6
   shape_aq <- 16.8
   
-  aq <- 1 - pgamma(x, shape = shape_aq, rate = shape_aq/dur_aq_long)
-  aq_res <- 1 - pgamma(x, shape = shape_aq, rate = shape_aq/dur_aq_short)
+  aq <- 1 - pgamma(seq(0, 60, 0.2), shape = shape_aq, rate = shape_aq/dur_aq_long)
+  aq_res <- 1 - pgamma(seq(0, 60, 0.2), shape = shape_aq, rate = shape_aq/dur_aq_short)
   
   
   drug <- drug_create(prob_of_lpf = drug_table$ASAQ,
@@ -322,7 +322,24 @@ drug_create_asaq <- function() {
   return(drug)
 }
 
-
+#' Perfect Drug Create
+#' 
+#' @note
+#' Perfect Efficacy Drug. Used as default to match deterministic model easily
+drug_create_default_no_resistance <- function() {
+  
+  data.frame("lpf" = 1,
+             "barcode_positions" = 0,
+             "prophylactic_positions" = 0, 
+             "dur_P" = 25, 
+             "dur_SPC" = 9,
+             "hill_n" = 4.415815,
+             "hill_kA" = 0.01307829,
+             "hill_res_n" = 9.274472,
+             "hill_res_kA" = 0.02846058)
+  
+  
+}
 
 
 

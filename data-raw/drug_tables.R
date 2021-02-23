@@ -42,4 +42,5 @@ new_drug_table <- new_drug_table[match(ordered_options, new_drug_table$Genotype)
 
 # assign as drug table
 drug_table <- new_drug_table
+drug_table$Genotype <- gsub("2$", "1", gsub("1$","0",drug_table$Genotype))
 usethis::use_data(drug_table, overwrite = TRUE)

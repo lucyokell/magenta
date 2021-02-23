@@ -4,24 +4,6 @@
     <loc>https://ojwatson.github.io/magenta//index.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/magenta//reference/COI_df_create.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Finalizer_cpp.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Get_cpp.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Init_cpp.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Saved_Init_cpp.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Update_cpp.html</loc>
-  </url>
-  <url>
     <loc>https://ojwatson.github.io/magenta//reference/admin_match.html</loc>
   </url>
   <url>
@@ -31,7 +13,7 @@
     <loc>https://ojwatson.github.io/magenta//reference/age_brackets.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/magenta//reference/barcode_params_create.html</loc>
+    <loc>https://ojwatson.github.io/magenta//reference/barcode_list_create.html</loc>
   </url>
   <url>
     <loc>https://ojwatson.github.io/magenta//reference/bitsToInt.html</loc>
@@ -40,10 +22,25 @@
     <loc>https://ojwatson.github.io/magenta//reference/coi_age_plot_sample_x.html</loc>
   </url>
   <url>
+    <loc>https://ojwatson.github.io/magenta//reference/COI_df_create.html</loc>
+  </url>
+  <url>
     <loc>https://ojwatson.github.io/magenta//reference/convert_barcode_vectors.html</loc>
   </url>
   <url>
     <loc>https://ojwatson.github.io/magenta//reference/country_seasonal_profiles.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/drug_create.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/drug_create_al.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/drug_create_asaq.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/drug_create_dhappq.html</loc>
   </url>
   <url>
     <loc>https://ojwatson.github.io/magenta//reference/drug_list_create.html</loc>
@@ -118,13 +115,13 @@
     <loc>https://ojwatson.github.io/magenta//reference/plaf_matrix_check.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/magenta//reference/pop_strains_df.html</loc>
-  </url>
-  <url>
     <loc>https://ojwatson.github.io/magenta//reference/population_get_genetics_df_n.html</loc>
   </url>
   <url>
     <loc>https://ojwatson.github.io/magenta//reference/population_get_genetics_ibd_df_n.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/pop_strains_df.html</loc>
   </url>
   <url>
     <loc>https://ojwatson.github.io/magenta//reference/sample_coi.html</loc>
@@ -133,7 +130,22 @@
     <loc>https://ojwatson.github.io/magenta//reference/seasonal_profile.html</loc>
   </url>
   <url>
+    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Finalizer_cpp.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Get_cpp.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Init_cpp.html</loc>
+  </url>
+  <url>
     <loc>https://ojwatson.github.io/magenta//reference/simulation_R.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Saved_Init_cpp.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//reference/Simulation_Update_cpp.html</loc>
   </url>
   <url>
     <loc>https://ojwatson.github.io/magenta//reference/spl_create.html</loc>
@@ -161,5 +173,8 @@
   </url>
   <url>
     <loc>https://ojwatson.github.io/magenta//articles/Introduction.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/magenta//articles/Resistance.html</loc>
   </url>
 </urlset>

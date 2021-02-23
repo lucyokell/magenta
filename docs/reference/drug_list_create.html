@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -37,7 +41,6 @@
 
 <meta property="og:title" content="Create drug list — drug_list_create" />
 <meta property="og:description" content="List for simulating drug usage for resistance/mft variables" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -55,7 +58,7 @@
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -69,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">magenta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
       </span>
     </div>
 
@@ -102,7 +105,7 @@
       <a href="../articles/Loggers.html">Logger Definitions</a>
     </li>
     <li>
-      <a href="../articles/Resistnace.html">Resistance</a>
+      <a href="../articles/Resistance.html">Resistance</a>
     </li>
   </ul>
 </li>
@@ -131,7 +134,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Create drug list</h1>
-    
+    <small class="dont-index">Source: <a href='https://github.com/OJWatson/magenta/blob/master/R/pipeline_param_lists.R'><code>R/pipeline_param_lists.R</code></a></small>
     <div class="hidden name"><code>drug_list_create.Rd</code></div>
     </div>
 
@@ -139,25 +142,22 @@
     <p>List for simulating drug usage for resistance/mft variables</p>
     </div>
 
-    <pre class="usage"><span class='fu'>drug_list_create</span>(
-  <span class='kw'>resistance_flag</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>number_of_drugs</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>number_of_resistance_loci</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>resistance_costs</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.99</span>, <span class='fl'>0.99</span>, <span class='fl'>0.98</span>),
-  <span class='kw'>epistatic_logic</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>prob_of_lpf</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>0.97</span>, <span class='fl'>0.8</span>, <span class='fl'>0.55</span>), <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>0.98</span>, <span class='fl'>0.7</span>, <span class='fl'>0.51</span>)),
-  <span class='kw'>barcode_res_pos</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>1</span>), <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>2</span>)),
-  <span class='kw'>prophylactic_pos</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>), <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>2</span>)),
-  <span class='kw'>artemisinin_loci</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>dur_P</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span>(<span class='fl'>25</span>, <span class='no'>number_of_drugs</span>),
-  <span class='kw'>dur_SPC</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span>(<span class='fl'>5</span>, <span class='no'>number_of_drugs</span>),
-  <span class='kw'>mft_flag</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>temporal_cycling</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
-  <span class='kw'>sequential_cycling</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
-  <span class='kw'>sequential_update</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>drug_choice</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>partner_drug_ratios</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span>(<span class='fl'>1</span>/<span class='no'>number_of_drugs</span>, <span class='no'>number_of_drugs</span>)
-)</pre>
+    <pre class="usage"><span class='fu'>drug_list_create</span><span class='op'>(</span>
+  resistance_flag <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  number_of_resistance_loci <span class='op'>=</span> <span class='fl'>2</span>,
+  artemisinin_loci <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span><span class='op'>)</span>,
+  cost_of_resistance <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.99</span>, <span class='fl'>0.99</span><span class='op'>)</span>,
+  absolute_fitness_cost_flag <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  epistatic_logic <span class='op'>=</span> <span class='cn'>NULL</span>,
+  number_of_drugs <span class='op'>=</span> <span class='fl'>1</span>,
+  drugs <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='op'>)</span>,
+  mft_flag <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  temporal_cycling <span class='op'>=</span> <span class='op'>-</span><span class='fl'>1</span>,
+  sequential_cycling <span class='op'>=</span> <span class='op'>-</span><span class='fl'>1</span>,
+  sequential_update <span class='op'>=</span> <span class='fl'>3</span>,
+  drug_choice <span class='op'>=</span> <span class='fl'>0</span>,
+  partner_drug_ratios <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>/</span><span class='va'>number_of_drugs</span>, <span class='va'>number_of_drugs</span><span class='op'>)</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -167,16 +167,24 @@
       <td><p>Boolean are we simulating resistance</p></td>
     </tr>
     <tr>
-      <th>number_of_drugs</th>
-      <td><p>Numeric for number of drugs used</p></td>
-    </tr>
-    <tr>
       <th>number_of_resistance_loci</th>
       <td><p>Numeric for number of res. loci</p></td>
     </tr>
     <tr>
-      <th>resistance_costs</th>
-      <td><p>Numeric vector for costs of res.</p></td>
+      <th>artemisinin_loci</th>
+      <td><p>Numerics for barcode positions that confer artemisinin 
+resistance</p></td>
+    </tr>
+    <tr>
+      <th>cost_of_resistance</th>
+      <td><p>Numeric vector for fitness cost of each resistance loci.</p></td>
+    </tr>
+    <tr>
+      <th>absolute_fitness_cost_flag</th>
+      <td><p>Boolean are we simulating fitness costs as
+absolute (i.e. impactive onward transmission chance) or relative (resistant
+strains have decreases chance of being onwardly transmitted in mixed 
+infections). Default = FALSE.</p></td>
     </tr>
     <tr>
       <th>epistatic_logic</th>
@@ -186,50 +194,13 @@ this becomes seq_len(number_of_resistance_loci), i.e. only dependent on
 their own loci. (TODO: Change this to be a list of length norl)</p></td>
     </tr>
     <tr>
-      <th>prob_of_lpf</th>
-      <td><p>List of probabiliteis of lpf. Each list element should 
-be a vector of the prob of lpf for each relevent barcode combination for 
-a given drug. E.g. The default is:</p>
-<p><code><a href='https://rdrr.io/r/base/list.html'>list(c(1.0,0.97,0.80,0.55), c(1.0,0.98,0.7,0.51))</a></code></p>
-<p>The first list vector is length 4, and so 2 barcode positions change the 
-prob of lpf. If the parasite is 0,0 then the prob of lpf is 0 (1-1), 
-but if it was 0,1 it would be 0.2. 
-The second list vecotr is also length 4, so the second possible drug also
-only involves two loci. However if it was 8 long then 3 loci would be 
-involved.</p></td>
+      <th>number_of_drugs</th>
+      <td><p>Numeric for number of drugs used</p></td>
     </tr>
     <tr>
-      <th>barcode_res_pos</th>
-      <td><p>List for which barcode positions correspond to which
-drug resistance mechanism. E.g. the default is:</p>
-<p><code><a href='https://rdrr.io/r/base/list.html'>list(c(0,1),c(0,2))</a></code></p>
-<p>Resistance to drug 1 is encoded at barcode position 0 and 1
-Resistance to drug 2 is encoded at barcode position 0 and 2
-The shared barcode position in this example reflects say 2 different ACTs,
-which both have artemisinin as one component, but a different partner drug.</p></td>
-    </tr>
-    <tr>
-      <th>prophylactic_pos</th>
-      <td><p>List for which barcode positions determine the
-impact of drug resistance in shortening the effective prophylactic period.
-E.g. the default is <code><a href='https://rdrr.io/r/base/list.html'>list(c(1),c(2))</a></code>, which shows that for drug 1,
-the prophylactic position is encoded in barcode position 1, and for drug 2
-it is encoded at position 2.</p></td>
-    </tr>
-    <tr>
-      <th>artemisinin_loci</th>
-      <td><p>Numerics for barcode positions that confer artemisinin 
-resistance</p></td>
-    </tr>
-    <tr>
-      <th>dur_P</th>
-      <td><p>Vector for the duration of prophylaxis for each drug. Default 
-is <code><a href='https://rdrr.io/r/base/rep.html'>rep(25,number_of_drugs)</a></code>.</p></td>
-    </tr>
-    <tr>
-      <th>dur_SPC</th>
-      <td><p>Vector for the duration of slow parasite clearance for each 
-drug. Default is <code><a href='https://rdrr.io/r/base/rep.html'>rep(5,number_of_drugs)</a></code>.</p></td>
+      <th>drugs</th>
+      <td><p>List of drugs that are being used, with each list element being
+created by <code>drug_create</code>.</p></td>
     </tr>
     <tr>
       <th>mft_flag</th>
@@ -259,12 +230,10 @@ drug. Default is <code><a href='https://rdrr.io/r/base/rep.html'>rep(5,number_of
 
 
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -275,7 +244,7 @@ drug. Default is <code><a href='https://rdrr.io/r/base/rep.html'>rep(5,number_of
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
