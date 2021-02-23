@@ -12,7 +12,7 @@ drug_list_create(
   absolute_fitness_cost_flag = FALSE,
   epistatic_logic = NULL,
   number_of_drugs = 1,
-  drugs = list(),
+  drugs = list(drug_create_default_no_resistance()),
   mft_flag = FALSE,
   temporal_cycling = -1,
   sequential_cycling = -1,
