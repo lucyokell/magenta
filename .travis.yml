@@ -1,6 +1,5 @@
 language: r
 r:
-  - devel
   - release
   - oldrel
 sudo: false

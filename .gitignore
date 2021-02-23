@@ -14,8 +14,6 @@ TODO.txt
 magenta.Rproj
 Results
 plots
-*.rds
-^.*\.rds$
 scripts
 src-i386
 src-x64

@@ -306,7 +306,11 @@ drug_create_asaq <- function() {
   dur_aq_short <- 11.6
   shape_aq <- 16.8
   
+<<<<<<< HEAD
   aq <- 1 - pgamma(seq(0, 60, 0.2), shape = shape_aq, rate = shape_aq/dur_aq_long)
+=======
+  aq <- 1 - pgamma(seq(0, 60, 0.2),, shape = shape_aq, rate = shape_aq/dur_aq_long)
+>>>>>>> 0b63c05b7bce146be1a8d3112d92bacb45b668b0
   aq_res <- 1 - pgamma(seq(0, 60, 0.2), shape = shape_aq, rate = shape_aq/dur_aq_short)
   
   

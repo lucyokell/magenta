@@ -36,7 +36,11 @@ Remotes:
     mrc-ide/dde
 LinkingTo: Rcpp, BH
 LazyData: TRUE
+<<<<<<< HEAD
 RoxygenNote: 7.1.1
+=======
+RoxygenNote: 7.1.0
+>>>>>>> 0b63c05b7bce146be1a8d3112d92bacb45b668b0
 SystemRequirements: C++11
 VignetteBuilder: knitr
 Additional_repositories: https://mrc-ide.github.io/drat
