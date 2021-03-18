@@ -189,6 +189,9 @@ public:
                                1.0/(day_of_change - day_treated), 
                                false);
     
+    // normalise so that drug conc is 1 at t = 0
+    drug_conc = drug_conc / R::dexp(0.0, 1.0/(day_of_change - day_treated), false);
+    
     // if it was resistant then check for early reinfection using resistant hill parameters
     if (resistant) {
       

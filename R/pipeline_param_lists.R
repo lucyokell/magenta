@@ -187,8 +187,9 @@ drug_create <- function(prob_of_lpf = c(1.0, 0.97, 0.80, 0.55),
   # median of exponential based on the mean for drug elimination
   median_of_prophylactic_duration <- log(2)/(1/dur_P)
   drug_elimination <- dexp(time_vec_proph, 1/median_of_prophylactic_duration)
+  drug_elimination <- drug_elimination/max(drug_elimination)
   drug_elimination_res <- dexp(time_vec_proph_res, 1/median_of_prophylactic_duration)
-  
+  drug_elimination_res <- drug_elimination_res/max(drug_elimination_res)
   
   minimise <- function(param, proph, drug_elimination) {
     
@@ -254,7 +255,7 @@ drug_create_dhappq <- function() {
                       barcode_res_pos = c(0:5),
                       prophylactic_pos = c(5),
                       dur_P = 25,
-                      dur_SPC = 9, # based off rough average from slater 2016
+                      dur_SPC = 9, # based off average from slater 2016
                       drug_clearance_max_time = 60,
                       prophylactic_probability = pip,
                       prophylactic_resistant_probability = pip_res
