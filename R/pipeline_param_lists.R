@@ -237,6 +237,8 @@ drug_create <- function(prob_of_lpf = c(1.0, 0.97, 0.80, 0.55),
 #' DHA-PPQ Drug Create
 drug_create_dhappq <- function() {
   
+  drug_table <- magenta::drug_table
+  
   # https://www.ncbi.nlm.nih.gov/pubmed/25425081
   w_scale <- 28.1
   w_slope <- 4.4
@@ -270,6 +272,8 @@ drug_create_dhappq <- function() {
 #' lumefantrine resistant genotype with the T0.5 aligned to the prob of lpf.
 drug_create_al <- function() {
 
+  drug_table <- magenta::drug_table
+  
   dur_lum_long <- 17.9
   dur_lum_short <- 8.7
   shape_lum <- 93.5
@@ -301,10 +305,12 @@ drug_create_al <- function() {
 #' AQ resistant genotype with the T0.5 aligned to the prob of lpf.
 drug_create_asaq <- function() {
   
+  drug_table <- magenta::drug_table
   
   dur_aq_long <- 17.8
   dur_aq_short <- 11.6
   shape_aq <- 16.8
+  aq <- 1 - pgamma(seq(0, 60, 0.2), shape = shape_aq, rate = shape_aq/dur_aq_long)
   aq_res <- 1 - pgamma(seq(0, 60, 0.2), shape = shape_aq, rate = shape_aq/dur_aq_short)
   
   

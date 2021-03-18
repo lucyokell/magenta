@@ -64,9 +64,9 @@
 #'   barcode. Default = rep(0.5, num_loci)
 #' @param starting_ibd Starting IBD. Default = 0, which means that each infected
 #'   individual at initialisation is given a unique ID for their parasites.
+#' @inheritParams barcode_list_create
 #' @param mutation_rate Probability of mutation occuring and fixing
 #' @param mutation_flag Boolean for simulating mutations
-#' @inheritParams barcode_list_create
 #' 
 #' # Saving Params
 #' 
