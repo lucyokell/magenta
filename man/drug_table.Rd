@@ -12,6 +12,13 @@ drug_table
 }
 \description{
 Table of probaility of late parasitological failure (28-day treatment failure)
- per genoytpe
+ per genoytpe. 
+ 
+ Sourced from:
+ 
+ Antimalarial mass drug administration in large populations and the 
+ evolution of drug resistance. Tran Dang Nguyen, Thu Nguyen-Anh Tran, 
+ Daniel M. Parker, Nicholas J White, Maciej F Boni. 
+ bioRxiv 2021.03.08.434496; doi: https://doi.org/10.1101/2021.03.08.434496
 }
 \keyword{datasets}
