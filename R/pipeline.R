@@ -64,6 +64,7 @@
 #'   barcode. Default = rep(0.5, num_loci)
 #' @param starting_ibd Starting IBD. Default = 0, which means that each infected
 #'   individual at initialisation is given a unique ID for their parasites.
+#' @inheritParams barcode_list_create
 #' @param mutation_rate Probability of mutation occuring and fixing
 #' @param mutation_flag Boolean for simulating mutations
 #' 
@@ -152,8 +153,9 @@ pipeline <- function(EIR = 120,
                      plaf = rep(0.5, num_loci),
                      prob_crossover = rep(0.5, num_loci),
                      starting_ibd = 0.0,
-                     mutation_rate = 1e-7,
+                     mutation_rate = rep(1e-7, num_loci),
                      mutation_flag = FALSE,
+                     mutation_treated_modifier = 1,
                      full_save = FALSE,
                      full_update_save=FALSE,
                      human_only_full_save = FALSE,
@@ -202,6 +204,8 @@ pipeline <- function(EIR = 120,
     
     ints <- intervention_grab(country = country, admin = admin, year_range = years)
     spl <- spl_grab(country = country, admin = admin, year_range = years)
+    spatial_incidence_matrix <- spl$incidence
+    spatial_mosquitoFOI_matrix <- spl$mosquitoFOI
     itn_cov <- ints$itn_cov
     irs_cov <- ints$irs_cov
     ft <- ints$ft
@@ -211,14 +215,14 @@ pipeline <- function(EIR = 120,
   # If we don't have a saved state then we initialise first
   if (is.null(saved_state_path)) {
     
-    # Create parameter list, changine any key parameters, e.g. the average age
+    # Create parameter list, changine any key parameters
     mpl <- model_param_list_create(...)
     
-    # Create age brackets, either geometric or evenly spaced
+    # Create geometric age brackets
     age_vector <- age_brackets(100, 40, TRUE)
     
     # check to change the ft for the initial and odin to reflect 28 day failure rates
-    lpfs <- unlist(lapply(drug_list$prob_of_lpf[seq_len(drug_list$number_of_drugs)],"[[",1))
+    lpfs <- unlist(lapply(drug_list$drugs, function(x) {x$lpf[1]}))
     ft_odin <- ft * weighted.mean(lpfs, drug_list$partner_drug_ratios)
     
     # Create a near equilibirum initial condition
@@ -240,14 +244,15 @@ pipeline <- function(EIR = 120,
     
     # and the barcode parms list
     plaf_matrix <- plaf_matrix_check(plaf, years)
-    barcode_params <- barcode_params_create(
+    barcode_list <- barcode_list_create(
       num_loci = num_loci,
       ibd_length = ibd_length,
       plaf = plaf_matrix[1, ],
       prob_crossover = prob_crossover,
       starting_ibd = starting_ibd,
       mutation_flag = mutation_flag,
-      mutation_rate = mutation_rate
+      mutation_rate = mutation_rate,
+      mutation_treated_modifier = mutation_treated_modifier
     )
     
     # handle mutations parms
@@ -262,7 +267,7 @@ pipeline <- function(EIR = 120,
         # if (is.null(spatial_uuid)) {
         #   stop("Spatial_uuid is required if running spatial simulations")
         # }
-        # redis_id <- paste0("oj_", spatial_uuid)
+        # redis_id <- paste0("magenta_", spatial_uuid)
       } else if (spatial_type == "island") {
         spatial_type <- 1
       }
@@ -293,7 +298,7 @@ pipeline <- function(EIR = 120,
     # Now check and create the parameter list for use in the Rcpp simulation
     pl <- param_list_simulation_init_create(
       N = N, eqSS = eqSS,
-      barcode_params = barcode_params,
+      barcode_list = barcode_list,
       spatial_list = spatial_list,
       housekeeping_list = housekeeping_list,
       drug_list = drug_list,
@@ -431,8 +436,8 @@ pipeline <- function(EIR = 120,
     irs_cov = irs_cov, years = years
   )
   
-  if (length(ft) == 1) {
-    ft <- rep(ft, years)
+  if (length(ft) == 1 && update_save) {
+    ft <- rep(ft, ceiling(years))
   }
   
   
@@ -444,13 +449,17 @@ pipeline <- function(EIR = 120,
     # set up results list
     res <- list()
     length(res) <- round((years * 365) / update_length)
-    times <- rep(0, length(res) - 1)
+    
+    # Update times in days
+    update_times <- (update_length * ((1:(round((years * 365) / update_length)))))
+    
+    # Vector for stroing computation time
+    comp_times <- rep(0, length(res) - 1)
     
     # and set up annual checks for variables that change discretely
     year <- 1
     next_drug_cycle <- drug_list$temporal_cycling
     ft_now <- ft[year]
-    
     
     # messaging
     message("Starting Stochastic Simulation for ", years, " years")
@@ -468,16 +477,16 @@ pipeline <- function(EIR = 120,
         p_print <- progress_logging(housekeeping_list, res, p, i,
                                     initial = FALSE, p_print = p_print
         )
-        times[i] <- Sys.time()
+        comp_times[i] <- Sys.time()
         
         # annual updates
-        if ((floor((((update_length * (i - 1)) + 1) / 365))) == year) {
+        if (floor((update_times[i] - update_length + 1)/365) == year) {
           
           # update the year, ft and resistance flag
           year <- year + 1
           ft_now <- ft[year]
           drug_list$resistance_flag <- resistance_flags[year]
-          barcode_params$mutation_flag <- mutation_flag[year]
+          barcode_list$mutation_flag <- mutation_flag[year]
           
           # update the spatial list
           spatial_list <- spl_create(
@@ -498,7 +507,7 @@ pipeline <- function(EIR = 120,
           fv_vec = out$fv[1:update_length + ((i - 1) * update_length)],
           spatial_list = spatial_list,
           drug_list = drug_list,
-          barcode_params = barcode_params,
+          barcode_list = barcode_list,
           statePtr = sim.out$Ptr
         )
         
@@ -511,7 +520,7 @@ pipeline <- function(EIR = 120,
             res = res, i = i, sim.out = sim.out, 
             sample_states = sample_states,
             sample_size = sample_size, sample_reps = sample_reps, 
-            mean_only = mean_only, barcode_params = barcode_params, 
+            mean_only = mean_only, barcode_list = barcode_list, 
             num_loci = num_loci, 
             genetics_df_without_summarising = genetics_df_without_summarising, 
             save_lineages = save_lineages,
@@ -569,8 +578,7 @@ pipeline <- function(EIR = 120,
           drug_list <- drug_list_update(
             drug_list, year, res[[i]]$overall_treatment_failure
           )
-        }
-        else {
+        } else {
           drug_list <- drug_list_update(
             drug_list, year,
             mean(c(res[[i - 1]]$overall_treatment_failure, res[[i]]$overall_treatment_failure))
@@ -591,7 +599,7 @@ pipeline <- function(EIR = 120,
       fv_vec = out$fv[1:abridged_length + ((i) * update_length)],
       spatial_list = spatial_list,
       drug_list = drug_list,
-      barcode_params = barcode_params,
+      barcode_list = barcode_list,
       statePtr = sim.out$Ptr
     )
     sim.out <- simulation_R(pl2, seed = seed)
@@ -629,7 +637,7 @@ pipeline <- function(EIR = 120,
       fv_vec = out$fv,
       spatial_list = spatial_list,
       drug_list = drug_list,
-      barcode_params = barcode_params,
+      barcode_list = barcode_list,
       statePtr = sim.out$Ptr
     )
     
@@ -671,7 +679,7 @@ pipeline <- function(EIR = 120,
   
   # append times if an update simulation was done
   if (update_save) {
-    meta$times <- times
+    meta$times <- comp_times
   }
   
   # add this as an attribute

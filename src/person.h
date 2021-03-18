@@ -67,6 +67,7 @@ private:
   TreatmentOutcome m_treatment_outcome = NOT_TREATED;
   bool m_slow_parasite_clearance_bool = false; // Flag for whether they are currently SPC
   int m_drug_choice = 0; // Flag for what drug they last received (i.e. so we know their prophylactic length)
+  int m_drug_choice_time = 0; // Flag for what drug they last received (i.e. so we know their prophylactic length)
   
   // Person's age dependent biting rate (psi) - See Griffin 2010 S1 for this specific origin
   double m_age_dependent_biting_rate;

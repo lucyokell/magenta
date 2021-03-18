@@ -52,10 +52,6 @@ struct Universe {
 Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
 {
   
-  
-  // start timer
-  chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
-  
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START: R -> C++ CONVERSIONS
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -71,7 +67,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   u_ptr->parameters.g_ft = Rcpp::as<double>(param_list["ft"]);
   Rcpp::List spatial_list = param_list["spatial_list"];
   Rcpp::List drug_list = param_list["drug_list"];
-  Rcpp::List barcode_params  = param_list["barcode_params"];
+  Rcpp::List barcode_list  = param_list["barcode_list"];
   
   // Spatial updates 
   // Metapopulation not fully implemented yet
@@ -113,7 +109,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   
   // Other updates
   u_ptr->parameters.g_plaf = Rcpp::as<std::vector<double> >(spatial_list["plaf"]);
-  u_ptr->parameters.g_mutation_flag = Rcpp::as<bool>(barcode_params["mutation_flag"]);
+  u_ptr->parameters.g_mutation_flag = Rcpp::as<bool>(barcode_list["mutation_flag"]);
   
   // Resistance updates
   if (drug_list["resistance_flag"]) {
@@ -146,12 +142,9 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   rcpp_out(u_ptr->parameters.g_h_quiet_print, "Starting susceptible population: " + std::to_string(Scount/u_ptr->parameters.g_N) + "\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // START: TIMERS AND PRE LOOP
+  // START: PRE LOOP
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-  auto duration = chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  rcpp_out(u_ptr->parameters.g_h_quiet_print, "Time elapsed in initialisation: " + std::to_string(duration) + " seconds\n");
-  
+
   // End of simulation time
   int g_end_time = u_ptr->parameters.g_current_time + (u_ptr->parameters.g_years * 365);
   
@@ -191,9 +184,6 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
   // biting allocation
   std::vector<double> bite_randoms(scourge_size / 2);
   std::generate(bite_randoms.begin(), bite_randoms.end(), runif0_1);
-  
-  // resetart timer
-  t0 = std::chrono::high_resolution_clock::now();
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // START SIMULATION LOOP
@@ -240,12 +230,24 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // Reset mutation counters
     if(u_ptr->parameters.g_mutation_flag){
+        
       u_ptr->parameters.g_mutation_pos_allocator = 0;
+      
       // mutation updates
       for(unsigned int l = 0; l < u_ptr->parameters.g_num_loci; l++){
-        u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_rate * u_ptr->parameters.g_total_human_infections);
+        
+        // if the mutation treated modifier is 1 then the same mutation rate is assumed regardless of the 
+        // infection outcome, i.e. treated vs not treated. If this is true we can use pre-calculated mutations
+        if(u_ptr->parameters.g_mutation_treated_modifier == 1.0) {
+          
+        u_ptr->parameters.g_mutations_today[l] = rpoisson1(u_ptr->parameters.g_mutation_rate[l] * u_ptr->parameters.g_total_human_infections);
         daily_mutations_per_loci[l] = daily_mutations_per_loci[l] + u_ptr->parameters.g_mutations_today[l];
+        
+        } else {
+          u_ptr->parameters.g_mutations_today[l] = 0;
+        }
       }
+      
     }
     
     // Reset age dependent biting rate sum
@@ -270,7 +272,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // transform the vector of 
     std::transform(temp_biting_frequency_vector.begin(), temp_biting_frequency_vector.end(), temp_biting_frequency_vector.begin(),
-                   std::bind1st(std::multiplies<double>(), (1.0/mosquito_biting_rates[intervention_counter])));
+                   std::bind(std::multiplies<double>(), (1.0/mosquito_biting_rates[intervention_counter]), std::placeholders::_1));
     
     std::adjacent_difference(temp_biting_frequency_vector.begin(),
                              temp_biting_frequency_vector.end(),
@@ -358,7 +360,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // Create normalised psi by dividing by the mean age dependent biting rate
     std::transform(u_ptr->psi_vector.begin(), u_ptr->psi_vector.end(), u_ptr->psi_vector.begin(),
-                   std::bind1st(std::multiplies<double>(), 1 / mean_psi));
+                   std::bind(std::multiplies<double>(), 1 / mean_psi, std::placeholders::_1));
     
     // Create overall relative biting rate, pi, i.e. the product of individual biting heterogeneity and age dependent heterogeneity
     std::transform(u_ptr->psi_vector.begin(), u_ptr->psi_vector.end(),
@@ -407,6 +409,14 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // START: SUMMARY LOGGING
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    // Mutation logging 
+    // if the mutation treated modifier is not 1 then mutations need to be logged here as they are drawn at the infection rather than pre-computed
+    if(u_ptr->parameters.g_mutation_treated_modifier != 1.0) {
+    for(unsigned int l = 0; l < u_ptr->parameters.g_num_loci; l++){
+        daily_mutations_per_loci[l] = daily_mutations_per_loci[l] + u_ptr->parameters.g_mutations_today[l];
+      }
+    }
     
     // Log the last period //
     
@@ -493,14 +503,6 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
   };
-  
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  // END TIMERS
-  // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  t1 = std::chrono::high_resolution_clock::now();
-  duration = std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count();
-  rcpp_out(u_ptr->parameters.g_h_quiet_print, "Time elapsed total: " + std::to_string(duration) + " seconds\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // SUMMARY LOGGING AVERAGING AND VARIABLE RETURN

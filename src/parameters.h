@@ -159,6 +159,7 @@ public:
   
   // barcode drug related parameters
   bool g_resistance_flag;
+  bool g_absolute_fitness_cost_flag;
   unsigned int g_number_of_resistance_loci;
   std::vector<unsigned int> g_resistance_loci;
   std::vector<double> g_cost_of_resistance;
@@ -168,7 +169,8 @@ public:
   
   // mutation parameters
   bool g_mutation_flag;
-  double g_mutation_rate;
+  std::vector<double> g_mutation_rate;
+  double g_mutation_treated_modifier;
   std::vector<unsigned int> g_mutations_today;
   unsigned int g_mutation_pos_allocator;
   

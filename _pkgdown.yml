@@ -61,7 +61,7 @@ navbar:
       - text: Logger Definitions
         href: articles/Loggers.html
       - text: Resistance
-        href: articles/Resistnace.html
+        href: articles/Resistance.html
     - text: News
       href: news/index.html
   right:

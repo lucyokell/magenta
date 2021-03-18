@@ -7,7 +7,7 @@
 #'
 #' @param N Population size. Default = 1e4
 #' @param eqSS Output of \code{equilibrium_steady_state_create}
-#' @param barcode_params List of barcode/genetic parameters
+#' @param barcode_list List of barcode/genetic parameters
 #' @param spatial_list Spatial parmeters to come in
 #' @param housekeeping_list Housekeeping parameter list 
 #'   from \code{housekeeping_list_create}
@@ -21,7 +21,7 @@
 #' 
 #' @export
 
-param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params, 
+param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_list, 
                                               spatial_list, housekeeping_list,
                                               drug_list, nmf_list,
                                               vector_adaptation_list,
@@ -56,7 +56,8 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
   ##---------------------------------------------
   
   # Create paramlist
-  param_list <- list(N = N, eqSS = eqSS, barcode_params = barcode_params, 
+  param_list <- list(N = N, eqSS = eqSS, 
+                     barcode_list = barcode_list, 
                      spatial_list = spatial_list,
                      housekeeping_list = housekeeping_list,
                      drug_list = drug_list,
@@ -84,7 +85,7 @@ param_list_simulation_init_create <- function(N = 1e+04, eqSS, barcode_params,
 #' @param statePtr Pointer for current model state as return by \code{simulation_R}$Ptr
 #' @param spatial_list Spatial list
 #' @param drug_list Drug list
-#' @param barcode_params Barcode parameter list
+#' @param barcode_list Barcode parameter list
 #' 
 #' @export
 
@@ -93,7 +94,7 @@ param_list_simulation_update_create <- function(years = 1, ft = 0.4,
                                                 statePtr, 
                                                 spatial_list, 
                                                 drug_list,
-                                                barcode_params) {
+                                                barcode_list) {
   
   ## CHECKS ##
   ##---------------------------------------------
@@ -128,7 +129,7 @@ param_list_simulation_update_create <- function(years = 1, ft = 0.4,
                      statePtr = statePtr, 
                      spatial_list = spatial_list,
                      drug_list = drug_list,
-                     barcode_params = barcode_params)
+                     barcode_list = barcode_list)
   
   return(param_list)
   
@@ -274,7 +275,7 @@ simulation_R <- function(param_list, seed) {
       stop("param_list not correct length")
     }
     stopifnot(identical(names(param_list), 
-                        c("N","eqSS","barcode_params","spatial_list", 
+                        c("N","eqSS","barcode_list","spatial_list", 
                           "housekeeping_list", "drug_list", 
                           "nmf_list","vector_adaptation_list",
                           "core_parameter_list")))  
@@ -301,7 +302,7 @@ simulation_R <- function(param_list, seed) {
     {
       stopifnot(identical(names(param_list), 
                           c("years","ft","mu_vec","fv_vec","statePtr", 
-                            "spatial_list", "drug_list","barcode_params")))  
+                            "spatial_list", "drug_list","barcode_list")))  
     }
     else 
     {

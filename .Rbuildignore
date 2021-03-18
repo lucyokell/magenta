@@ -3,6 +3,7 @@
 TODO.txt
 ^scripts$
 .travis.yml
+.github
 Results
 plots
 ^Results$

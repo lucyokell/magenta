@@ -677,12 +677,13 @@ plot_mean_summary <- function(res, x,
 
 # Plot resistance frequenceies and lineages over time:
 #' @noRd
-plot_resistance_lineages <- function(t,legend=TRUE){
+plot_resistance_lineages <- function(t, legend=TRUE, va=FALSE){
   
   l <- length(t)-1
   bs <- length(t[[1]]$af)
   bst <- 2^bs
-  colours <- hcl(seq(360/bst,360,length.out = bst),c = 100,l = 75,alpha = 1,fixup = TRUE)
+  colours <- hcl(seq(360/bst,360,length.out = bst),
+                 c = 100,l = 75,alpha = 1,fixup = TRUE)
   
   if("lineage" %in% names(t[[1]])) {
     lins <- TRUE
@@ -691,13 +692,25 @@ plot_resistance_lineages <- function(t,legend=TRUE){
   }
   
   af <- matrix(unlist(lapply(t[1:l],"[[","af")),ncol=bs,byrow=TRUE)
+  muts <- matrix(unlist(lapply(t[1:l],"[[","mutations")),ncol=bs,byrow=TRUE)
   
   if(lins) {
     lin <- matrix(unlist(lapply(t[1:l],"[[","lineage")),ncol=bst,byrow=TRUE)
   }
   
   af_df <- data.frame("time"=1:l,"af"=as.numeric(af), "loci"=as.character(sort(rep(1:ncol(af),l))) ) 
-  af_gg <- ggplot(af_df, aes(x=.data$time, y=.data$af, color=.data$loci)) + geom_point() + geom_line()
+  af_gg <- ggplot(af_df, aes(x=.data$time, y=.data$af, color=.data$loci)) + 
+    geom_point() + geom_line() + 
+    scale_color_discrete(name="Loci") + 
+    ylab("AF") + 
+    theme(axis.title.x = element_blank())
+  
+  mut_df <- data.frame("time"=1:l,"muts"=as.numeric(muts), "loci"=as.character(sort(rep(1:ncol(af),l))) ) 
+  mut_gg <- ggplot(mut_df, aes(x=.data$time, y=.data$muts, color=.data$loci)) + 
+    geom_point() + geom_line() + 
+    scale_color_discrete(name="Loci") + 
+    ylab("Mutations") + 
+    theme(axis.title.x = element_blank())
   
   if(lins){
     lin_names <- apply(
@@ -715,21 +728,36 @@ plot_resistance_lineages <- function(t,legend=TRUE){
                          "lin"=factor(as.character(mapply(rep,lin_names,l)),levels=lin_names),
                          "vad"=as.logical(mapply(rep,vad,l)))  
     
+    if(va) {
     va <- c("","VA")
+    } else {
+      va <- c("", "")
+    }
     va_group <- paste(lin_names,va[as.numeric(vad)+1])
     lin_df$group <- factor(as.character(mapply(rep,va_group,l)),levels=va_group)
     
+    if(length(colours) <= 16) {
     colours <- rep(RColorBrewer::brewer.pal(8,"Paired"),2)
+    }
     
     lin_gg <- ggplot(lin_df, aes(x=.data$time, y=.data$af, color=.data$group, shape=.data$group)) + 
       geom_point() + geom_line() + 
-      scale_color_manual(name="barcode",labels=lin_names,values = colours) + 
-      scale_shape_manual(name="barcode",labels=lin_names,values = c(rep(19,8),rep(17,8)))
-    heights <- c(1,1,1,1)
+      scale_color_manual(name="Barcode",labels=lin_names,values = colours) +  
+      ylab("N") + 
+      theme(axis.title.x = element_blank())
+    heights <- c(1,1,1,1,1)
    
+    if(length(colours) <= 16) {
+      lin_gg <- lin_gg +
+        scale_shape_manual(name="Barcode",labels=lin_names,values = c(rep(19,8),rep(17,8)))  
+    } else {
+      lin_gg <- lin_gg + theme(legend.position = "none")
+    }
+    
+    
   } else {
     lin_gg <- NULL
-    heights <- c(1,0,1,1)
+    heights <- c(1,1,0,1,1)
   }
   
   
@@ -737,7 +765,10 @@ plot_resistance_lineages <- function(t,legend=TRUE){
     rbind_list_base() %>% 
     reshape2::melt() %>% 
     dplyr::mutate(time=rep(1:l,3)) %>% 
-    ggplot(aes(x=.data$time,y=.data$value,color=.data$variable)) + geom_line()
+    ggplot(aes(x=.data$time,y=.data$value,color=.data$variable)) + geom_line()  + 
+    scale_color_discrete(name="Type") + 
+    ylab("Prevalence") + 
+    theme(axis.title.x = element_blank())
   
   ntf <- lapply(tail(t,l/2),function(x){
     sum(x$unsuccesful_treatments_lpf,x$not_treated)
@@ -752,14 +783,24 @@ plot_resistance_lineages <- function(t,legend=TRUE){
     reshape2::melt() %>% 
     dplyr::mutate(time=rep(1:l,1)) %>% 
     ggplot(aes(x=.data$time,y=.data$value,color=.data$variable)) + 
-    geom_line()
+    geom_line()  +  
+    ylab("Treatment Failure") + 
+    theme(axis.title.x = element_blank(), legend.position = "none")
   
   if(legend) {
-  cowplot::plot_grid(af_gg,lin_gg,tf,prev,rel_heights = heights,ncol=1)
+  cowplot::plot_grid(af_gg,mut_gg,
+                     lin_gg,tf,
+                     prev,
+                     rel_heights = heights,ncol=1)
   } else {
+    
+    if(length(colours) <= 16) {
+      ling_gg <- lin_gg + theme(legend.position = "top") + 
+        guides(col = guide_legend(ncol = bst))
+    } 
     cowplot::plot_grid(af_gg + theme(legend.position = "top"),
-                       lin_gg + theme(legend.position = "top") + 
-                         guides(col = guide_legend(ncol = bst)),
+                       mut_gg + theme(legend.position = "top"),
+                       lin_gg,
                        tf + theme(legend.position = "top"),
                        prev + theme(legend.position = "top"),
                        rel_heights = heights,ncol=1)

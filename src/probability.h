@@ -124,5 +124,9 @@ std::vector<int> sample_with_replacement_from_max(int max, int c);
 // shuffle integer vector
 void shuffle_integer_vector(std::vector<int> &vec);
 
+//------------------------------------------------
+// hill function
+double hill_function(double x, double n, double kA); 
+
 
 #endif

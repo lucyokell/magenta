@@ -289,3 +289,10 @@ void shuffle_integer_vector(std::vector<int> &vec) {
   }
 
 }
+
+
+//------------------------------------------------
+// hill function
+double hill_function(double x, double n, double kA) {
+  return((pow(x, n)) / (pow(x, n) + pow(kA, n)));
+}

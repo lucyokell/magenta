@@ -26,8 +26,9 @@ pipeline(
   plaf = rep(0.5, num_loci),
   prob_crossover = rep(0.5, num_loci),
   starting_ibd = 0,
-  mutation_rate = 1e-07,
+  mutation_rate = rep(1e-07, num_loci),
   mutation_flag = FALSE,
+  mutation_treated_modifier = 1,
   full_save = FALSE,
   full_update_save = FALSE,
   human_only_full_save = FALSE,
@@ -132,6 +133,10 @@ individual at initialisation is given a unique ID for their parasites.}
 \item{mutation_flag}{Boolean for simulating mutations
 
 # Saving Params}
+
+\item{mutation_treated_modifier}{Multiplier for how much more likely mutations
+are to occur in treated individuals with respect to resistance. Default = 1, i.e 
+no difference}
 
 \item{full_save}{Boolean detailing whether the entire simulation is saved.
 Default = FALSE}
