@@ -58,8 +58,6 @@ navbar:
       - text: Introduction to magenta (Overview)
         href: articles/Introduction.html
       - text: -------
-      - text: Logger Definitions
-        href: articles/Loggers.html
       - text: Resistance
         href: articles/Resistance.html
     - text: News
