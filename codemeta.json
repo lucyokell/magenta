@@ -6,7 +6,7 @@
   "@type": "SoftwareSourceCode",
   "identifier": "magenta",
   "description": "Individual-based simulation model of malaria epidemiology and genomics.\n  magenta extends the imperial malaria model by tracking the infection history of \n  individuals. With this additional genetic characteristics of the parasite can be \n  assessed.",
-  "name": "magenta: Individual-based simulation model of malaria epidemiology and genomics",
+  "name": "magenta: Individual-Based Simulation Model of Malaria Epidemiology and Genomics",
   "codeRepository": "https://github.com/OJWatson/magenta",
   "issueTracker": "https://github.com/OJWatson/magenta/issues",
   "license": "https://spdx.org/licenses/MIT",
@@ -16,13 +16,13 @@
     "name": "R",
     "url": "https://r-project.org"
   },
-  "runtimePlatform": "R version 4.0.2 (2020-06-22)",
+  "runtimePlatform": "R version 4.0.4 (2021-02-15)",
   "author": [
     {
       "@type": "Person",
       "givenName": "OJ",
       "familyName": "Watson",
-      "email": "oj.watson@hotmail.co.uk",
+      "email": "o.watson@imperial.ac.uk",
       "@id": "https://orcid.org/0000-0003-2374-0741"
     }
   ],
@@ -34,7 +34,7 @@
       "@type": "Person",
       "givenName": "OJ",
       "familyName": "Watson",
-      "email": "oj.watson@hotmail.co.uk",
+      "email": "o.watson@imperial.ac.uk",
       "@id": "https://orcid.org/0000-0003-2374-0741"
     }
   ],
@@ -286,5 +286,5 @@
   "contIntegration": "https://travis-ci.org/ojwatson/magenta",
   "developmentStatus": "https://www.repostatus.org/#wip",
   "relatedLink": "https://ojwatson.github.io/magenta/",
-  "fileSize": "30628.672KB"
+  "fileSize": "57611.709KB"
 }

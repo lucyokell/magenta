@@ -272,7 +272,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // transform the vector of 
     std::transform(temp_biting_frequency_vector.begin(), temp_biting_frequency_vector.end(), temp_biting_frequency_vector.begin(),
-                   std::bind1st(std::multiplies<double>(), (1.0/mosquito_biting_rates[intervention_counter])));
+                   std::bind(std::multiplies<double>(), (1.0/mosquito_biting_rates[intervention_counter]), std::placeholders::_1));
     
     std::adjacent_difference(temp_biting_frequency_vector.begin(),
                              temp_biting_frequency_vector.end(),
@@ -360,7 +360,7 @@ Rcpp::List Simulation_Update_cpp(Rcpp::List param_list)
     
     // Create normalised psi by dividing by the mean age dependent biting rate
     std::transform(u_ptr->psi_vector.begin(), u_ptr->psi_vector.end(), u_ptr->psi_vector.begin(),
-                   std::bind1st(std::multiplies<double>(), 1 / mean_psi));
+                   std::bind(std::multiplies<double>(), 1 / mean_psi, std::placeholders::_1));
     
     // Create overall relative biting rate, pi, i.e. the product of individual biting heterogeneity and age dependent heterogeneity
     std::transform(u_ptr->psi_vector.begin(), u_ptr->psi_vector.end(),
