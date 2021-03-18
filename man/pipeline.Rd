@@ -130,9 +130,7 @@ individual at initialisation is given a unique ID for their parasites.}
 
 \item{mutation_rate}{Probability of mutation occuring and fixing}
 
-\item{mutation_flag}{Boolean for simulating mutations
-
-# Saving Params}
+\item{mutation_flag}{Boolean for simulating mutations}
 
 \item{full_save}{Boolean detailing whether the entire simulation is saved.
 Default = FALSE}

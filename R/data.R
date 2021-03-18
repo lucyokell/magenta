@@ -104,4 +104,17 @@
 ##'
 "importations"
 
-
+##'  Drug Efficacy by Genotype Table 
+##'
+##'  Table of probaility of late parasitological failure (28-day treatment failure)
+##'  per genoytpe
+##'
+##' @docType data
+##'
+##' @format A data.frame of drug efficacies by genotype
+##'
+##' @rdname drug_table
+##' @aliases drug_table
+##'
+##'
+"drug_table"

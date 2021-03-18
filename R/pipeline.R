@@ -66,6 +66,7 @@
 #'   individual at initialisation is given a unique ID for their parasites.
 #' @param mutation_rate Probability of mutation occuring and fixing
 #' @param mutation_flag Boolean for simulating mutations
+#' @inheritParams barcode_list_create
 #' 
 #' # Saving Params
 #' 
