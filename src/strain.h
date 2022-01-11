@@ -167,6 +167,9 @@ public:
   // Generate a random barcode given probability of each SNP, i.e. PLAF
   static boost::dynamic_bitset<> generate_random_barcode_given_SNP_frequencies(std::vector<double> &x);
   
+  // Generate a dependent barcode given probability of each SNP, i.e. PLAF
+  static boost::dynamic_bitset<> generate_dependent_barcode_given_SNP_frequencies(std::vector<double> &x);
+  
   // Create a bitset by replicating each bit n times
   static boost::dynamic_bitset<> replicate_by_bit(boost::dynamic_bitset<> x, unsigned int n);
   

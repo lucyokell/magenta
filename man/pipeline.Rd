@@ -21,6 +21,7 @@ pipeline(
   spatial_type = NULL,
   spatial_incidence_matrix = NULL,
   spatial_mosquitoFOI_matrix = NULL,
+  island_imports_plaf_linked_flag = FALSE,
   num_loci = 24,
   ibd_length = 1,
   plaf = rep(0.5, num_loci),
@@ -206,9 +207,7 @@ Default is `c(-0.001, 5, 15, 100.1)`}
 frequencies and maybe strain frequencies) or the whole data frame produced
 by \code{\link{pop_strains_df}}. Default = TRUE}
 
-\item{nmf_list}{List created by \code{\link{nmf_list_create}}
-
-# Other}
+\item{nmf_list}{List created by \code{\link{nmf_list_create}}}
 
 \item{...}{Other parameters to model_param_list_create
 

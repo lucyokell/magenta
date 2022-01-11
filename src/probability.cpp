@@ -296,3 +296,17 @@ void shuffle_integer_vector(std::vector<int> &vec) {
 double hill_function(double x, double n, double kA) {
   return((pow(x, n)) / (pow(x, n) + pow(kA, n)));
 }
+
+
+//------------------------------------------------
+// is integer zero
+bool is_int_zero(int i) {
+  return i == 0;
+}
+
+
+//------------------------------------------------
+// Is double zero function
+bool is_double_zero(double i) {
+  return i == 0.0;
+};

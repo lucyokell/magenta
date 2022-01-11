@@ -50,6 +50,10 @@ test_barcode_from_PLAF <- function(plaf, n) {
     .Call('_magenta_test_barcode_from_PLAF', PACKAGE = 'magenta', plaf, n)
 }
 
+test_dependent_barcode_from_PLAF <- function(plaf, n) {
+    .Call('_magenta_test_dependent_barcode_from_PLAF', PACKAGE = 'magenta', plaf, n)
+}
+
 test_recombinant_with_ibd <- function(barcode_1, barcode_2, bl, nl, ib, pc) {
     .Call('_magenta_test_recombinant_with_ibd', PACKAGE = 'magenta', barcode_1, barcode_2, bl, nl, ib, pc)
 }

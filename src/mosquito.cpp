@@ -90,7 +90,8 @@ void Mosquito::handle_bite(Parameters &parameters, Person &person)
   }
   
   // if we are doing spatial then use the imported oocysts first 
-  if(parameters.g_spatial_imported_mosquito_infection_counter < parameters.g_spatial_total_imported_mosquito_infections)
+  if(parameters.g_spatial_imported_mosquito_infection_counter < parameters.g_spatial_total_imported_mosquito_infections ||
+     parameters.g_percentage_imported_mosquito_infections == 1.0)
   {
     
     // handle if metapopulation

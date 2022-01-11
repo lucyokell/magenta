@@ -59,6 +59,7 @@ public:
   std::vector<boost::dynamic_bitset<> > g_spatial_imported_oocysts;
   
   // island related
+  static bool g_island_imports_plaf_linked_flag;
   unsigned int g_total_human_infections;
   unsigned int g_total_mosquito_infections;
   double g_percentage_imported_human_infections;

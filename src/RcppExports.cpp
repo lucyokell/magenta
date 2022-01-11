@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // Simulation_Finalizer_cpp
 Rcpp::List Simulation_Finalizer_cpp(Rcpp::List param_list);
 RcppExport SEXP _magenta_Simulation_Finalizer_cpp(SEXP param_listSEXP) {
@@ -69,6 +74,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type plaf(plafSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
     rcpp_result_gen = Rcpp::wrap(test_barcode_from_PLAF(plaf, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_dependent_barcode_from_PLAF
+SEXP test_dependent_barcode_from_PLAF(Rcpp::NumericVector plaf, unsigned int n);
+RcppExport SEXP _magenta_test_dependent_barcode_from_PLAF(SEXP plafSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type plaf(plafSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_dependent_barcode_from_PLAF(plaf, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -159,6 +176,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_magenta_Simulation_Saved_Init_cpp", (DL_FUNC) &_magenta_Simulation_Saved_Init_cpp, 1},
     {"_magenta_Simulation_Update_cpp", (DL_FUNC) &_magenta_Simulation_Update_cpp, 1},
     {"_magenta_test_barcode_from_PLAF", (DL_FUNC) &_magenta_test_barcode_from_PLAF, 2},
+    {"_magenta_test_dependent_barcode_from_PLAF", (DL_FUNC) &_magenta_test_dependent_barcode_from_PLAF, 2},
     {"_magenta_test_recombinant_with_ibd", (DL_FUNC) &_magenta_test_recombinant_with_ibd, 6},
     {"_magenta_test_generate_next_ibd", (DL_FUNC) &_magenta_test_generate_next_ibd, 5},
     {"_magenta_test_ibd_conversion", (DL_FUNC) &_magenta_test_ibd_conversion, 4},
