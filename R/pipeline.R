@@ -120,16 +120,13 @@
 #' @param drug_list List created by \code{\link{drug_list_create}}
 #' @param vector_adaptation_list List created by \code{\link{vector_adaptation_list_create}}
 #' @param nmf_list List created by \code{\link{nmf_list_create}}
-#' @inheritParams  spl_create
-#' 
-#' # Other
-#' 
 #' @param seed Random seed. Default is Random
 #' @param ... Other parameters to model_param_list_create
 #'
 #' \code{pipeline}
 #'
 #' @export
+#' @inheritParams spl_create
 
 pipeline <- function(EIR = 120,
                      ft = 0.4,

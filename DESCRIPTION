@@ -36,6 +36,7 @@ Remotes:
     mrc-ide/dde
 LinkingTo: Rcpp, BH
 LazyData: TRUE
+LazyDataCompression:xz
 RoxygenNote: 7.1.2
 SystemRequirements: C++11
 VignetteBuilder: knitr

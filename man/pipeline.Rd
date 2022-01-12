@@ -106,6 +106,13 @@ i.e. importation vector}
   
 # Genetic Params}
 
+\item{island_imports_plaf_linked_flag}{Boolean. Whether imported barcodes for
+island model are drawn dependent on other sites. Currently, if TRUE, imported
+barcodes will either be all 0 or will be 1 at all loci where plaf > 0, 
+if \code{rbinom(1, 1, plaf[plaf>0][1])} is TRUE. I.e. the first loci greater 
+than 0 is used to determine if the incoming barcode is 1 at all sites where 
+plaf is greater than 0.}
+
 \item{num_loci}{Number of loci. Default = 24}
 
 \item{ibd_length}{If we are simulating IBD dynamics, each loci is now
