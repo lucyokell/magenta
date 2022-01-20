@@ -159,7 +159,12 @@ boost::dynamic_bitset<> Strain::generate_next_barcode()
   switch (Parameters::g_barcode_type)
   {
   case Parameters::ORDINARY:
-    return(generate_random_barcode_given_SNP_frequencies(Parameters::g_plaf));
+    // # is it drawn non independently from the island
+    if(Parameters::g_island_imports_plaf_linked_flag) {
+      return(generate_dependent_barcode_given_SNP_frequencies(Parameters::g_plaf));  
+    } else {
+      return(generate_random_barcode_given_SNP_frequencies(Parameters::g_plaf));
+    }
   case Parameters::IBD:
     return(generate_next_ibd_barcode());
   default:
@@ -299,14 +304,44 @@ std::vector<boost::dynamic_bitset<> > Strain::generate_recombinant_barcode(boost
 // Generate a random barcode given probability of each SNP, i.e. PLAF
 boost::dynamic_bitset<> Strain::generate_random_barcode_given_SNP_frequencies(std::vector<double> &x)
 {
+  
   // create and fill the temp barcode
   for(unsigned int i = 0; i < Parameters::g_barcode_length ; i++){
     Strain::temp_barcode[i] = rbernoulli1(x[i]);
   }
-  
+
   // return barcode
   return(Strain::temp_barcode);
 }
+
+// Generate a random barcode given probability of each SNP, i.e. PLAF
+boost::dynamic_bitset<> Strain::generate_dependent_barcode_given_SNP_frequencies(std::vector<double> &x)
+{
+  
+    auto it = find_if_not(x.begin(), x.end(), is_double_zero);
+    int first_nonzero_idx = distance(x.begin(), it);
+
+    if(rbernoulli1(x[first_nonzero_idx])) {
+      
+      // create and fill the temp barcode with plaf positions not zero as 1
+      for(unsigned int i = 0; i < Parameters::g_barcode_length ; i++){
+        Strain::temp_barcode[i] = !is_double_zero(x[i]);
+      }
+      
+    } else {
+      
+      // create and fill the temp barcode with 0
+      for(unsigned int i = 0; i < Parameters::g_barcode_length ; i++){
+        Strain::temp_barcode[i] = false;
+      }
+      
+    }
+    
+  // return barcode
+  return(Strain::temp_barcode);
+  
+}
+
 
 // Stretches a bitset by replicating each bit n times
 boost::dynamic_bitset<> Strain::replicate_by_bit(boost::dynamic_bitset<> x, unsigned int n)
@@ -496,6 +531,17 @@ SEXP test_barcode_from_PLAF(Rcpp::NumericVector plaf, unsigned int n)
   Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
   std::vector<double> plaf_c = Rcpp::as<std::vector<double> >(plaf);
   boost::dynamic_bitset<> b = Strain::generate_random_barcode_given_SNP_frequencies(plaf_c);
+  return(bitset_to_sexp(b, n));
+}
+
+// PLAF dependent test
+// [[Rcpp::export]]
+SEXP test_dependent_barcode_from_PLAF(Rcpp::NumericVector plaf, unsigned int n)
+{
+  Parameters::g_barcode_length = n;
+  Strain::temp_barcode = boost::dynamic_bitset<>(Parameters::g_barcode_length);
+  std::vector<double> plaf_c = Rcpp::as<std::vector<double> >(plaf);
+  boost::dynamic_bitset<> b = Strain::generate_dependent_barcode_given_SNP_frequencies(plaf_c);
   return(bitset_to_sexp(b, n));
 }
 

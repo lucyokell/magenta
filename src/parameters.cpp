@@ -154,6 +154,7 @@ Parameters::Parameters() {
 }  
 
 // barcode global static params
+bool Parameters::g_island_imports_plaf_linked_flag = false;
 unsigned int Parameters::g_identity_id = 0;
 unsigned int Parameters::g_num_loci = 24;
 unsigned int Parameters::g_ibd_length = 1;

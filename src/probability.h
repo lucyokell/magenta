@@ -128,5 +128,13 @@ void shuffle_integer_vector(std::vector<int> &vec);
 // hill function
 double hill_function(double x, double n, double kA); 
 
+//------------------------------------------------
+// Is integer zero function
+bool is_int_zero(int i);
+
+//------------------------------------------------
+// Is double zero function
+bool is_double_zero(double i);
+
 
 #endif

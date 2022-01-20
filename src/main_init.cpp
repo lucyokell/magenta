@@ -155,6 +155,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   // Grab seasonality and spatial
   parameters.g_spatial_type = static_cast<Parameters::g_spatial_type_enum>(Rcpp::as<unsigned int>(spatial_list["spatial_type"]));
   parameters.g_theta = Rcpp::as<vector<double> >(eqSS["theta"]);
+  Parameters::g_island_imports_plaf_linked_flag = Rcpp::as<bool>(spatial_list["island_imports_plaf_linked_flag"]); // are we doing dependent draws based on plaf
   
   rcpp_out(parameters.g_h_quiet_print, "Running model of " + enum_spatial_convert(parameters.g_spatial_type) + " spatial type.\n");
   

@@ -120,15 +120,13 @@
 #' @param drug_list List created by \code{\link{drug_list_create}}
 #' @param vector_adaptation_list List created by \code{\link{vector_adaptation_list_create}}
 #' @param nmf_list List created by \code{\link{nmf_list_create}}
-#' 
-#' # Other
-#' 
 #' @param seed Random seed. Default is Random
 #' @param ... Other parameters to model_param_list_create
 #'
 #' \code{pipeline}
 #'
 #' @export
+#' @inheritParams spl_create
 
 pipeline <- function(EIR = 120,
                      ft = 0.4,
@@ -148,6 +146,7 @@ pipeline <- function(EIR = 120,
                      # spatial_uuid = NULL,
                      spatial_incidence_matrix = NULL,
                      spatial_mosquitoFOI_matrix = NULL,
+                     island_imports_plaf_linked_flag = FALSE,
                      num_loci = 24,
                      ibd_length = 1,
                      plaf = rep(0.5, num_loci),
@@ -284,7 +283,8 @@ pipeline <- function(EIR = 120,
       mosquito_imporation_rate_vector = spatial_mosquitoFOI_matrix[1, ],
       cotransmission_freq_vector = ztrgeomintp(10000, 10, survival_percentage),
       oocyst_freq_vector = ztrnbinom(10000, mean = oocyst_mean, size = oocyst_shape),
-      plaf = plaf_matrix[1, ]
+      plaf = plaf_matrix[1, ],
+      island_imports_plaf_linked_flag = island_imports_plaf_linked_flag
     )
     
     

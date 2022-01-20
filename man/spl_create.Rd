@@ -12,7 +12,8 @@ spl_create(
   oocyst_freq_vector = rep(1, 10000),
   num_human_infs = 0,
   num_mos_infs = 0,
-  plaf = rep(0.5, 24)
+  plaf = rep(0.5, 24),
+  island_imports_plaf_linked_flag = FALSE
 )
 }
 \arguments{
@@ -39,6 +40,13 @@ metapopulation. Default = 0}
 metapopulation. Default = 0}
 
 \item{plaf}{Population Level Frequency. Default = rep(0.5, 24)}
+
+\item{island_imports_plaf_linked_flag}{Boolean. Whether imported barcodes for
+island model are drawn dependent on other sites. Currently, if TRUE, imported
+barcodes will either be all 0 or will be 1 at all loci where plaf > 0, 
+if \code{rbinom(1, 1, plaf[plaf>0][1])} is TRUE. I.e. the first loci greater 
+than 0 is used to determine if the incoming barcode is 1 at all sites where 
+plaf is greater than 0.}
 }
 \description{
 \code{spl_create} creates the user required spatial

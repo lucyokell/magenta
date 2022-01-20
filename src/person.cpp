@@ -506,7 +506,8 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
           // Allocate strains from mosquito
           
           // if we are doing spatial then use the exported barcodes first - the human biting quueue is shuffled so distributed across humans fine.
-          if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections)
+          if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections || 
+             parameters.g_percentage_imported_human_infections == 1.0)
           {
             
             // assign the exported barcode and increase the count
@@ -516,7 +517,7 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
             } 
             else 
             {
-              m_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());  
+                m_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());    
             }
             
             parameters.g_spatial_imported_human_infection_counter++;

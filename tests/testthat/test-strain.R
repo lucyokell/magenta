@@ -16,7 +16,15 @@ test_that("random from plaf", {
   
 })
 
-
+test_that("depedent plaf", {
+  
+  # with 1 should be no variation
+  plaf <- c(1,0.5,0,0,0.5)
+  y <- test_dependent_barcode_from_PLAF(plaf, length(plaf))
+  x <- as.raw(c(1,1,0,0,1))
+  expect_identical(y, x)
+  
+})
 
 test_that("ibd recombinants", {
   

@@ -21,6 +21,7 @@ pipeline(
   spatial_type = NULL,
   spatial_incidence_matrix = NULL,
   spatial_mosquitoFOI_matrix = NULL,
+  island_imports_plaf_linked_flag = FALSE,
   num_loci = 24,
   ibd_length = 1,
   plaf = rep(0.5, num_loci),
@@ -104,6 +105,13 @@ i.e. importation vector}
  to mosquitoes vector
   
 # Genetic Params}
+
+\item{island_imports_plaf_linked_flag}{Boolean. Whether imported barcodes for
+island model are drawn dependent on other sites. Currently, if TRUE, imported
+barcodes will either be all 0 or will be 1 at all loci where plaf > 0, 
+if \code{rbinom(1, 1, plaf[plaf>0][1])} is TRUE. I.e. the first loci greater 
+than 0 is used to determine if the incoming barcode is 1 at all sites where 
+plaf is greater than 0.}
 
 \item{num_loci}{Number of loci. Default = 24}
 
@@ -206,9 +214,7 @@ Default is `c(-0.001, 5, 15, 100.1)`}
 frequencies and maybe strain frequencies) or the whole data frame produced
 by \code{\link{pop_strains_df}}. Default = TRUE}
 
-\item{nmf_list}{List created by \code{\link{nmf_list_create}}
-
-# Other}
+\item{nmf_list}{List created by \code{\link{nmf_list_create}}}
 
 \item{...}{Other parameters to model_param_list_create
 

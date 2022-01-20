@@ -1,3 +1,11 @@
+## magenta 1.3.1
+
+* Importations can have same barcode as PLAF via `island_imports_plaf_linked_flag`
+
+## magenta 1.3.0
+
+* Major changes inplace for simulating resistance
+
 ## magenta 1.2.0
 
 * Documentation for base model
