@@ -14,7 +14,7 @@ BugReports: https://github.com/OJWatson/magenta/issues
 Description: Individual-based simulation model of malaria epidemiology and genomics.
   magenta extends the imperial malaria model by tracking the infection history of 
   individuals. With this additional genetic characteristics of the parasite can be 
-  assessed.
+  assessed, including resistance.
 License: MIT + file LICENSE 
 Depends: R (>= 2.10)
 Imports:
