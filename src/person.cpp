@@ -489,6 +489,46 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
       m_drug_choice_time = parameters.g_current_time;
       }
       
+      // Work out first the barcodes that are being passed on here so that we can update our drug if 
+      // we are using resistance diagnostics
+      std::vector<boost::dynamic_bitset<>> temp_infection_barcode_realisation_vector; 
+      for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++){
+        
+        if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections || 
+           parameters.g_percentage_imported_human_infections == 1.0)
+        {
+          
+          // assign the exported barcode and increase the count
+          if(parameters.g_spatial_type == Parameters::METAPOPULATION)
+          {
+            temp_infection_barcode_realisation_vector.emplace_back(parameters.g_spatial_imported_barcodes[parameters.g_spatial_imported_human_infection_counter]);
+          } 
+          else 
+          {
+            temp_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());    
+          }
+          
+          parameters.g_spatial_imported_human_infection_counter++;
+          
+        }
+        else 
+        {
+          temp_infection_barcode_realisation_vector.emplace_back(mosquito.sample_sporozoite());
+        }
+        
+      }
+      
+      // Now update our drug choice if we were doing resistance diagnostics and they are going to be treated
+      if(parameters.g_resistance_diagnostic_flag && m_temp_infection_state == TREATED) {
+        
+        // LUCY: Here write your code for checking whether any of the strains in temp_infection_barcode_realisation_vector are resistant
+        // and if so then update the drug choice. 
+        
+        // The code lower where mutation under drug pressure is written will probably be quite helpful
+        // for identifying if the barcodes in temp_infection_barcode_realisation_vector are resistant
+        
+        }
+      
       // Allocate strains being passed on
       for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
       {
@@ -513,11 +553,11 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
             // assign the exported barcode and increase the count
             if(parameters.g_spatial_type == Parameters::METAPOPULATION)
             {
-              m_infection_barcode_realisation_vector.emplace_back(parameters.g_spatial_imported_barcodes[parameters.g_spatial_imported_human_infection_counter]);
+              m_infection_barcode_realisation_vector.emplace_back(temp_infection_barcode_realisation_vector[cotransmission]);
             } 
             else 
             {
-                m_infection_barcode_realisation_vector.emplace_back(Strain::generate_next_barcode());    
+                m_infection_barcode_realisation_vector.emplace_back(temp_infection_barcode_realisation_vector[cotransmission]);    
             }
             
             parameters.g_spatial_imported_human_infection_counter++;
@@ -526,7 +566,7 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
           else 
           {
             
-            m_infection_barcode_realisation_vector.emplace_back(mosquito.sample_sporozoite());
+            m_infection_barcode_realisation_vector.emplace_back(temp_infection_barcode_realisation_vector[cotransmission]);
             
             // export a barcode if doing metapopulation spatial
             if(parameters.g_spatial_exported_barcode_counter < parameters.g_spatial_total_exported_barcodes)

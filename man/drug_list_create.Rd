@@ -14,6 +14,7 @@ drug_list_create(
   number_of_drugs = 1,
   drugs = list(drug_create_default_no_resistance()),
   mft_flag = FALSE,
+  resistance_diagnostic_flag = FALSE,
   temporal_cycling = -1,
   sequential_cycling = -1,
   sequential_update = 3,
@@ -47,6 +48,8 @@ their own loci. (TODO: Change this to be a list of length norl)}
 created by \code{drug_create}.}
 
 \item{mft_flag}{Boolean are we doing mft}
+
+\item{resistance_diagnostic_flag}{Boolean are we doing resistance diagnostics}
 
 \item{temporal_cycling}{Numeric for when in years a drug switch occurs}
 

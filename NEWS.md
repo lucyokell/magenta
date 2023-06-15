@@ -1,3 +1,7 @@
+## magenta 1.4.0
+
+* Diagnostics for resistance implemented
+
 ## magenta 1.3.1
 
 * Importations can have same barcode as PLAF via `island_imports_plaf_linked_flag`
