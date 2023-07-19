@@ -36,8 +36,8 @@ Remotes:
     mrc-ide/dde
 LinkingTo: Rcpp, BH
 LazyData: TRUE
-LazyDataCompression:xz
-RoxygenNote: 7.1.2
+LazyDataCompression: xz
+RoxygenNote: 7.2.3
 SystemRequirements: C++11
 VignetteBuilder: knitr
 Additional_repositories: https://mrc-ide.github.io/drat

@@ -222,7 +222,7 @@ pipeline <- function(EIR = 120,
     
     # check to change the ft for the initial and odin to reflect 28 day failure rates
     lpfs <- unlist(lapply(drug_list$drugs, function(x) {x$lpf[1]}))
-    ft_odin <- ft * weighted.mean(lpfs, drug_list$partner_drug_ratios)
+    ft_odin <- ft * weighted.mean(lpfs, drug_list$partner_drug_ratios[1,])
     
     # Create a near equilibirum initial condition
     eqInit <- equilibrium_init_create(
@@ -235,6 +235,7 @@ pipeline <- function(EIR = 120,
       model_param_list = mpl
     )
     
+    print("eq created")
     # reset seed here as there is some randomness in equlibirum (Need?)
     set.seed(seed)
     
@@ -258,6 +259,16 @@ pipeline <- function(EIR = 120,
     if (length(mutation_flag) == 1) {
       mutation_flag <- rep(mutation_flag, ceiling(years))
     }
+    
+    # handle partner drug ratios
+    # save all the partner drug ratio inputs
+    partner_drug_ratios<-drug_list$partner_drug_ratios
+    # replace the drug list content just with the first year of partner drug ratios.
+    drug_list$partner_drug_ratios<-partner_drug_ratios[1,]
+    if(nrow(partner_drug_ratios) == 1) {
+      partner_drug_ratios <- matrix(rep(partner_drug_ratios, ceiling(years)), nrow=ceiling(years))
+    }
+    
     
     # spatial checks and formatting
     if (!is.null(spatial_type)) {
@@ -482,10 +493,11 @@ pipeline <- function(EIR = 120,
         # annual updates
         if (floor((update_times[i] - update_length + 1)/365) == year) {
           
-          # update the year, ft and resistance flag
+          # update the year, ft, partner drug ratios and resistance flag
           year <- year + 1
           ft_now <- ft[year]
           drug_list$resistance_flag <- resistance_flags[year]
+          drug_list$partner_drug_ratios <- partner_drug_ratios[year,]
           barcode_list$mutation_flag <- mutation_flag[year]
           
           # update the spatial list

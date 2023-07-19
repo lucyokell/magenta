@@ -46,7 +46,7 @@ housekeeping_list_create <- function(quiet = TRUE,
 #' @param sequential_update How long does it take in years for sequential to be implemented
 #' @param number_of_drugs Numeric for number of drugs used
 #' @param drug_choice What's the default drug choice to begin. Default = 0
-#' @param partner_drug_ratios Numeric vector for ratio of first line drugs used
+#' @param partner_drug_ratios Numeric vector OR array for ratio of first line drugs used - changed to array over multiple years.
 #' 
 #' @export
 
@@ -63,7 +63,7 @@ drug_list_create <- function(resistance_flag = FALSE,
                              sequential_cycling = -1,
                              sequential_update = 3,
                              drug_choice = 0,
-                             partner_drug_ratios = rep(1/number_of_drugs, number_of_drugs)) {
+                             partner_drug_ratios = matrix(rep(1/number_of_drugs, number_of_drugs),nrow=1)) {
   
   
   # TODO: More check for formatting here that you have enough prophylactic etc

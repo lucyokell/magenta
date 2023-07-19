@@ -18,7 +18,7 @@ drug_list_create(
   sequential_cycling = -1,
   sequential_update = 3,
   drug_choice = 0,
-  partner_drug_ratios = rep(1/number_of_drugs, number_of_drugs)
+  partner_drug_ratios = matrix(rep(1/number_of_drugs, number_of_drugs), nrow = 1)
 )
 }
 \arguments{
@@ -56,7 +56,7 @@ created by \code{drug_create}.}
 
 \item{drug_choice}{What's the default drug choice to begin. Default = 0}
 
-\item{partner_drug_ratios}{Numeric vector for ratio of first line drugs used}
+\item{partner_drug_ratios}{Numeric vector OR array for ratio of first line drugs used - changed to array over multiple years.}
 }
 \description{
 List for simulating drug usage for resistance/mft variables
