@@ -914,7 +914,7 @@ void Person::treatment_outcome(const Parameters &parameters) {
           late_paristological_failure(parameters);
           m_treatment_outcome = LPF;
         } else {
-          // did no LPF happen because there were no resistant strains - straight to prophylaxis
+          // did no LPF happen because there were no resistant strains - straight to prophylaxi
           if(!m_resistant_strains.size()) {
             m_treatment_outcome = SUCCESFULLY_TREATED;
             m_infection_state = PROPHYLAXIS;
