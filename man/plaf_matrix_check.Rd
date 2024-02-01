@@ -17,3 +17,4 @@ plaf matrix check
 \details{
 Checks length formatting etc of population level allele frequency matrix
 }
+\keyword{internal}

@@ -52,3 +52,4 @@ plaf is greater than 0.}
 \code{spl_create} creates the user required spatial
 list to be passed to the initialisation function if needed.
 }
+\keyword{internal}

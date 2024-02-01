@@ -7,7 +7,7 @@
 #' @param groupvars Characters of grouping variables
 #' @param conf.interval numeric for CI
 #' 
-#' 
+#' @keywords internal
 summarySE <- function(data=NULL, measurevar="COI", 
                       groupvars=c("Age_Bin","State"),
                       conf.interval=.95) {
@@ -31,7 +31,7 @@ summarySE <- function(data=NULL, measurevar="COI",
 #' @param measurevar Character for measure variable
 #' @param groupvars What are we summarise by
 #' @param mean_only Are we just calculating the mean. Default = TRUE
-#' 
+#' @keywords internal
 summarySE_mean_only <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bin","State"),mean_only=TRUE) {
   
   if(!mean_only) {
@@ -57,7 +57,7 @@ summarySE_mean_only <- function(data=NULL, measurevar="COI", groupvars=c("Age_Bi
 #' @param max Maximum value that can be obsered in the data beign summarised. 
 #'   If greater than zero, all values in data will be set to the max before
 #'   summarising. Default = 0.
-#' 
+#' @keywords internal
 summarySE_mean_only_max_mean <- function(data=NULL, 
                                          measurevar="COI", 
                                          groupvars=c("Age_Bin","State"),

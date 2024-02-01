@@ -42,3 +42,4 @@ vs all summary statistics. Default = TRUE}
 \description{
 Create COI dataframe
 }
+\keyword{internal}

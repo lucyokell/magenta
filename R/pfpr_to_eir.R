@@ -11,7 +11,7 @@
 #'   in microscopy based prevalence estimates. Default = NULL
 #' @param ... Any other params to be fed to the model parameter list
 #' 
-
+#' @keywords internal
 pfpr_to_eir_heuristic <- function(ft = 0, 
                                   PfPR=NULL, PfPR_micro=NULL, mv=NULL, 
                                   age_range=NULL, all_a=FALSE,

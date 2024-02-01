@@ -445,6 +445,7 @@ nmf_list_create <- function(nmf_flag = FALSE,
 #'   are to occur in treated individuals with respect to resistance. Default = 1, i.e 
 #'   no difference
 #'
+#' @keywords internal
 barcode_list_create <- function(num_loci = 24,
                                 ibd_length = 1,
                                 plaf = rep(0.5, 24),

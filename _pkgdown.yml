@@ -39,10 +39,30 @@ reference:
       - spl_grab
       - intervention_grab
       - equilibrium_init_create
+      - housekeeping_list_create
+      - nmf_list_create
+      - vector_adaptation_list_create
+  - title: "Drug Functions"
+    desc: "Functions to create drugs"
+    contents:
+      - drug_create
+      - drug_create_al
+      - drug_create_asaq
+      - drug_create_dhappq
+      - drug_create_default_no_resistance
+      - drug_table
   - title: "Barcode Misc"
     desc: "Functions for converting and manipualting barcodes"
     contents:
       - convert_barcode_vectors
+  - title: "Data Objects"
+    desc: "Internal Data Objects"
+    contents:
+      - admin_units_seasonal
+      - irs_2000_2015
+      - itn_2000_2015
+      - drug_table
+      - importations
     
 navbar:
   type: default

@@ -38,3 +38,4 @@ model included with magenta.}
 \description{
 Grabs spatial incidence and mosquitoFOI vector from database
 }
+\keyword{internal}

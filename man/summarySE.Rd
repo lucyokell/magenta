@@ -23,3 +23,4 @@ summarySE(
 \description{
 Create summary statistics df
 }
+\keyword{internal}
