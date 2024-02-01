@@ -899,18 +899,28 @@ void Person::treatment_outcome(const Parameters &parameters) {
       m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
     }
     
-    // did they fail due to the drug failing (regardless of resistance)
-    if(rbernoulli1(1 - parameters.g_drugs[m_drug_choice].get_prob_of_lpf_x(0))) {
-      m_post_treatment_strains = m_active_strains;
-      late_paristological_failure(parameters);
-      m_treatment_outcome = LPF;
+    // are they actually infected, i.e. not just here because of nmf
+    if(m_number_of_strains > 0) {
+      
+      // did they fail due to the drug failing (regardless of resistance)
+      if(rbernoulli1(1 - parameters.g_drugs[m_drug_choice].get_prob_of_lpf_x(0))) {
+        m_post_treatment_strains = m_active_strains;
+        late_paristological_failure(parameters);
+        m_treatment_outcome = LPF;
+      } else {
+        m_treatment_outcome = SUCCESFULLY_TREATED;
+        m_infection_state = PROPHYLAXIS;
+        schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+        all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+      }
+      // if not infected at all then move them straight to P
     } else {
-      m_treatment_outcome = SUCCESFULLY_TREATED;
       m_infection_state = PROPHYLAXIS;
       schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
-      all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+      all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains (this includes pending strains)
     }
   }
+    
   
   // update next event day
   set_m_day_of_next_event();
@@ -1056,6 +1066,9 @@ void Person::slow_treatment_clearance(const Parameters &parameters) {
 // Seek treatment for nmf
 void Person::seek_nmf_treatment(const Parameters &parameters){
   
+  // firstly are they actually infected at all
+  if(m_number_of_strains > 0) {
+  
   // first would they seek treatment
   if(rbernoulli1(parameters.g_ft)){
     
@@ -1097,6 +1110,24 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
       }
       
     }
+    
+  }
+  
+  // if they are not infected them move them to P but include the extra duration in T
+  } else {
+    
+    // then move to P now
+    m_infection_state = PROPHYLAXIS;
+    
+    // And schedule the move P and T durations into the future
+    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_T) + 
+      rexpint1(parameters.g_dur_P) + parameters.g_current_time + 1;
+    schedule_m_day_of_InfectionStatus_change(parameters);
+    
+    // Clear all pending infection vectors 
+    m_infection_time_realisation_vector.clear();
+    m_infection_state_realisation_vector.clear();
+    m_infection_barcode_realisation_vector.clear();
     
   }
   

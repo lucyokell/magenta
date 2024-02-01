@@ -1,3 +1,8 @@
+## magenta 1.3.2
+
+* NMF fixes. Individuals not infected who are treated due to NMF go straight to 
+an elongated prophylaxis. 
+
 ## magenta 1.3.1
 
 * Importations can have same barcode as PLAF via `island_imports_plaf_linked_flag`
