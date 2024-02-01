@@ -5,7 +5,7 @@
 #' @param max_age Maximum age in years
 #' @param num_age_brackets Number of age brackets
 #' @param geometric_age_brackets Boolean for geometric brackets
-
+#' @keywords internal
 age_brackets <- function(max_age=100, 
                          num_age_brackets=20, 
                          geometric_age_brackets=TRUE){
@@ -105,7 +105,8 @@ spl_grab <- function(country, admin, year_range) {
 #' 
 #' @param matrix Spatial matrix for 2000 to 2017
 #' @param years Years desired
-
+#' 
+#' @keywords internal
 spl_matrix_check <- function(matrix, years) {
   
   if(is.matrix(matrix)){
@@ -133,7 +134,7 @@ spl_matrix_check <- function(matrix, years) {
 #' 
 #' @param matrix plaf matrix
 #' @param years Years desired
-
+#' @keywords internal
 plaf_matrix_check <- function(matrix, years) {
   
   if(is.matrix(matrix)){
@@ -274,7 +275,7 @@ intervention_grab <- function(country, admin, year_range,
 #'   model included with magenta.     
 #' @param years Numeric for total years
 #' 
-
+#' @keywords internal
 mu_fv_create <- function(eqInit,
                          ft,
                          itn_cov,

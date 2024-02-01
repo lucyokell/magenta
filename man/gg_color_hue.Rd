@@ -12,3 +12,4 @@ gg_color_hue(n)
 \description{
 Function to generate ggplot colours
 }
+\keyword{internal}

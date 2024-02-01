@@ -28,3 +28,4 @@ summarising. Default = 0.}
 \description{
 Create summary statistics df
 }
+\keyword{internal}

@@ -34,3 +34,4 @@ R side wrapper for c++ functions that  loop through the population
   retrieving information about their strains using the universe state ptr. 
   The resulting data frame is then passed to \code{\link{COI_df_create}}.
 }
+\keyword{internal}

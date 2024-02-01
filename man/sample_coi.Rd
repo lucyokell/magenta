@@ -36,3 +36,4 @@ Default = TRUE}
 \description{
 \code{sample_coi} samples from a human save according to some age distirbution
 }
+\keyword{internal}

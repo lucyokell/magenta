@@ -50,3 +50,4 @@ no difference}
 \code{barcode_list_create} creates list detialing the barcode/genetic
   parameters for the model
 }
+\keyword{internal}

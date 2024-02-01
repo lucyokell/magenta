@@ -12,9 +12,7 @@
 #' 
 #' \code{heatmap_ordered_binary_plot}
 #' 
-
-
-
+#' @keywords internal
 heatmap_ordered_binary_plot <- function(sim_save, years, EIR, ordered = TRUE, save_path=NULL){
   
   if ("populations_event_and_strains_List" %in% names(sim_save)) {
@@ -233,7 +231,7 @@ convert_barcode_vectors <- function(sim_save, ID,
 #' @param COI_type type of COI calculation
 #' @inheritParams convert_barcode_vectors
 #' 
-
+#' @keywords internal
 sample_coi <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90*365,2*365),
                        sub_patents_included=FALSE,reps=50, COI_type="pcr_imperial"){
   
@@ -281,7 +279,7 @@ sample_coi <- function(sim_save,ID,sample_size,age_densities,age_breaks=seq(0,90
 #' @param max_coi max_coi
 #' @importFrom ggplot2 ggplot aes geom_smooth theme_bw geom_point xlim ylim
 #' 
-
+#' @keywords internal
 coi_age_plot_sample_x <- function(sample_coi_out,
                                   x,
                                   span=0.6,
@@ -330,6 +328,7 @@ coi_age_plot_sample_x <- function(sample_coi_out,
 #'   Default = FALSE, i.e the true COI
 #' @param ibd Were we collecting info on IBD
 #' 
+#' @keywords internal
 summary_data_frames_from_sims <- function(res_list, 
                                           update_length = 30,
                                           years = 35, 
@@ -838,6 +837,7 @@ microscopy_detected <- function(ages, IDs, states, age_brackets = c(2*365, 10*36
 #' Function to generate ggplot colours
 #'
 #' @param n Number of colors
+#' @keywords internal
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]

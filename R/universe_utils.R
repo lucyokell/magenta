@@ -15,7 +15,7 @@
 #'   from Default = 0:5, which is all states. 
 #' @param ibd Boolean for whether the siulation is an IBD one.
 #' 
-#' 
+#' @keywords internal
 pop_strains_df <- function(statePtr, seed, sample_size = 0, sample_states = 0:5, ibd = FALSE) {
   
   param_list <- list(statePtr = statePtr, sample_size = sample_size, sample_states = sample_states)
@@ -88,7 +88,7 @@ pop_strains_df <- function(statePtr, seed, sample_size = 0, sample_states = 0:5,
 #' @param reps Numeric for number of population subsamples to make. Default = 1
 #' @param mean_only Boolean for whether to just return the mean when summarising
 #'   vs all summary statistics. Default = TRUE
-#' 
+#' @keywords internal
 COI_df_create <- function(df, 
                           groupvars = c("age_bin", "clinical"), 
                           breaks = c(-0.001, 5, 15, 100.1), 

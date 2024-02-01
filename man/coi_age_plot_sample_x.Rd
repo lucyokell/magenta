@@ -29,3 +29,4 @@ coi_age_plot_sample_x(
 \description{
 \code{sample_coi} samples from a human save according to some age distirbution
 }
+\keyword{internal}

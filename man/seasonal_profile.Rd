@@ -16,3 +16,4 @@ Default = NULL}
 \description{
 Create seasonal theta return
 }
+\keyword{internal}
