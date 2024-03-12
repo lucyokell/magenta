@@ -1122,7 +1122,6 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
     // And schedule the move P and T durations into the future
     m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_T) + 
       rexpint1(parameters.g_dur_P) + parameters.g_current_time + 1;
-    schedule_m_day_of_InfectionStatus_change(parameters);
     
     // Clear all pending infection vectors 
     m_infection_time_realisation_vector.clear();
