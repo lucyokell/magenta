@@ -1,3 +1,8 @@
+## magenta 1.3.3
+
+* Prophylaxis fixes. Individuals who failed treatment and recrudesce were not getting
+full duration of prophylaxis previously (short by a couple days) 
+
 ## magenta 1.3.2
 
 * NMF fixes. Individuals not infected who are treated due to NMF go straight to 
