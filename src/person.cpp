@@ -794,6 +794,9 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
     // are they asymptomatic and protected (i.e. recrudescent infection still with lingering partner drug)
     if (m_infection_state == ASYMPTOMATIC && parameters.g_current_time < m_day_prophylaxis_wanes) {
       
+      // print statement for checking in tests
+      rcpp_out(parameters.g_h_quiet_test_print, "Asymptomatic LPF Prophylaxis Check!\n");
+      
       if (parameters.g_drugs[m_drug_choice].early_reinfection(
           m_infection_barcode_realisation_vector.back(),
           parameters.g_current_time,

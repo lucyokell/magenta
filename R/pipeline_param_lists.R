@@ -9,10 +9,12 @@
 #'   simulation. Default = TRUE
 
 housekeeping_list_create <- function(quiet = TRUE,
+                                     quiet_test = TRUE,
                                      cluster = FALSE,
                                      clear_up = TRUE) {
   
   l <- list("quiet_print" = quiet,
+            "quiet_test_print" = quiet_test,
             "cluster" = cluster,
             "clear_up" = clear_up)
   

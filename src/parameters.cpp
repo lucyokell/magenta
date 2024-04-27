@@ -114,6 +114,7 @@ Parameters::Parameters() {
   
   // housekeeping parameters
   g_h_quiet_print = false;
+  g_h_quiet_test_print = false;
   
   // barcode drug related parameters
   g_resistance_flag = false;
