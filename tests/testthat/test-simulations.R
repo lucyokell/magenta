@@ -102,7 +102,7 @@ expect_false(identical(as.numeric(which(out[[length(out)-1]]$lineage>0)), c(1,4)
 
 
 
-(test_that("Asymptomatic Prophylaxis Test", {
+test_that("Asymptomatic Prophylaxis Test", {
   
   nl <- 6
   hd <- 1
