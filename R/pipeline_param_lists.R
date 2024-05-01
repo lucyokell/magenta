@@ -4,6 +4,7 @@
 #' List for simulation housekeeping vars, e.g. quiet prints,
 #' 
 #' @param quiet Boolean for quiet simulation. Default = TRUE
+#' @param quiet_test Boolean for quiet testing statement. Default = TRUE
 #' @param cluster Boolean for simulation being on cluster. Default = TRUE
 #' @param clear_up Boolean for whether to clear up the memory used by the 
 #'   simulation. Default = TRUE
