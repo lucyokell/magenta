@@ -72,6 +72,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   
   // Un pack housekeeping parms
   parameters.g_h_quiet_print = Rcpp::as<bool>(housekeeping_list["quiet_print"]);
+  parameters.g_h_quiet_test_print = Rcpp::as<bool>(housekeeping_list["quiet_test_print"]);
   
   // prove that C++ code is being run
   rcpp_out(parameters.g_h_quiet_print, "Rcpp function is working!\n");

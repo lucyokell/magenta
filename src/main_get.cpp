@@ -103,6 +103,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
   std::vector<int> Day_of_next_strain_state_change(universe_ptr->parameters.g_N);
   std::vector<int> Day_of_next_event(universe_ptr->parameters.g_N);
   std::vector<int> Day_of_last_treatment(universe_ptr->parameters.g_N);
+  std::vector<int> Day_of_prophylaxis_waning(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Infection_time_realisation_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<int> > Infection_state_realisation_vectors(universe_ptr->parameters.g_N);
   std::vector<std::vector<std::vector<bool> > > Infection_barcode_realisation_vectors(universe_ptr->parameters.g_N);
@@ -166,6 +167,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     Day_of_strain_clearance[element] = universe_ptr->population[element].get_m_day_of_strain_clearance();
     Day_of_death[element]	 = universe_ptr->population[element].get_m_day_of_death();
     Day_of_last_treatment[element] = universe_ptr->population[element].get_m_day_last_treated(); 
+    Day_of_prophylaxis_waning[element] = universe_ptr->population[element].get_m_day_prophylaxis_wanes(); 
     
     // Strain Numbers
     Number_of_Strains[element] = universe_ptr->population[element].get_m_number_of_strains();
@@ -372,6 +374,7 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     Rcpp::Named("Day_of_next_strain_state_change")=Day_of_next_strain_state_change,
     Rcpp::Named("Day_of_next_event")=Day_of_next_event,
     Rcpp::Named("Day_of_last_treatment")=Day_of_last_treatment,
+    Rcpp::Named("Day_of_prophylaxis_waning")=Day_of_prophylaxis_waning,
     Rcpp::Named("Number_of_Realised_Infections")=Number_of_Realised_Infections,
     Rcpp::Named("Infection_time_realisation_vectors")=Infection_time_realisation_vectors,
     Rcpp::Named("Infection_state_realisation_vectors")=Infection_state_realisation_vectors,
@@ -427,9 +430,14 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     Rcpp::Named("g_prob_crossover")=universe_ptr->parameters.g_prob_crossover,
     Rcpp::Named("g_barcode_type")=static_cast<unsigned int>(universe_ptr->parameters.g_barcode_type),
     Rcpp::Named("g_spatial_type")=static_cast<unsigned int>(universe_ptr->parameters.g_spatial_type),
+    // Drugs
+    Rcpp::Named("g_drugs")=drugs
+  );
+  
+  Rcpp::List parameter_housekeeping_List = Rcpp::List::create(
     // housekeeping
     Rcpp::Named("g_h_quiet_print")=universe_ptr->parameters.g_h_quiet_print,
-    Rcpp::Named("g_drugs")=drugs
+    Rcpp::Named("g_h_quiet_test_print")=universe_ptr->parameters.g_h_quiet_test_print
   );
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -445,7 +453,9 @@ Rcpp::List Simulation_Get_cpp(Rcpp::List param_list)
     Rcpp::Named("population_List") = population_List, 
     Rcpp::Named("populations_event_and_strains_List") = populations_event_and_strains_List,
     Rcpp::Named("scourge_List") = scourge_List,
-    Rcpp::Named("parameters_List")=parameters_List);
+    Rcpp::Named("parameters_List")=parameters_List,
+    Rcpp::Named("parameter_housekeeping_List")=parameter_housekeeping_List
+    );
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // fini

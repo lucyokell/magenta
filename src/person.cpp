@@ -773,10 +773,7 @@ void Person::all_strain_clearance() {
 // Clear the last strain if it would have been cleared by prophylaxis
 void Person::clear_strain_if_prophylactic(const Parameters &parameters)
 {
-  
-  // are we doing mutation modelling
-  if (parameters.g_resistance_flag) {
-    
+
     // are they prophylactic
     if (m_infection_state == PROPHYLAXIS) {
       
@@ -794,10 +791,28 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
       
     }
     
-  }
+    // are they asymptomatic and protected (i.e. recrudescent infection still with lingering partner drug)
+    if (m_infection_state == ASYMPTOMATIC && parameters.g_current_time < m_day_prophylaxis_wanes) {
+      
+      // print statement for checking in tests
+      rcpp_out(parameters.g_h_quiet_test_print, "Asymptomatic LPF Prophylaxis Check!\n");
+      
+      if (parameters.g_drugs[m_drug_choice].early_reinfection(
+          m_infection_barcode_realisation_vector.back(),
+          parameters.g_current_time,
+          m_day_prophylaxis_wanes,
+          m_day_last_treated) ) {
+        
+        // if so then remove the last strain added
+        m_infection_barcode_realisation_vector.pop_back();
+        m_infection_state_realisation_vector.pop_back();
+        m_infection_time_realisation_vector.pop_back();
+      }
+      
+    }
+    
   
 }
-
 
 
 // Kill person, i.e. reset age to 0, infections to 0, state to susceptible, immunities reset etc
@@ -958,6 +973,9 @@ void Person::late_paristological_failure(const Parameters &parameters) {
   
   // update teh strain state change day
   set_m_day_of_next_strain_state_change();
+  
+  // set the date that their prophylaxis wanes
+  m_day_prophylaxis_wanes = rexpint1(parameters.g_drugs[m_drug_choice].get_m_dur_P()) + parameters.g_current_time + 1;
   
 }
 
