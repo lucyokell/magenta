@@ -1,3 +1,8 @@
+## magenta 1.3.4
+
+* Non-malarial fevers were not going through correct drug allocation so could not
+track who was getting what drug when it was an NMF.
+
 ## magenta 1.3.3
 
 * Prophylaxis fixes. Individuals who failed treatment and recrudesce were not getting
