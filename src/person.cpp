@@ -1108,6 +1108,20 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
           m_infection_state_realisation_vector.clear();
           m_infection_barcode_realisation_vector.clear();
           
+          // If they were already drawn to receive a drug in the last 15 days then it will still be that drug
+          if(m_drug_choice_time == 0 || m_drug_choice_time < (parameters.g_current_time - 15)) {
+            
+            // the default drug to be given
+            m_drug_choice = parameters.g_drug_choice;
+            
+            // are we doing mft, and if so what drug did they get this time
+            if(parameters.g_mft_flag) {
+              m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+            }
+            
+            m_drug_choice_time = parameters.g_current_time;
+          }
+          
         }
       }
       
@@ -1124,6 +1138,20 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
         m_infection_time_realisation_vector.clear();
         m_infection_state_realisation_vector.clear();
         m_infection_barcode_realisation_vector.clear();
+        
+        // If they were already drawn to receive a drug in the last 15 days then it will still be that drug
+        if(m_drug_choice_time == 0 || m_drug_choice_time < (parameters.g_current_time - 15)) {
+          
+          // the default drug to be given
+          m_drug_choice = parameters.g_drug_choice;
+          
+          // are we doing mft, and if so what drug did they get this time
+          if(parameters.g_mft_flag) {
+            m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+          }
+          
+          m_drug_choice_time = parameters.g_current_time;
+        }
         
       }
       
