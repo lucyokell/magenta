@@ -47,17 +47,9 @@ jobs:
             any::sodium
           needs: coverage
 
-      - name: Decrypt config and set ready for travis checks
-        run: |
-          writeBin(sodium::data_decrypt(readRDS("rdhs.json.tar.enc"), sodium::hash(charToRaw(Sys.getenv("KEY")))),"rdhs.json.tar")
-          unzip("rdhs.json.tar")
-        shell: Rscript {0}
-
       - name: Test coverage
         run: |
-          Sys.setenv("rdhs_RENVIRON_PERMISSION"=1)
           Sys.setenv("NOT_CRAN"="true")
-          Sys.setenv("TRAVIS"="true")
           covr::codecov(quiet = FALSE,
             clean = FALSE,
             install_path = file.path(Sys.getenv("RUNNER_TEMP"), "package")
