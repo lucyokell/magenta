@@ -110,7 +110,7 @@ bool Person::reciprocal_infection_boolean(const Parameters &pars)
     case SUBPATENT:
       return(rbernoulli1(pars.g_cU*highest_contribution));
     case TREATED:
-      return(rbernoulli1(m_cA*highest_contribution));
+      return(rbernoulli1(pars.g_cT*highest_contribution));
     case PROPHYLAXIS:
       return(false);
     default:
