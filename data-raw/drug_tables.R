@@ -1,5 +1,5 @@
 # load in the table
-drug_table <- as.data.frame(data.table::fread("drug_tables.csv"))
+drug_table <- as.data.frame(read.csv("drug_tables.csv"))
 
 # check the relationship between the extra copy
 relative <- c(drug_table$AL[17:32]/drug_table$AL[1:16],
