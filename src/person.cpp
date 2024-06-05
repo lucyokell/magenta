@@ -89,6 +89,8 @@ bool Person::reciprocal_infection_boolean(const Parameters &pars)
         
         for(auto m : m_gametocytogenic_strains){
           current_contribution = m_active_strains[m].relative_contribution(pars);
+          
+          // TODO: Add here the infectivity function to scale if ArtR
           if (current_contribution > highest_contribution){
             highest_contribution = current_contribution;
           }
