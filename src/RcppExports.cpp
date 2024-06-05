@@ -168,25 +168,3 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-
-static const R_CallMethodDef CallEntries[] = {
-    {"_magenta_Simulation_Finalizer_cpp", (DL_FUNC) &_magenta_Simulation_Finalizer_cpp, 1},
-    {"_magenta_Simulation_Get_cpp", (DL_FUNC) &_magenta_Simulation_Get_cpp, 1},
-    {"_magenta_Simulation_Init_cpp", (DL_FUNC) &_magenta_Simulation_Init_cpp, 1},
-    {"_magenta_Simulation_Saved_Init_cpp", (DL_FUNC) &_magenta_Simulation_Saved_Init_cpp, 1},
-    {"_magenta_Simulation_Update_cpp", (DL_FUNC) &_magenta_Simulation_Update_cpp, 1},
-    {"_magenta_test_barcode_from_PLAF", (DL_FUNC) &_magenta_test_barcode_from_PLAF, 2},
-    {"_magenta_test_dependent_barcode_from_PLAF", (DL_FUNC) &_magenta_test_dependent_barcode_from_PLAF, 2},
-    {"_magenta_test_recombinant_with_ibd", (DL_FUNC) &_magenta_test_recombinant_with_ibd, 6},
-    {"_magenta_test_generate_next_ibd", (DL_FUNC) &_magenta_test_generate_next_ibd, 5},
-    {"_magenta_test_ibd_conversion", (DL_FUNC) &_magenta_test_ibd_conversion, 4},
-    {"_magenta_population_get_genetics_ibd_df_n", (DL_FUNC) &_magenta_population_get_genetics_ibd_df_n, 1},
-    {"_magenta_population_get_genetics_df_n", (DL_FUNC) &_magenta_population_get_genetics_df_n, 1},
-    {"_magenta_test_bitset_serialisation", (DL_FUNC) &_magenta_test_bitset_serialisation, 2},
-    {NULL, NULL, 0}
-};
-
-RcppExport void R_init_magenta(DllInfo *dll) {
-    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
-}

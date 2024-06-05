@@ -339,3 +339,86 @@ test_that("Fitness Test", {
   
     
 })
+
+
+test_that("Seasonality Test", {
+  
+# set up the years
+year_range <- 2010:2015
+
+# grab the interventions for region of interest
+country <- "Democratic Republic of the Congo"
+admin <- "Kinshasa"
+ints <- intervention_grab(country = country, 
+                          admin = admin,
+                          year_range = year_range)
+## Requested: Kinshasa, Democratic Republic of the Congo
+## Returned: Kinshasa, Democratic Republic of the Congo
+# grab the importation from the migration model
+spl <- spl_grab(country, admin, year_range)
+## Requested: Kinshasa, Democratic Republic of the Congo
+## Returned: Kinshasa_City, Democratic Republic of the Congo
+# get the intervention parmeters
+ft <- ints$ft
+itn_cov <- ints$itn_cov
+irs_cov <- ints$irs_cov
+
+# load the Malaria Atlas Project Prevalence data
+MAP_file <- system.file("extdata/MAP_PfPR_population_weighted.csv", 
+                        package = "magenta")
+MAP <- read.csv(MAP_file)
+
+# work out the EIR for the prevalence in year 2000 (i.e. pre interventions)
+pfpr_micro <- MAP$X2000[which(MAP$Name==admin)]
+EIR <- magenta:::pfpr_to_eir_heuristic(ft = 0, PfPR_micro = pfpr_micro)
+## 0.00152858753907675
+# run the simulation
+out12 <- pipeline(
+  EIR = EIR,
+  N = 1000,
+  years = length(itn_cov),
+  country = country,
+  admin = admin,
+  itn_cov = itn_cov,
+  irs_cov = irs_cov,
+  ft = ft,
+  spatial_incidence_matrix = spl$incidence,
+  spatial_mosquitoFOI_matrix = spl$mosquitoFOI,
+  spatial_type = "island",
+  human_only_full_save = TRUE,
+  update_length = 30,
+  update_save = TRUE,
+  human_update_save = FALSE,
+  summary_saves_only = FALSE
+)
+
+
+out_no_seas <- pipeline(
+  EIR = EIR,
+  N = 1000,
+  years = length(itn_cov),
+  itn_cov = itn_cov,
+  irs_cov = irs_cov,
+  ft = ft,
+  spatial_incidence_matrix = spl$incidence,
+  spatial_mosquitoFOI_matrix = spl$mosquitoFOI,
+  spatial_type = "island",
+  human_only_full_save = TRUE,
+  update_length = 30,
+  update_save = TRUE,
+  human_update_save = FALSE,
+  summary_saves_only = FALSE
+)
+
+inc_ses <- unlist(lapply(out12, function(x) {sum(x$Incidence %>% unlist())}))
+inc <- unlist(lapply(out_no_seas, function(x) {sum(x$Incidence %>% unlist())}))
+ranges <- magenta:::ranges(12, length(inc))
+varses <- varno <- c()
+for(i in ranges) {
+  varses <- c(varses, inc_ses[i] %>% var)
+  varno <- c(varno, inc[i] %>% var)
+}
+
+expect_true(mean(varses) > mean(varno))
+
+})

@@ -1,3 +1,8 @@
+## magenta 1.3.5
+
+* Seasonality patch so that admin and country name specification to `pipeline`
+correctly creates seasonal simulations.
+
 ## magenta 1.3.4
 
 * Non-malarial fevers were not going through correct drug allocation so could not

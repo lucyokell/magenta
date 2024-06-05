@@ -336,15 +336,11 @@ mu_fv_create <- function(eqInit,
     }
     
     # build model 
-    odin_model_path <- odin_model
-    gen <- odin::odin(odin_model_path,verbose=FALSE)
-    state <- eqInit[names(eqInit) %in% names(formals(gen))]
+    state <- eqInit[names(eqInit) %in% odin_itn_irs$private_fields$user]
     
     # weird catach for when init_ICM values fall below 5e-32 that must catch
     state$init_ICM
-    
-    model <- gen(user=state,use_dde=TRUE)
-    
+    model <- odin_itn_irs$new(user=state,use_dde=TRUE)
     
     #create model and simulate
     tt <- seq(1,round(years*365),1)
