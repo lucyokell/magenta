@@ -182,6 +182,8 @@ public:
   std::vector<double> g_partner_drug_ratios;
   double g_dur_SPC;
   
+  bool g_res_diag_flag;
+  
   // mosquito strain interaction params
   bool g_vector_adaptation_flag;
   std::vector<unsigned> g_vector_adaptation_loci;

@@ -456,7 +456,7 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
     
   }
   
-  // Increase number of succesful bites
+  // Increase number of successful bites
   m_number_of_succesful_bites++;
   
   // Will the infectious bite actually lead to an infection
@@ -476,38 +476,33 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
         static_cast<int>(m_IB_last_boost_time) == parameters.g_current_time)
     {
       
-      // If the strain will lead to them being treated. What drug do they get?
-      // If they were already drawn to receive a drug in the last 15 days then it will still be that drug
-      if(m_drug_choice_time == 0 || m_drug_choice_time < (parameters.g_current_time - 15)) {
-        
-      // the default drug to be given
-      m_drug_choice = parameters.g_drug_choice;
-      
-      // are we doing mft, and if so what drug did they get this time
-      if(parameters.g_mft_flag) {
-        m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
-      }
-      
-      m_drug_choice_time = parameters.g_current_time;
-      }
       
       // Allocate strains being passed on
+      // what is g_cotransmission_frequencies? Number of possible sporozoites?
+      // g_cotransmission_frequencies_counter seems to increase over the course of the whole simulation up to ~7.5K. Counting/indexing unique co-transmission events?
+      //cout << parameters.g_cotransmission_frequencies[0] << "\n";
+      cout << "new infection event\n";
       for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
+      
       {
+        cout << parameters.g_cotransmission_frequencies_counter << "\n";
         
         // if it is the first sporozoite then it is always taken. For successive sporozoites, we probabilistically decide based on their immunity
         if(cotransmission == 0 || rbernoulli1(m_biting_success_rate)) 
         {
           
-          // Push the resultant state of infection
+          // Push the resultant state of infection (LO: of the new clone I think? All clones get the same state per infection event)
           m_infection_state_realisation_vector.emplace_back(m_temp_infection_state);
           
-          // Push the resultant state change time
+          //cout << m_infection_state_realisation_vector.size() << "\n"; // often 1,2,3,4, even 7 (is it the number and states of each current clone including pre-existing ones?) 
+          //cout << m_temp_infection_state << "\n";  // 1,2,4
+          
+          // Push the resultant state change time (LO: of this new clone)
           m_infection_time_realisation_vector.emplace_back(static_cast<int>(parameters.g_dur_E + parameters.g_current_time));
           
           // Allocate strains from mosquito
           
-          // if we are doing spatial then use the exported barcodes first - the human biting quueue is shuffled so distributed across humans fine.
+          // if we are doing spatial then use the exported barcodes first - the human biting queue is shuffled so distributed across humans fine.
           if(parameters.g_spatial_imported_human_infection_counter < parameters.g_spatial_total_imported_human_infections || 
              parameters.g_percentage_imported_human_infections == 1.0)
           {
@@ -525,9 +520,9 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
             parameters.g_spatial_imported_human_infection_counter++;
             
           }
-          else 
+          else    /// if not spatial:
           {
-            
+            // LO sample a new barcode within that mosquito
             m_infection_barcode_realisation_vector.emplace_back(mosquito.sample_sporozoite());
             
             // export a barcode if doing metapopulation spatial
@@ -565,7 +560,8 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
               }
               
               
-            } else {
+            } // remove possibility of treatment changing mutation rate 
+            /*  else { // if treatment does modify the mutation rate:
               
               // if they are treated then we use a different mutation rate if the position would mutate into a resistant locus
               if(m_infection_state_realisation_vector.back() == TREATED) {
@@ -617,7 +613,7 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
                 }
                 
               }
-            }
+            }  */
             
           }
           
@@ -636,10 +632,55 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
         // Set next event date as may have changed as a result of the bite
         set_m_day_of_next_event();
         
+      }  // end of cotransmission allocate strains loop
+      
+      // LO moved this treatment event to after strain allocation for res_diag.
+      // If the strain will lead to them being treated. What drug do they get?
+      // If they were already drawn to receive a drug in the last 15 days then it will still be that drug
+      // TODO: why is there no 'if treated' statement here?
+      if(m_drug_choice_time == 0 || m_drug_choice_time < (parameters.g_current_time - 15)) {
+        
+        // the default drug to be given
+        m_drug_choice = parameters.g_drug_choice;
+        
+        // are we doing mft, and if so what drug did they get this time
+        if(parameters.g_mft_flag) {
+          m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0); 
+          cout << "mft activated, drug chosen=" << m_drug_choice << "\n"; // checked yes it's activated and chooses either drug
+          
+          if(parameters.g_res_diag_flag) {
+            
+            //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
+            for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
+              // retrieve the probability of LPF with the current drug choice
+              m_prob_lpf = get_prob_late_paristological_failure(parameters);
+              cout << "starting m_prob_lpf=" << m_prob_lpf << "\n";
+              m_final_drug_choice = m_drug_choice;  // store original current drug choice, then change it later if there's a better one.
+              cout << "parameters.g_partner_drug_ratios[drug_i]=" << parameters.g_partner_drug_ratios[drug_i] << "\n";
+              
+              // retrieve the probability of LPF with a different drug choice
+              if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0) {
+                m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
+                m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
+                cout << "new potential m_temp_prob_lpf=" << m_temp_prob_lpf << "\n";
+                // if the new drug choice is better, switch to that
+                if(m_temp_prob_lpf < m_prob_lpf) {
+                  m_prob_lpf = m_temp_prob_lpf;
+                  m_final_drug_choice = drug_i;
+                  cout << "new drug choice=" << m_final_drug_choice << "\n";
+                }
+              }
+            } // end of loop checking for better drugs.
+            m_drug_choice = m_final_drug_choice;
+            cout << "final drug choice=" << m_drug_choice << "\n";
+          }
+         }
+        
+        m_drug_choice_time = parameters.g_current_time;
       }
-    }
-  }
-}
+    }  // end of if bracket - if infection is impossible because of recent infection.
+  }  // end of if statement - is the person in one of the states that can be infected 
+}   // end of allocate_infection function.
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // SCHEDULERS & DRAWS
@@ -886,6 +927,8 @@ void Person::treatment_outcome(const Parameters &parameters) {
       // are they actually infected, i.e. not just here because of nmf
       if(m_number_of_strains > 0) {
         
+        //cout << "LPF called from outside the function = " << late_paristological_failure_boolean(parameters) << "\n";
+        
         // do they fail due to LPF
         if(late_paristological_failure_boolean(parameters)){
           late_paristological_failure(parameters);
@@ -1056,9 +1099,63 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
     }
   }
   
+  //cout << "outcome of bool LPF within the function = " << m_post_treatment_strains.size() << "\n";
+  
   return(m_post_treatment_strains.size());
   
 }
+
+
+// LO add function which just returns the LPF probability for a particular person across strains and does nothing else
+double Person::get_prob_late_paristological_failure(const Parameters &parameters){
+  
+  // set up defaults
+  //int time_ago = 0;
+  double prob_of_lpf = 0.0;
+  double temp_prob_lpf = 0.0;
+  std::vector<double> probs_of_lpf(m_number_of_strains, 0.0);
+  
+  // set up our post treatment vectors
+  m_post_treatment_strains.clear();
+  m_resistant_strains.clear();
+  
+  m_post_treatment_strains.reserve(m_number_of_strains);
+  m_resistant_strains.reserve(m_number_of_strains);
+  
+  // loop through strains and work out the individuals prob of lpf
+  for(int ts = 0; ts < m_number_of_strains ; ts++){
+    
+    // what's the probability of failure if the strain was in state T/D
+    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
+    
+    // a resistance diagnostic will not know if the strain is asymptomatic or not so don't alter the probability for the basis of the res diag decision.
+    // how far through the infection is the strain
+    /*
+     time_ago = ( (parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
+      (m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition()));
+    
+    // if the strain is asymptomatic then alter the prop of lpf given the strain's age
+    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::ASYMPTOMATIC) {
+      temp_prob_lpf *= (1 - time_ago);
+    } 
+    */
+    
+    // if the strain is subpatent then it always clears
+    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::SUBPATENT) {
+      temp_prob_lpf = 0;
+    }
+    
+    prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
+    probs_of_lpf[ts] = temp_prob_lpf;
+    
+  }
+  
+  //cout << "prob_lpf = " << prob_of_lpf << "\n";
+  
+  return(prob_of_lpf);
+  
+}
+
 
 // Slow parasite clearance
 void Person::slow_treatment_clearance(const Parameters &parameters) {

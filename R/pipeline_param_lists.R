@@ -44,6 +44,7 @@ housekeeping_list_create <- function(quiet = TRUE,
 #' @param drugs List of drugs that are being used, with each list element being
 #'   created by \code{drug_create}.
 #' @param mft_flag Boolean are we doing mft
+#' @param res_diag_flag Boolean are we doing resistance diagnostics
 #' @param temporal_cycling Numeric for when in years a drug switch occurs
 #' @param sequential_cycling Numeric for what perc. treatment failure before switch
 #' @param sequential_update How long does it take in years for sequential to be implemented
@@ -62,6 +63,7 @@ drug_list_create <- function(resistance_flag = FALSE,
                              number_of_drugs = 1,
                              drugs = list(drug_create_default_no_resistance()),
                              mft_flag = FALSE,
+                             res_diag_flag = FALSE,
                              temporal_cycling = -1,
                              sequential_cycling = -1,
                              sequential_update = 3,
@@ -121,6 +123,7 @@ drug_list_create <- function(resistance_flag = FALSE,
             "absolute_fitness_cost_flag" = absolute_fitness_cost_flag,
             "drugs" = drugs,
             "mft_flag" = mft_flag,
+            "res_diag_flag" = res_diag_flag,
             "temporal_cycling" = temporal_cycling,
             "next_temporal_cycle" = temporal_cycling,
             "sequential_cycling" = sequential_cycling,

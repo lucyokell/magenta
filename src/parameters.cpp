@@ -137,6 +137,7 @@ Parameters::Parameters() {
   g_number_of_drugs = 0;
   g_partner_drug_ratios = {0.0};
   g_dur_SPC = 10;
+  g_res_diag_flag = false;
   
   // mosquito strain interaction params
   g_vector_adaptation_flag = false;

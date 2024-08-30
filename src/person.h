@@ -76,6 +76,9 @@ private:
   bool m_slow_parasite_clearance_bool = false; // Flag for whether they are currently SPC
   int m_drug_choice = 0; // Flag for what drug they last received (i.e. so we know their prophylactic length)
   int m_drug_choice_time = 0; // Flag for what drug they last received (i.e. so we know their prophylactic length)
+  double m_temp_prob_lpf = 0.0;  // LO added as temporary storage for LPF with current drug choice.
+  double m_prob_lpf = 0.0;  // LO added as storage for LPF with current drug choice.
+  int m_final_drug_choice = 0; // LO added for temporary drug choice when deciding which is the best during resistance diagnostics.
   
   // Person's age dependent biting rate (psi) - See Griffin 2010 S1 for this specific origin
   double m_age_dependent_biting_rate;
@@ -297,6 +300,10 @@ public:
   
   // Work out if late parasitological failure happened
   bool late_paristological_failure_boolean(const Parameters &parameters);
+  
+  // Get the probability of LPF based on current strains:
+  double get_prob_late_paristological_failure(const Parameters &parameters);
+    
   
   // Work out if reciprocal infection happened
   std::vector<boost::dynamic_bitset<>> sample_two_barcodes(const Parameters &parameters);

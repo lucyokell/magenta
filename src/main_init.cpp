@@ -114,6 +114,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   parameters.g_drug_choice = Rcpp::as<int>(drug_list["drug_choice"]);
   parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["partner_drug_ratios"]);
   parameters.g_drugs.reserve(parameters.g_number_of_drugs);
+  parameters.g_res_diag_flag = Rcpp::as<bool>(drug_list["res_diag_flag"]);
   
   for (unsigned int i = 0; i < parameters.g_number_of_drugs ; i++) {
     
