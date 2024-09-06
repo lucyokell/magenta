@@ -481,11 +481,11 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
       // what is g_cotransmission_frequencies? Number of possible sporozoites?
       // g_cotransmission_frequencies_counter seems to increase over the course of the whole simulation up to ~7.5K. Counting/indexing unique co-transmission events?
       //cout << parameters.g_cotransmission_frequencies[0] << "\n";
-      cout << "new infection event\n";
+      //cout << "new infection event\n";
       for(int cotransmission = 0; cotransmission < parameters.g_cotransmission_frequencies[parameters.g_cotransmission_frequencies_counter]; cotransmission++)
       
       {
-        cout << parameters.g_cotransmission_frequencies_counter << "\n";
+        //cout << parameters.g_cotransmission_frequencies_counter << "\n";
         
         // if it is the first sporozoite then it is always taken. For successive sporozoites, we probabilistically decide based on their immunity
         if(cotransmission == 0 || rbernoulli1(m_biting_success_rate)) 
@@ -637,7 +637,6 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
       // LO moved this treatment event to after strain allocation for res_diag.
       // If the strain will lead to them being treated. What drug do they get?
       // If they were already drawn to receive a drug in the last 15 days then it will still be that drug
-      // TODO: why is there no 'if treated' statement here?
       if(m_drug_choice_time == 0 || m_drug_choice_time < (parameters.g_current_time - 15)) {
         
         // the default drug to be given
@@ -646,9 +645,10 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
         // are we doing mft, and if so what drug did they get this time
         if(parameters.g_mft_flag) {
           m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0); 
-          cout << "mft activated, drug chosen=" << m_drug_choice << "\n"; // checked yes it's activated and chooses either drug
+          //cout << "mft activated, drug chosen=" << m_drug_choice << "\n"; // checked yes it's activated and chooses either drug
           
           if(parameters.g_res_diag_flag) {
+            cout << "res_diag activated, initial drug chosen=" << m_drug_choice << "\n"; // checked yes it's activated and chooses either drug
             
             //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
             for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
@@ -656,23 +656,25 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
               m_prob_lpf = get_prob_late_paristological_failure(parameters);
               cout << "starting m_prob_lpf=" << m_prob_lpf << "\n";
               m_final_drug_choice = m_drug_choice;  // store original current drug choice, then change it later if there's a better one.
-              cout << "parameters.g_partner_drug_ratios[drug_i]=" << parameters.g_partner_drug_ratios[drug_i] << "\n";
+              //cout << "parameters.g_partner_drug_ratios[drug_i]=" << parameters.g_partner_drug_ratios[drug_i] << "\n";
               
               // retrieve the probability of LPF with a different drug choice
               if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0) {
                 m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
                 m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
-                cout << "new potential m_temp_prob_lpf=" << m_temp_prob_lpf << "\n";
+                //cout << "new potential m_temp_prob_lpf=" << m_temp_prob_lpf << "\n";
                 // if the new drug choice is better, switch to that
                 if(m_temp_prob_lpf < m_prob_lpf) {
                   m_prob_lpf = m_temp_prob_lpf;
                   m_final_drug_choice = drug_i;
-                  cout << "new drug choice=" << m_final_drug_choice << "\n";
+                  //cout << "new drug choice=" << m_final_drug_choice << "\n";
                 }
               }
             } // end of loop checking for better drugs.
             m_drug_choice = m_final_drug_choice;
-            cout << "final drug choice=" << m_drug_choice << "\n";
+            cout << "final drug choice uncomplicated mal=" << m_drug_choice << "\n";
+            cout << "final m_prob_lpf=" << m_prob_lpf << "\n";
+            
           }
          }
         
@@ -930,6 +932,13 @@ void Person::treatment_outcome(const Parameters &parameters) {
         //cout << "LPF called from outside the function = " << late_paristological_failure_boolean(parameters) << "\n";
         
         // do they fail due to LPF
+        // LO try calling get prob LPF here for res_diag - are the strains now more updated?
+        cout << "call LPF within treat outcome\n";
+        double temp_prob_lpf;
+        temp_prob_lpf = get_prob_late_paristological_failure(parameters);
+        cout << "LPF within treat outcome = " << temp_prob_lpf << "\n";
+        
+        
         if(late_paristological_failure_boolean(parameters)){
           late_paristological_failure(parameters);
           m_treatment_outcome = LPF;
@@ -952,11 +961,16 @@ void Person::treatment_outcome(const Parameters &parameters) {
         all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains (this includes pending strains)
       }
     }
-  } else {
+  } else {  // if we're not currently at this timepoint modelling resistance then this code is used. E.g. during burnin.
+    
     
     // are we doing mft, and if so what drug did they get this time
+    // LO I think we don't need res diag here because this is only used if no resistance?
+    // including during the burn in years of a run if resistance flag is off.
     if(parameters.g_mft_flag) {
-      m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+      m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0); 
+      cout << "drug before resistance, time=" << parameters.g_current_time << "\n";
+      
     }
     
     // are they actually infected, i.e. not just here because of nmf
@@ -1043,7 +1057,7 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   // loop through strains and work out the individuals prob of lpf
   for(int ts = 0; ts < m_number_of_strains ; ts++){
     
-    // what's the probability of failure if the strain was in state T/D
+    // what's the probability of failure?
     temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
     
     // how far through the infection is the strain
@@ -1108,54 +1122,82 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
 
 // LO add function which just returns the LPF probability for a particular person across strains and does nothing else
 double Person::get_prob_late_paristological_failure(const Parameters &parameters){
-  
   // set up defaults
   //int time_ago = 0;
   double prob_of_lpf = 0.0;
   double temp_prob_lpf = 0.0;
-  std::vector<double> probs_of_lpf(m_number_of_strains, 0.0);
+  // need to temporarily check number of strains here using current variables (m_number_of_strains out of date as full person update is not done yet)
+  int temp_m_number_of_strains = m_infection_state_realisation_vector.size();
+  std::vector<double> probs_of_lpf(temp_m_number_of_strains, 0.0);
   
   // set up our post treatment vectors
   m_post_treatment_strains.clear();
   m_resistant_strains.clear();
   
-  m_post_treatment_strains.reserve(m_number_of_strains);
-  m_resistant_strains.reserve(m_number_of_strains);
+  m_post_treatment_strains.reserve(temp_m_number_of_strains);
+  m_resistant_strains.reserve(temp_m_number_of_strains);
+  
+  cout << "temp_m_number_of_strains = " << temp_m_number_of_strains << "\n";
+  cout << "m_number_of_strains = " << temp_m_number_of_strains << "\n";
+  cout << "m_active_strains.size() = " << m_active_strains.size() << "\n";
+  //cout << "m_infection_state_realisation_vector.size() = " << m_infection_state_realisation_vector.size() << "\n";
+  //cout << "m_infection_barcode_realisation_vector = " << m_infection_barcode_realisation_vector.size() << "\n";
+  //cout << "m_infection_barcode_realisation_vector[0] = " << m_infection_barcode_realisation_vector[0] << "\n";
+  cout << "m_infection_state_realisation_vector[0] = " << m_infection_state_realisation_vector[0] << "\n";
+  
+  // are the active strains the same as the realisation vector?
   
   // loop through strains and work out the individuals prob of lpf
+  // LO TO DO need to change to temp_m_number_of_strains but this throws an error for now.
   for(int ts = 0; ts < m_number_of_strains ; ts++){
-    
     // what's the probability of failure if the strain was in state T/D
-    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
+    //temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
+    //temp_prob_lpf =  (1 - parameters.g_drugs[m_drug_choice].get_prob_of_lpf_barcode(m_infection_barcode_realisation_vector[ts]));
+    temp_prob_lpf = 0.01; // LO delete this when get it working
+    cout << "temp_prob_lpf within function = " << temp_prob_lpf << "\n";
+    
     
     // a resistance diagnostic will not know if the strain is asymptomatic or not so don't alter the probability for the basis of the res diag decision.
     // how far through the infection is the strain
-    /*
-     time_ago = ( (parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
-      (m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition()));
     
-    // if the strain is asymptomatic then alter the prop of lpf given the strain's age
-    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::ASYMPTOMATIC) {
-      temp_prob_lpf *= (1 - time_ago);
-    } 
-    */
+    //  time_ago = ( (parameters.g_current_time - m_active_strains[ts].get_m_day_of_strain_acquisition()) / 
+    //   (m_active_strains[ts].get_m_day_of_strain_infection_status_change()- m_active_strains[ts].get_m_day_of_strain_acquisition()));
+    // 
+    // // if the strain is asymptomatic then alter the prop of lpf given the strain's age
+    // if (m_active_strains[ts].get_m_strain_infection_status() == Strain::ASYMPTOMATIC) {
+    //   temp_prob_lpf *= (1 - time_ago);
+    // } 
+    
     
     // if the strain is subpatent then it always clears
     if (m_active_strains[ts].get_m_strain_infection_status() == Strain::SUBPATENT) {
+      //if (m_infection_state_realisation_vector[ts] == Strain::SUBPATENT) {
       temp_prob_lpf = 0;
+      cout << "subpatent activated\n";
     }
+    
+  }
+  
+  return(0.01);
+}
+
+/*
+  
+  
+  
+    
     
     prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
     probs_of_lpf[ts] = temp_prob_lpf;
     
   }
   
-  //cout << "prob_lpf = " << prob_of_lpf << "\n";
+  cout << "final prob_lpf within function = " << prob_of_lpf << "\n";
   
   return(prob_of_lpf);
   
 }
-
+*/
 
 // Slow parasite clearance
 void Person::slow_treatment_clearance(const Parameters &parameters) {
@@ -1215,7 +1257,35 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
             
             // are we doing mft, and if so what drug did they get this time
             if(parameters.g_mft_flag) {
-              m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+              m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0); 
+              cout << "mft activated in nmf, drug chosen=" << m_drug_choice << "\n"; // checked yes it's activated and chooses either drug
+              
+              if(parameters.g_res_diag_flag) {
+                
+                //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
+                for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
+                  // retrieve the probability of LPF with the current drug choice
+                  m_prob_lpf = get_prob_late_paristological_failure(parameters);
+                  cout << "starting m_prob_lpf NMF=" << m_prob_lpf << "\n";
+                  m_final_drug_choice = m_drug_choice;  // store original current drug choice, then change it later if there's a better one.
+                  cout << "parameters.g_partner_drug_ratios[drug_i] NMF=" << parameters.g_partner_drug_ratios[drug_i] << "\n";
+                  
+                  // retrieve the probability of LPF with a different drug choice
+                  if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0) {
+                    m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
+                    m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
+                    //cout << "new potential m_temp_prob_lpf=" << m_temp_prob_lpf << "\n";
+                    // if the new drug choice is better, switch to that
+                    if(m_temp_prob_lpf < m_prob_lpf) {
+                      m_prob_lpf = m_temp_prob_lpf;
+                      m_final_drug_choice = drug_i;
+                      //cout << "new drug choice=" << m_final_drug_choice << "\n";
+                    }
+                  }
+                } // end of loop checking for better drugs.
+                m_drug_choice = m_final_drug_choice;
+                cout << "final drug choice NMF=" << m_drug_choice << "\n";
+              }
             }
             
             m_drug_choice_time = parameters.g_current_time;
