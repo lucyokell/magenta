@@ -872,8 +872,11 @@ void Person::treatment_outcome(const Parameters &parameters) {
   // are we doing resistance firstly
   if(parameters.g_resistance_flag) { 
     
+    //cout << "m_number_of_strains = " << m_number_of_strains << "\n";
+    
     // are they currently slow parasite clearance
     if(m_slow_parasite_clearance_bool){
+      cout << "activate pre-existing slow parasite clearance\n"; 
       
       m_slow_parasite_clearance_bool = false;
       m_treatment_outcome = SUCCESFULLY_TREATED;
@@ -885,6 +888,11 @@ void Person::treatment_outcome(const Parameters &parameters) {
       
       // are they actually infected, i.e. not just here because of nmf
       if(m_number_of_strains > 0) {
+        
+        // LO introduce resistance diagnostics here:
+        cout << "initial m_drug_choice = " << m_drug_choice << "\n";
+        cout << "LPF with current drug = " << get_prob_late_paristological_failure(parameters) << "\n";
+        
         
         // do they fail due to LPF
         if(late_paristological_failure_boolean(parameters)){
@@ -1059,6 +1067,51 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
   return(m_post_treatment_strains.size());
   
 }
+
+
+// LO for resistance diagnostics just get the LPF probability to choose.
+// remove strain update and remove asymptomatic age of infection (would not know this from a resistance diagnostic)
+double Person::get_prob_late_paristological_failure(const Parameters &parameters){
+  
+  // set up defaults
+  //int time_ago = 0;
+  double prob_of_lpf = 0.0;
+  double temp_prob_lpf = 0.0;
+  std::vector<double> probs_of_lpf(m_number_of_strains, 0.0);
+  
+  // set up our post treatment vectors
+  m_post_treatment_strains.clear();
+  m_resistant_strains.clear();
+  
+  m_post_treatment_strains.reserve(m_number_of_strains);
+  m_resistant_strains.reserve(m_number_of_strains);
+  
+  // loop through strains and work out the individuals prob of lpf
+  for(int ts = 0; ts < m_number_of_strains ; ts++){
+    
+    // what's the probability of failure if the strain was in state T/D
+    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
+    
+    // if the strain is subpatent then it always clears
+    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::SUBPATENT) {
+      cout << "subpatent activated\n";
+      temp_prob_lpf = 0;
+    }
+    
+    prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
+    probs_of_lpf[ts] = temp_prob_lpf;
+    
+    if (Strain::any_at_positions(m_active_strains[ts].get_m_barcode(),parameters.g_drugs[m_drug_choice].get_m_barcode_positions())) {
+      m_resistant_strains.emplace_back(m_active_strains[ts]);
+    }
+    
+  }
+  
+
+  return(prob_of_lpf);
+  
+}
+
 
 // Slow parasite clearance
 void Person::slow_treatment_clearance(const Parameters &parameters) {

@@ -297,6 +297,8 @@ public:
   
   // Work out if late parasitological failure happened
   bool late_paristological_failure_boolean(const Parameters &parameters);
+  // LO get the probability of LPF for adding resistance diagnostics.
+  double get_prob_late_paristological_failure(const Parameters &parameters);
   
   // Work out if reciprocal infection happened
   std::vector<boost::dynamic_bitset<>> sample_two_barcodes(const Parameters &parameters);
