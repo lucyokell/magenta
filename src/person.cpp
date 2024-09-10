@@ -869,6 +869,10 @@ void Person::recover(const Parameters &parameters)
 // Treatment outcomes
 void Person::treatment_outcome(const Parameters &parameters) {
   
+  int m_final_drug_choice;
+  double m_prob_lpf;
+  double m_temp_prob_lpf;
+    
   // are we doing resistance firstly
   if(parameters.g_resistance_flag) { 
     
@@ -892,6 +896,31 @@ void Person::treatment_outcome(const Parameters &parameters) {
         // LO introduce resistance diagnostics here:
         cout << "initial m_drug_choice = " << m_drug_choice << "\n";
         cout << "LPF with current drug = " << get_prob_late_paristological_failure(parameters) << "\n";
+        if(parameters.g_res_diag_flag) {
+          
+          //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
+          for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
+            // retrieve the probability of LPF with the current drug choice
+            m_prob_lpf = get_prob_late_paristological_failure(parameters);
+            cout << "current m_prob_lpf =" << m_prob_lpf << "\n";
+            m_final_drug_choice = m_drug_choice;  // store original current drug choice, then change it later if there's a better one.
+
+            // retrieve the probability of LPF with a different drug choice
+            if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0) {
+              m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
+              m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
+              //cout << "new potential m_temp_prob_lpf=" << m_temp_prob_lpf << "\n";
+              // if the new drug choice is better, switch to that
+              if(m_temp_prob_lpf < m_prob_lpf) {
+                m_prob_lpf = m_temp_prob_lpf;
+                m_final_drug_choice = drug_i;
+              }
+            }
+          } // end of loop checking for better drugs.
+          // update drug choice.
+          m_drug_choice = m_final_drug_choice;
+          cout << "new drug choice=" << m_drug_choice << "\n";
+          }
         
         
         // do they fail due to LPF

@@ -133,6 +133,7 @@ Parameters::Parameters() {
   
   // drug related parameters
   g_mft_flag = false;
+  g_res_diag_flag = false;
   g_drug_choice = 0;
   g_number_of_drugs = 0;
   g_partner_drug_ratios = {0.0};
