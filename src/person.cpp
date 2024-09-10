@@ -894,15 +894,15 @@ void Person::treatment_outcome(const Parameters &parameters) {
       if(m_number_of_strains > 0) {
         
         // LO introduce resistance diagnostics here:
-        cout << "initial m_drug_choice = " << m_drug_choice << "\n";
-        cout << "LPF with current drug = " << get_prob_late_paristological_failure(parameters) << "\n";
+        //cout << "initial m_drug_choice = " << m_drug_choice << "\n";
+        //cout << "LPF with current drug = " << get_prob_late_paristological_failure(parameters) << "\n";
         if(parameters.g_res_diag_flag) {
           
           //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
           for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
             // retrieve the probability of LPF with the current drug choice
             m_prob_lpf = get_prob_late_paristological_failure(parameters);
-            cout << "current m_prob_lpf =" << m_prob_lpf << "\n";
+            //cout << "current m_prob_lpf =" << m_prob_lpf << "\n";
             m_final_drug_choice = m_drug_choice;  // store original current drug choice, then change it later if there's a better one.
 
             // retrieve the probability of LPF with a different drug choice
@@ -919,7 +919,7 @@ void Person::treatment_outcome(const Parameters &parameters) {
           } // end of loop checking for better drugs.
           // update drug choice.
           m_drug_choice = m_final_drug_choice;
-          cout << "new drug choice=" << m_drug_choice << "\n";
+          //cout << "new drug choice=" << m_drug_choice << "\n";
           }
         
         
@@ -1123,7 +1123,7 @@ double Person::get_prob_late_paristological_failure(const Parameters &parameters
     
     // if the strain is subpatent then it always clears
     if (m_active_strains[ts].get_m_strain_infection_status() == Strain::SUBPATENT) {
-      cout << "subpatent activated\n";
+      //cout << "subpatent activated\n";
       temp_prob_lpf = 0;
     }
     
