@@ -880,7 +880,7 @@ void Person::treatment_outcome(const Parameters &parameters) {
     
     // are they currently slow parasite clearance
     if(m_slow_parasite_clearance_bool){
-      cout << "activate pre-existing slow parasite clearance\n"; 
+      //cout << "activate pre-existing slow parasite clearance\n"; 
       
       m_slow_parasite_clearance_bool = false;
       m_treatment_outcome = SUCCESFULLY_TREATED;
