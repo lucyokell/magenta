@@ -174,6 +174,9 @@ drug_list_create <- function(resistance_flag = FALSE,
 #'   \code{drug_clearance_max_time} and the first element is the probability at 
 #'   time = 0 days. 
 #' @importFrom stats pgamma dexp optim
+#'
+#' @export
+
 drug_create <- function(prob_of_lpf = c(1.0, 0.97, 0.80, 0.55),
                         barcode_res_pos = c(0, 1),
                         prophylactic_pos = 1,
