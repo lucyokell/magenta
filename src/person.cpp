@@ -896,7 +896,7 @@ void Person::treatment_outcome(const Parameters &parameters) {
         // LO introduce resistance diagnostics here:
         //cout << "initial m_drug_choice = " << m_drug_choice << "\n";
         //cout << "LPF with current drug = " << get_prob_late_paristological_failure(parameters) << "\n";
-        if(parameters.g_res_diag_flag) {
+        if(parameters.g_res_diag_flag & parameters.g_current_time > (parameters.g_time_res_diag*365)) {
           
           //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
           for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
