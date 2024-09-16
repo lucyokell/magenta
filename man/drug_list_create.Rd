@@ -15,6 +15,7 @@ drug_list_create(
   drugs = list(drug_create_default_no_resistance()),
   mft_flag = FALSE,
   res_diag_flag = FALSE,
+  time_res_diag = 999999,
   temporal_cycling = -1,
   sequential_cycling = -1,
   sequential_update = 3,
@@ -50,6 +51,8 @@ created by \code{drug_create}.}
 \item{mft_flag}{Boolean are we doing mft}
 
 \item{res_diag_flag}{Boolean are we doing resistance diagnostics}
+
+\item{time_res_diag}{Integer time of introducing resistance diagnostics, years.}
 
 \item{temporal_cycling}{Numeric for when in years a drug switch occurs}
 
