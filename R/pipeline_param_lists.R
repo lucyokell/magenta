@@ -408,7 +408,8 @@ vector_adaptation_list_create <- function(vector_adaptation_loci,
 #' @param prob_of_testing_nmf Numeric for probability that a NMF is tested by 
 #'   RDT before being treated with antimalarials. 
 #' 
-#' 
+#' @export
+
 
 nmf_list_create <- function(nmf_flag = FALSE,
                             mean_nmf_frequency = c(148.578,139.578,141.564,155.874,179.364,
