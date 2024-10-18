@@ -239,7 +239,10 @@ drug_create <- function(prob_of_lpf = c(1.0, 0.97, 0.80, 0.55),
     "hill_n" = hill_model_fit$par[1],
     "hill_kA" = hill_model_fit$par[2],
     "hill_res_n" = hill_model_fit_res$par[1],
-    "hill_res_kA" = hill_model_fit_res$par[2]
+    "hill_res_kA" = hill_model_fit_res$par[2],
+    prophylactic_probability = prophylactic_probability,
+    prophylactic_resistant_probability = prophylactic_resistant_probability,
+    drug_clearance_max_time = drug_clearance_max_time
   )
     
   return(res_list)

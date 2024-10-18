@@ -129,7 +129,10 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
       Rcpp::as<double>(drug["hill_n"]),                                                    
       Rcpp::as<double>(drug["hill_kA"]),                                                    
       Rcpp::as<double>(drug["hill_res_n"]),                                                    
-      Rcpp::as<double>(drug["hill_res_kA"])                                                    
+      Rcpp::as<double>(drug["hill_res_kA"]),
+      Rcpp::as<std::vector<double> >(drug["prophylactic_probability"]),
+      Rcpp::as<std::vector<double> >(drug["prophylactic_resistant_probability"]),
+      Rcpp::as<double>(drug["drug_clearance_max_time"])
     );
     
   }
