@@ -179,6 +179,7 @@ public:
   bool g_mft_flag;
   bool g_res_diag_flag;
   int g_time_res_diag;
+  double g_res_diag_cov;
   int g_drug_choice;
   unsigned int g_number_of_drugs;
   std::vector<double> g_partner_drug_ratios;

@@ -46,6 +46,7 @@ housekeeping_list_create <- function(quiet = TRUE,
 #' @param mft_flag Boolean are we doing mft
 #' @param res_diag_flag Boolean are we doing resistance diagnostics
 #' @param time_res_diag Integer time of introducing resistance diagnostics, years.
+#' @param res_diag_cov Double resistance diagnostics coverage, proportion
 #' @param temporal_cycling Numeric for when in years a drug switch occurs
 #' @param sequential_cycling Numeric for what perc. treatment failure before switch
 #' @param sequential_update How long does it take in years for sequential to be implemented
@@ -66,6 +67,7 @@ drug_list_create <- function(resistance_flag = FALSE,
                              mft_flag = FALSE,
                              res_diag_flag = FALSE,
                              time_res_diag = 999999,
+                             res_diag_cov = 1,
                              temporal_cycling = -1,
                              sequential_cycling = -1,
                              sequential_update = 3,
@@ -127,6 +129,7 @@ drug_list_create <- function(resistance_flag = FALSE,
             "mft_flag" = mft_flag,
             "res_diag_flag" = res_diag_flag,
             "time_res_diag" = time_res_diag,
+            "res_diag_cov" = res_diag_cov,
             "temporal_cycling" = temporal_cycling,
             "next_temporal_cycle" = temporal_cycling,
             "sequential_cycling" = sequential_cycling,

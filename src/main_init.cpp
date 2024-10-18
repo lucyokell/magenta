@@ -112,6 +112,7 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
   parameters.g_mft_flag = Rcpp::as<bool>(drug_list["mft_flag"]);
   parameters.g_res_diag_flag = Rcpp::as<bool>(drug_list["res_diag_flag"]);
   parameters.g_time_res_diag = Rcpp::as<int>(drug_list["time_res_diag"]);
+  parameters.g_res_diag_cov = Rcpp::as<double>(drug_list["res_diag_cov"]);
   parameters.g_number_of_drugs = Rcpp::as<unsigned int>(drug_list["number_of_drugs"]);
   parameters.g_drug_choice = Rcpp::as<int>(drug_list["drug_choice"]);
   parameters.g_partner_drug_ratios = Rcpp::as<std::vector<double> >(drug_list["partner_drug_ratios"]);

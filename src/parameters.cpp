@@ -135,6 +135,7 @@ Parameters::Parameters() {
   g_mft_flag = false;
   g_res_diag_flag = false;
   g_time_res_diag = 999999;
+  g_res_diag_cov = 1.0;
   g_drug_choice = 0;
   g_number_of_drugs = 0;
   g_partner_drug_ratios = {0.0};

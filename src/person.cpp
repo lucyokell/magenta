@@ -788,7 +788,7 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
           parameters.g_current_time,
           m_day_last_treated) ) {
         
-        
+        std::cout << "yep\n";
         // if so then remove the last strain added
         m_infection_barcode_realisation_vector.pop_back();
         m_infection_state_realisation_vector.pop_back();
@@ -877,33 +877,32 @@ void Person::treatment_outcome(const Parameters &parameters) {
       if(m_number_of_strains > 0) {
         
         // LO introduce resistance diagnostics here:
-        //cout << "initial m_drug_choice = " << m_drug_choice << "\n";
-        //cout << "LPF with current drug = " << get_prob_late_paristological_failure(parameters) << "\n";
         if(parameters.g_res_diag_flag & parameters.g_current_time > (parameters.g_time_res_diag*365)) {
-          
-          //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
-          for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
-            // retrieve the probability of LPF with the current drug choice
-            m_prob_lpf = get_prob_late_paristological_failure(parameters);
-            //cout << "current m_prob_lpf =" << m_prob_lpf << "\n";
-            m_final_drug_choice = m_drug_choice;  // store original current drug choice, then change it later if there's a better one.
-
-            // retrieve the probability of LPF with a different drug choice
-            if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0) {
-              m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
-              m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
-              //cout << "new potential m_temp_prob_lpf=" << m_temp_prob_lpf << "\n";
-              // if the new drug choice is better, switch to that
-              if(m_temp_prob_lpf < m_prob_lpf) {
-                m_prob_lpf = m_temp_prob_lpf;
-                m_final_drug_choice = drug_i;
+          if(rbernoulli1(parameters.g_res_diag_cov)) {
+            
+            //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
+            for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
+              // retrieve the probability of LPF with the current drug choice
+              m_prob_lpf = get_prob_late_paristological_failure(parameters);
+              m_final_drug_choice = m_drug_choice;  // store original current drug choice, then change it later if there's a better one.
+              
+              // retrieve the probability of LPF with a different drug choice
+              if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0) {
+                m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
+                m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
+                
+                // if the new drug choice is better, switch to that
+                if(m_temp_prob_lpf < m_prob_lpf) {
+                  m_prob_lpf = m_temp_prob_lpf;
+                  m_final_drug_choice = drug_i;
+                }
               }
-            }
-          } // end of loop checking for better drugs.
-          // update drug choice.
-          m_drug_choice = m_final_drug_choice;
-          //cout << "new drug choice=" << m_drug_choice << "\n";
+            } // end of loop checking for better drugs.
+            // update drug choice.
+            m_drug_choice = m_final_drug_choice;
           }
+          
+        }
         
         
         // do they fail due to LPF

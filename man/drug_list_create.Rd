@@ -16,6 +16,7 @@ drug_list_create(
   mft_flag = FALSE,
   res_diag_flag = FALSE,
   time_res_diag = 999999,
+  res_diag_cov = 1,
   temporal_cycling = -1,
   sequential_cycling = -1,
   sequential_update = 3,
@@ -53,6 +54,8 @@ created by \code{drug_create}.}
 \item{res_diag_flag}{Boolean are we doing resistance diagnostics}
 
 \item{time_res_diag}{Integer time of introducing resistance diagnostics, years.}
+
+\item{res_diag_cov}{Double resistance diagnostics coverage, proportion}
 
 \item{temporal_cycling}{Numeric for when in years a drug switch occurs}
 
