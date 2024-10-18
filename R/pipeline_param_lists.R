@@ -351,17 +351,19 @@ drug_create_asaq <- function() {
 #' Perfect Efficacy Drug. Used as default to match deterministic model easily
 drug_create_default_no_resistance <- function() {
   
-  data.frame("lpf" = 1,
-             "barcode_positions" = 0,
-             "prophylactic_positions" = 0, 
-             "dur_P" = 25, 
-             "dur_SPC" = 9,
-             "hill_n" = 4.415815,
-             "hill_kA" = 0.01307829,
-             "hill_res_n" = 9.274472,
-             "hill_res_kA" = 0.02846058)
+  dur <- 25
+  shape <- 4
+  p_protect <- 1-pgamma(seq(0, 60, 1), shape = shape, rate = shape/dur)
   
-  
+  drug <- drug_create(prob_of_lpf = 1,
+                      barcode_res_pos = 0,
+                      prophylactic_pos = 0,
+                      dur_P = 25,
+                      dur_SPC = 9,
+                      drug_clearance_max_time = 60,
+                      prophylactic_probability = p_protect,
+                      prophylactic_resistant_probability = p_protect)
+  return(drug)
 }
 
 
