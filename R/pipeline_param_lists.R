@@ -254,6 +254,10 @@ drug_create <- function(prob_of_lpf = c(1.0, 0.97, 0.80, 0.55),
 
 
 #' DHA-PPQ Drug Create
+#' Create list describing parameters for DHA-PPQ drug efficacy and prophlyaxis
+#' 
+#' @export
+
 drug_create_dhappq <- function() {
   
   drug_table <- magenta::drug_table
@@ -282,6 +286,10 @@ drug_create_dhappq <- function() {
 }
 
 #' AL Drug Create
+#' 
+#' Create list describing parameters for AL drug efficacy and prophlyaxis
+#' 
+#' @export
 #' 
 #' @note
 #' We have curves of the longest and shortest duration of AL prophylaxis from 
@@ -316,6 +324,10 @@ drug_create_al <- function() {
 
 #' ASAQ Drug Create
 #' 
+#' Create list describing parameters for AL drug efficacy and prophlyaxis
+#' 
+#' @export
+#'
 #' @note
 #' We have curves of the longest and shortest duration of ASAQ prophylaxis from 
 #' Bretscher et al. However, we have multiple types of partner drug resistance. 

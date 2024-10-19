@@ -2,10 +2,12 @@
 % Please edit documentation in R/pipeline_param_lists.R
 \name{drug_create_dhappq}
 \alias{drug_create_dhappq}
-\title{DHA-PPQ Drug Create}
+\title{DHA-PPQ Drug Create
+Create list describing parameters for DHA-PPQ drug efficacy and prophlyaxis}
 \usage{
 drug_create_dhappq()
 }
 \description{
 DHA-PPQ Drug Create
+Create list describing parameters for DHA-PPQ drug efficacy and prophlyaxis
 }

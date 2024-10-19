@@ -7,7 +7,7 @@
 drug_create_asaq()
 }
 \description{
-ASAQ Drug Create
+Create list describing parameters for AL drug efficacy and prophlyaxis
 }
 \note{
 We have curves of the longest and shortest duration of ASAQ prophylaxis from 
