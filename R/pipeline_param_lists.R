@@ -357,6 +357,44 @@ drug_create_asaq <- function() {
   return(drug)
 }
 
+
+#' ASMQ Drug Create
+#' 
+#' Create list describing parameters for ASMQ drug efficacy and prophlyaxis
+#' 
+#' @export
+#'
+#' @note
+#' Mefloquine params for prophylaxis not well known.
+drug_create_asmq <- function() {
+  
+  drug_table <- magenta::drug_table
+  
+  #### use piperaquine params for now.
+  w_scale <- 28.1
+  w_slope <- 4.4
+  mq <- exp(-((seq(0, 60, 0.2)/w_scale)^w_slope))
+  
+  # based on extrapolating the impact of partner drug resitsance in absence of Kelch
+  # i.e. for ASAQ, AL, DHAPPQ difference is c(0.085858, 0.134567, 0.204002) from drug tables. 
+  # The curves for ASAQ and AL give difference in T0.5 for resistance as c(6, 9.2). 
+  # Extrapolating then predicts a reduction in time till 0.5 of 13.7612 days
+  mq_res <- exp(-((seq(0, 60, 0.2)/w_scale*2.1)^w_slope))
+  
+  drug <- drug_create(prob_of_lpf = drug_table$ASMQ,
+                      barcode_res_pos = 0:5,
+                      prophylactic_pos = c(0:3),
+                      dur_P = seq(0,60,0.2)[which.min(abs(mq-0.5))],
+                      dur_SPC = 6,
+                      drug_clearance_max_time = 60,
+                      prophylactic_probability = mq,
+                      prophylactic_resistant_probability = mq_res
+  )
+  return(drug)
+}
+
+
+
 #' Perfect Drug Create
 #' 
 #' @note
