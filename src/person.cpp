@@ -785,6 +785,8 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
           m_day_of_InfectionStatus_change,
           m_day_last_treated) ) {
         
+        std::cout << "prophylaxis activated\n";
+        
         // if so then remove the last strain added
         m_infection_barcode_realisation_vector.pop_back();
         m_infection_state_realisation_vector.pop_back();
@@ -809,7 +811,9 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
         m_infection_barcode_realisation_vector.pop_back();
         m_infection_state_realisation_vector.pop_back();
         m_infection_time_realisation_vector.pop_back();
-      }
+
+        std::cout << "prophylaxis activated\n";
+        }
       
     }
     
