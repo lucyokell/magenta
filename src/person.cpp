@@ -771,13 +771,14 @@ void Person::all_strain_clearance() {
   set_m_day_of_next_event();
   
 }
-
 // Clear the last strain if it would have been cleared by prophylaxis
 void Person::clear_strain_if_prophylactic(const Parameters &parameters)
 {
 
     // are they prophylactic
     if (m_infection_state == PROPHYLAXIS) {
+      
+      std::cout << "in prophylaxis state\n";
       
       if (parameters.g_drugs[m_drug_choice].early_reinfection(
           m_infection_barcode_realisation_vector.back(),
@@ -797,6 +798,8 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
     
     // are they asymptomatic and protected (i.e. recrudescent infection still with lingering partner drug)
     if (m_infection_state == ASYMPTOMATIC && parameters.g_current_time < m_day_prophylaxis_wanes) {
+
+      std::cout << "in asymptomatic prophylactic state\n";
       
       // print statement for checking in tests
       rcpp_out(parameters.g_h_quiet_test_print, "Asymptomatic LPF Prophylaxis Check!\n");
@@ -813,13 +816,12 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
         m_infection_time_realisation_vector.pop_back();
 
         std::cout << "prophylaxis activated\n";
-        }
+      }
       
     }
     
   
 }
-
 
 // Kill person, i.e. reset age to 0, infections to 0, state to susceptible, immunities reset etc
 void Person::die(const Parameters &parameters)
