@@ -191,14 +191,32 @@ public:
     
     // normalise so that drug conc is 1 at t = 0
     drug_conc = drug_conc / R::dexp(0.0, 1.0/(day_of_change - day_treated), false);
+
+    std::cout << "drug_conc current = " << drug_conc << "\n";
+    
+    // Instead compute drug conc using reciprocal of rate within dexp function
+    double drug_conc2 = R::dexp(current_time - day_treated, 
+                               (day_of_change - day_treated), 
+                               false);
+    
+    // normalise so that drug conc is 1 at t = 0
+    drug_conc2 = drug_conc2 / R::dexp(0.0, (day_of_change - day_treated), false);
+    
+    std::cout << "drug_conc alternative calculation = " << drug_conc2 << "\n";
+    
     
     // if it was resistant then check for early reinfection using resistant hill parameters
     if (resistant) {
       
+      std::cout << "hill output resistant current calculation = " << hill_function(drug_conc, m_hill_res_n, m_hill_res_kA) << "\n";
+      std::cout << "hill output resistant alternative calculation= " << hill_function(drug_conc2, m_hill_res_n, m_hill_res_kA) << "\n";
       return(rbernoulli1(hill_function(drug_conc, m_hill_res_n, m_hill_res_kA)));
+      
       
     } else {
       
+      std::cout << "hill output wild type current calculation = " << hill_function(drug_conc, m_hill_res_n, m_hill_res_kA) << "\n";
+      std::cout << "hill output wild type alternative calculation = " << hill_function(drug_conc2, m_hill_res_n, m_hill_res_kA) << "\n";
       return(rbernoulli1(hill_function(drug_conc, m_hill_n, m_hill_kA)));
       
     }
