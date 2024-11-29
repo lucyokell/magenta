@@ -905,9 +905,6 @@ void Person::treatment_outcome(const Parameters &parameters) {
             /////////////////////////////////////////////////////
             // Now we have looked through the unrestricted drugs, check if LPF is low, and if there are any conserved drugs, check if we are going to use them for this patient (if cure rate is below a threshold).
             /////////////////////////////////////////////////////
-            std::cout << "start looking at conserved drugs " << "\n";
-            std::cout << "current drug choice after first pass =  " << m_drug_choice << "\n";
-            
             
             for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
               // retrieve the probability of LPF with the current drug choice
@@ -918,11 +915,11 @@ void Person::treatment_outcome(const Parameters &parameters) {
               // if a drug is being conserved for when the others have failed, consider this now.
               // only allow it to switch if ACPR is below threshold.
               if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0 & parameters.g_drugs[drug_i].get_m_conserve_drug()  & (1-m_prob_lpf) < parameters.g_drugs[drug_i].get_m_conserve_drug_threshold_acpr()) {
-                std::cout << "activated conserved drugs " << "\n";
-                std::cout << "drug_i within the conserved drug section " << drug_i << "\n";
-                std::cout << "drug conserved? " << parameters.g_drugs[drug_i].get_m_conserve_drug() << "\n";
-                std::cout << "drug params threshold ACPR " << parameters.g_drugs[drug_i].get_m_conserve_drug_threshold_acpr() << "\n";
-                std::cout << "current prob LPF " << m_prob_lpf << "\n";
+                //std::cout << "activated conserved drugs " << "\n";
+                //std::cout << "drug_i within the conserved drug section " << drug_i << "\n";
+                //std::cout << "drug conserved? " << parameters.g_drugs[drug_i].get_m_conserve_drug() << "\n";
+                //std::cout << "drug params threshold ACPR " << parameters.g_drugs[drug_i].get_m_conserve_drug_threshold_acpr() << "\n";
+                //std::cout << "current prob LPF " << m_prob_lpf << "\n";
                 
                 m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
                 m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
