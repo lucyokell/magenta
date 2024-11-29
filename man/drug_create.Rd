@@ -10,6 +10,7 @@ drug_create(
   prophylactic_pos = 1,
   dur_P = 25,
   dur_SPC = 5,
+  conserve_drug = FALSE,
   drug_clearance_max_time = 60,
   prophylactic_probability = 1 - pgamma(seq(0, drug_clearance_max_time, 0.2), shape =
     16.8, rate = 16.8/17.9),
@@ -44,6 +45,8 @@ the prophylactic position is encoded in barcode position 1.}
 
 \item{dur_SPC}{Duration of slow parasite clearance. Default = 5.}
 
+\item{conserve_drug}{Boolean - whether to conserve the current drug and only use if other drugs drop below a threshold ACPR (e.g. for a new class of drug coming in - only use it if other drugs chance of working is <90% for example)}
+
 \item{drug_clearance_max_time}{Maximum number of days to which to consider 
 waning prophylaxis. Default = 60 days.}
 
@@ -57,6 +60,8 @@ time = 0 days.}
 resistant to the partner drug. The last element reflects the probability after
  \code{drug_clearance_max_time} and the first element is the probability at 
  time = 0 days.}
+
+\item{conserve_drug_threshold_acpr}{Double threshold ACPR of most effective alternative drug at which we should use this current drug if it is to be conserved.}
 }
 \description{
 Create list describing parameters for drug efficacy and prophlyaxis

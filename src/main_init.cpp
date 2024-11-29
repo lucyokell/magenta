@@ -127,6 +127,8 @@ Rcpp::List Simulation_Init_cpp(Rcpp::List param_list)
       Rcpp::as<std::vector<unsigned int> >(drug["prophylactic_positions"]),
       Rcpp::as<double>(drug["dur_P"]),                                                    
       Rcpp::as<double>(drug["dur_SPC"]),                                                    
+      Rcpp::as<bool>(drug["conserve_drug"]),                                                    
+      Rcpp::as<double>(drug["conserve_drug_threshold_acpr"]),                                                    
       Rcpp::as<double>(drug["hill_n"]),                                                    
       Rcpp::as<double>(drug["hill_kA"]),                                                    
       Rcpp::as<double>(drug["hill_res_n"]),                                                    

@@ -168,6 +168,8 @@ drug_list_create <- function(resistance_flag = FALSE,
 #'   the prophylactic position is encoded in barcode position 1.
 #' @param dur_P Duration of prophylaxis in days. Default = 25.
 #' @param dur_SPC Duration of slow parasite clearance. Default = 5.
+#' @param conserve_drug Boolean - whether to conserve the current drug and only use if other drugs drop below a threshold ACPR (e.g. for a new class of drug coming in - only use it if other drugs chance of working is <90% for example)
+#' @param conserve_drug_threshold_acpr Double threshold ACPR of most effective alternative drug at which we should use this current drug if it is to be conserved.
 #' @param drug_clearance_max_time Maximum number of days to which to consider 
 #'   waning prophylaxis. Default = 60 days. 
 #' @param prophylactic_probability Vector of changing probability of reinfection
@@ -188,6 +190,8 @@ drug_create <- function(prob_of_lpf = c(1.0, 0.97, 0.80, 0.55),
                         prophylactic_pos = 1,
                         dur_P = 25,
                         dur_SPC = 5,
+                        conserve_drug = FALSE,
+                        conserve_drug_threshold_acpr = 0.9,
                         drug_clearance_max_time = 60,
                         prophylactic_probability = 1-pgamma(seq(0, drug_clearance_max_time, 0.2), shape=16.8, rate=16.8/17.9),
                         prophylactic_resistant_probability = 1-pgamma(seq(0, drug_clearance_max_time, 0.2), shape=16.8, rate=16.8/8.7)
@@ -239,13 +243,15 @@ drug_create <- function(prob_of_lpf = c(1.0, 0.97, 0.80, 0.55),
     "prophylactic_positions" = prophylactic_pos,
     "dur_P" = dur_P,
     "dur_SPC" = dur_SPC,
+    "conserve_drug" = conserve_drug,
+    "conserve_drug_threshold_acpr" = conserve_drug_threshold_acpr,
     "hill_n" = hill_model_fit$par[1],
     "hill_kA" = hill_model_fit$par[2],
     "hill_res_n" = hill_model_fit_res$par[1],
     "hill_res_kA" = hill_model_fit_res$par[2],
     prophylactic_probability = prophylactic_probability,
     prophylactic_resistant_probability = prophylactic_resistant_probability,
-    drug_clearance_max_time = drug_clearance_max_time
+    "drug_clearance_max_time" = drug_clearance_max_time  ## LO do we need this later?
   )
     
   return(res_list)

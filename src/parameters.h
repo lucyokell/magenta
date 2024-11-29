@@ -184,6 +184,7 @@ public:
   unsigned int g_number_of_drugs;
   std::vector<double> g_partner_drug_ratios;
   double g_dur_SPC;
+  bool g_conserve_drug;
   
   // mosquito strain interaction params
   bool g_vector_adaptation_flag;

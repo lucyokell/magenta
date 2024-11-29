@@ -886,7 +886,9 @@ void Person::treatment_outcome(const Parameters &parameters) {
               m_final_drug_choice = m_drug_choice;  // store original current drug choice, then change it later if there's a better one.
               
               // retrieve the probability of LPF with a different drug choice
-              if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0) {
+              // if a drug is being conserved for when the others have failed, don't consider this yet.
+              //std::cout << "drug params " << parameters.g_drugs[drug_i].get_m_conserve_drug() << "\t";
+              if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0 & !parameters.g_drugs[drug_i].get_m_conserve_drug()) {
                 m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
                 m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
                 
@@ -896,9 +898,46 @@ void Person::treatment_outcome(const Parameters &parameters) {
                   m_final_drug_choice = drug_i;
                 }
               }
+            } // end of loop checking for better drugs (unrestricted drugs).
+            // update drug choice.
+            m_drug_choice = m_final_drug_choice;
+            
+            /////////////////////////////////////////////////////
+            // Now we have looked through the unrestricted drugs, check if LPF is low, and if there are any conserved drugs, check if we are going to use them for this patient (if cure rate is below a threshold).
+            /////////////////////////////////////////////////////
+            std::cout << "start looking at conserved drugs " << "\n";
+            std::cout << "current drug choice after first pass =  " << m_drug_choice << "\n";
+            
+            
+            for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
+              // retrieve the probability of LPF with the current drug choice
+              m_prob_lpf = get_prob_late_paristological_failure(parameters);
+              m_final_drug_choice = m_drug_choice;  // store current drug choice, then change it later if there's a better one.
+              
+              // retrieve the probability of LPF with a different drug choice
+              // if a drug is being conserved for when the others have failed, consider this now.
+              std::cout << "drug_i within the conserved drug section " << drug_i << "\n";
+              std::cout << "drug params threshold ACPR " << parameters.g_drugs[drug_i].get_m_conserve_drug() << "\n";
+              std::cout << "current prob LPF " << m_prob_lpf << "\n";
+              // only allow it to switch if ACPR is below threshold.
+              if(drug_i!=m_final_drug_choice & parameters.g_partner_drug_ratios[drug_i]>0 & m_prob_lpf>0 & parameters.g_drugs[drug_i].get_m_conserve_drug()  & (1-m_prob_lpf) < parameters.g_drugs[drug_i].get_m_conserve_drug_threshold_acpr()) {
+                std::cout << "activated conserved drugs " << "\n";
+                
+                m_drug_choice = drug_i;  // temporarily alter m_drug_choice which is a member of parameters
+                m_temp_prob_lpf = get_prob_late_paristological_failure(parameters); // get prob LPF with current parameters.
+                
+                // if the new drug choice is better, switch to that
+                if(m_temp_prob_lpf < m_prob_lpf) {
+                  // is the new drug being conserved? If so only switch to it if we are below the threshold of LPF on the other drugs.
+                  m_prob_lpf = m_temp_prob_lpf;
+                  m_final_drug_choice = drug_i;
+                }
+              }
             } // end of loop checking for better drugs.
             // update drug choice.
             m_drug_choice = m_final_drug_choice;
+            
+            
           }
           
         }

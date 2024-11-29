@@ -35,6 +35,8 @@ private:
   std::vector<unsigned int> m_prophylactic_positions; // which positions in the barcode correspond to the prophylactic
   double m_dur_P;					// duration of prophylaxis
   double m_dur_SPC;					// duration of slow parasite clearance
+  bool m_conserve_drug;					// whether to save the drug until others are failing.
+  double m_conserve_drug_threshold_acpr;					// threshold ACPR.
   double m_hill_n; // Hill function parameter n for curve detailing pretective efficacy
   double m_hill_kA; // Hill function parameter kA for curve detailing pretective efficacy
   double m_hill_res_n; // Hill function parameter n for curve detailing pretective efficacy when challenged by resistant parasite
@@ -55,6 +57,8 @@ public:
        std::vector<unsigned int> prophylactic_positions, 
        double dur_P, 
        double dur_SPC,
+       bool conserve_drug,
+       double conserve_drug_threshold_acpr,
        double hill_n,
        double hill_kA,
        double hill_res_n,
@@ -68,6 +72,8 @@ public:
   m_prophylactic_positions(prophylactic_positions),
   m_dur_P(dur_P),
   m_dur_SPC(dur_SPC),
+  m_conserve_drug(conserve_drug),
+  m_conserve_drug_threshold_acpr(conserve_drug_threshold_acpr),
   m_hill_n(hill_n),
   m_hill_kA(hill_kA),
   m_hill_res_n(hill_res_n),
@@ -98,6 +104,12 @@ public:
   
   // Getduration of slow parasite clearance
   double get_m_dur_SPC() const { return(m_dur_SPC); }		
+  
+  // Get whether drug will be conserved during resistance diagnostics.
+  bool get_m_conserve_drug() const { return(m_conserve_drug); }		
+  
+  // Get 
+  double get_m_conserve_drug_threshold_acpr() const { return(m_conserve_drug_threshold_acpr); }		
   
   // Get Hill function parameter n for curve detailing pretective efficacy
   double get_m_hill_n() const { return(m_hill_n); }	
@@ -135,6 +147,12 @@ public:
   
   // Set  duration of slow parasite clearance
   void set_m_dur_SPC(double x) { m_dur_SPC = x; }
+  
+  // Set whether drug will be conserved 
+  void set_m_conserve_drug(bool x) { m_conserve_drug = x; }
+  
+  // Set whether drug will be conserved 
+  void set_m_conserve_drug_threshold_acpr(double x) { m_conserve_drug_threshold_acpr = x; }
   
   // Set Hill function parameter n for curve detailing pretective efficacy
   void set_m_hill_n(double x) { m_hill_n = x; }	
@@ -295,6 +313,8 @@ public:
         Rcpp::Named("m_prophylactic_positions")=m_prophylactic_positions,
         Rcpp::Named("m_dur_P")=m_dur_P,
         Rcpp::Named("m_dur_SPC")=m_dur_SPC,
+        Rcpp::Named("m_conserve_drug")=m_conserve_drug,
+        Rcpp::Named("m_conserve_drug_threshold_acpr")=m_conserve_drug_threshold_acpr,
         Rcpp::Named("m_hill_n")=m_hill_n,
         Rcpp::Named("m_hill_kA")=m_hill_kA,
         Rcpp::Named("m_hill_res_n")=m_hill_res_n,
@@ -314,6 +334,8 @@ public:
     m_prophylactic_positions(Rcpp::as<std::vector<unsigned int> >(list["m_prophylactic_positions"])), 
     m_dur_P(Rcpp::as<double>(list["dur_P"])),
     m_dur_SPC(Rcpp::as<double>(list["dur_SPC"])),
+    m_conserve_drug(Rcpp::as<bool>(list["conserve_drug"])),
+    m_conserve_drug_threshold_acpr(Rcpp::as<double>(list["conserve_drug_threshold_acpr"])),
     m_hill_n(Rcpp::as<double>(list["m_hill_n"])),
     m_hill_kA(Rcpp::as<double>(list["m_hill_kA"])),
     m_hill_res_n(Rcpp::as<double>(list["m_hill_res_n"])),
