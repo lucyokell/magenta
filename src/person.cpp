@@ -878,6 +878,10 @@ void Person::treatment_outcome(const Parameters &parameters) {
         // LO introduce resistance diagnostics here:
         if(parameters.g_res_diag_flag & parameters.g_current_time > (parameters.g_time_res_diag*365)) {
           if(rbernoulli1(parameters.g_res_diag_cov)) {
+            // first check current LPF. only consider treatment change if ACPR<0.9
+            m_prob_lpf = get_prob_late_paristological_failure(parameters);
+            
+            if(m_prob_lpf >0.1) { 
             
             //LO added: retrieve the probability of LPF for all drugs, choose the best for resistance diagnostics:
             for(int drug_i=0; drug_i<parameters.g_number_of_drugs; drug_i++) {
@@ -937,7 +941,7 @@ void Person::treatment_outcome(const Parameters &parameters) {
             m_drug_choice = m_final_drug_choice;
             
             
-          }
+          }}
           
         }
         
