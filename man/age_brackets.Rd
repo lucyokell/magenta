@@ -20,3 +20,4 @@ age_brackets(
 \description{
 Makes age brackets given, number of brackets, max age, and spacing
 }
+\keyword{internal}

@@ -21,3 +21,4 @@ generate_default_model(ft, age, dat, generator, dde = TRUE)
 \code{generate_default_model} creates the user required generator for
 the odin model.
 }
+\keyword{internal}

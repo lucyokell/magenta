@@ -12,3 +12,4 @@ country_seasonal_profiles(country)
 \description{
 Plot country seasonal profiles
 }
+\keyword{internal}

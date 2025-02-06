@@ -4,10 +4,17 @@
 \alias{housekeeping_list_create}
 \title{Create housekeeping parameter list}
 \usage{
-housekeeping_list_create(quiet = TRUE, cluster = FALSE, clear_up = TRUE)
+housekeeping_list_create(
+  quiet = TRUE,
+  quiet_test = TRUE,
+  cluster = FALSE,
+  clear_up = TRUE
+)
 }
 \arguments{
 \item{quiet}{Boolean for quiet simulation. Default = TRUE}
+
+\item{quiet_test}{Boolean for quiet testing statement. Default = TRUE}
 
 \item{cluster}{Boolean for simulation being on cluster. Default = TRUE}
 

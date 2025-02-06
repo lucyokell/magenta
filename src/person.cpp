@@ -89,6 +89,8 @@ bool Person::reciprocal_infection_boolean(const Parameters &pars)
         
         for(auto m : m_gametocytogenic_strains){
           current_contribution = m_active_strains[m].relative_contribution(pars);
+          
+          // TODO: Add here the infectivity function to scale if ArtR
           if (current_contribution > highest_contribution){
             highest_contribution = current_contribution;
           }
@@ -110,7 +112,7 @@ bool Person::reciprocal_infection_boolean(const Parameters &pars)
     case SUBPATENT:
       return(rbernoulli1(pars.g_cU*highest_contribution));
     case TREATED:
-      return(rbernoulli1(m_cA*highest_contribution));
+      return(rbernoulli1(pars.g_cT*highest_contribution));
     case PROPHYLAXIS:
       return(false);
     default:
@@ -773,10 +775,7 @@ void Person::all_strain_clearance() {
 // Clear the last strain if it would have been cleared by prophylaxis
 void Person::clear_strain_if_prophylactic(const Parameters &parameters)
 {
-  
-  // are we doing mutation modelling
-  if (parameters.g_resistance_flag) {
-    
+
     // are they prophylactic
     if (m_infection_state == PROPHYLAXIS) {
       
@@ -794,10 +793,28 @@ void Person::clear_strain_if_prophylactic(const Parameters &parameters)
       
     }
     
-  }
+    // are they asymptomatic and protected (i.e. recrudescent infection still with lingering partner drug)
+    if (m_infection_state == ASYMPTOMATIC && parameters.g_current_time < m_day_prophylaxis_wanes) {
+      
+      // print statement for checking in tests
+      rcpp_out(parameters.g_h_quiet_test_print, "Asymptomatic LPF Prophylaxis Check!\n");
+      
+      if (parameters.g_drugs[m_drug_choice].early_reinfection(
+          m_infection_barcode_realisation_vector.back(),
+          parameters.g_current_time,
+          m_day_prophylaxis_wanes,
+          m_day_last_treated) ) {
+        
+        // if so then remove the last strain added
+        m_infection_barcode_realisation_vector.pop_back();
+        m_infection_state_realisation_vector.pop_back();
+        m_infection_time_realisation_vector.pop_back();
+      }
+      
+    }
+    
   
 }
-
 
 
 // Kill person, i.e. reset age to 0, infections to 0, state to susceptible, immunities reset etc
@@ -899,18 +916,28 @@ void Person::treatment_outcome(const Parameters &parameters) {
       m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
     }
     
-    // did they fail due to the drug failing (regardless of resistance)
-    if(rbernoulli1(1 - parameters.g_drugs[m_drug_choice].get_prob_of_lpf_x(0))) {
-      m_post_treatment_strains = m_active_strains;
-      late_paristological_failure(parameters);
-      m_treatment_outcome = LPF;
+    // are they actually infected, i.e. not just here because of nmf
+    if(m_number_of_strains > 0) {
+      
+      // did they fail due to the drug failing (regardless of resistance)
+      if(rbernoulli1(1 - parameters.g_drugs[m_drug_choice].get_prob_of_lpf_x(0))) {
+        m_post_treatment_strains = m_active_strains;
+        late_paristological_failure(parameters);
+        m_treatment_outcome = LPF;
+      } else {
+        m_treatment_outcome = SUCCESFULLY_TREATED;
+        m_infection_state = PROPHYLAXIS;
+        schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
+        all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+      }
+      // if not infected at all then move them straight to P
     } else {
-      m_treatment_outcome = SUCCESFULLY_TREATED;
       m_infection_state = PROPHYLAXIS;
       schedule_m_day_of_InfectionStatus_change(parameters); // schedule next state change
-      all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains
+      all_strain_clearance(); // When they are in prophylaxis we remove all the strains, as treated individuals still have strains (this includes pending strains)
     }
   }
+    
   
   // update next event day
   set_m_day_of_next_event();
@@ -948,6 +975,9 @@ void Person::late_paristological_failure(const Parameters &parameters) {
   
   // update teh strain state change day
   set_m_day_of_next_strain_state_change();
+  
+  // set the date that their prophylaxis wanes
+  m_day_prophylaxis_wanes = rexpint1(parameters.g_drugs[m_drug_choice].get_m_dur_P()) + parameters.g_current_time + 1;
   
 }
 
@@ -1056,6 +1086,9 @@ void Person::slow_treatment_clearance(const Parameters &parameters) {
 // Seek treatment for nmf
 void Person::seek_nmf_treatment(const Parameters &parameters){
   
+  // firstly are they actually infected at all
+  if(m_number_of_strains > 0) {
+  
   // first would they seek treatment
   if(rbernoulli1(parameters.g_ft)){
     
@@ -1077,6 +1110,20 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
           m_infection_state_realisation_vector.clear();
           m_infection_barcode_realisation_vector.clear();
           
+          // If they were already drawn to receive a drug in the last 15 days then it will still be that drug
+          if(m_drug_choice_time == 0 || m_drug_choice_time < (parameters.g_current_time - 15)) {
+            
+            // the default drug to be given
+            m_drug_choice = parameters.g_drug_choice;
+            
+            // are we doing mft, and if so what drug did they get this time
+            if(parameters.g_mft_flag) {
+              m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+            }
+            
+            m_drug_choice_time = parameters.g_current_time;
+          }
+          
         }
       }
       
@@ -1094,9 +1141,40 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
         m_infection_state_realisation_vector.clear();
         m_infection_barcode_realisation_vector.clear();
         
+        // If they were already drawn to receive a drug in the last 15 days then it will still be that drug
+        if(m_drug_choice_time == 0 || m_drug_choice_time < (parameters.g_current_time - 15)) {
+          
+          // the default drug to be given
+          m_drug_choice = parameters.g_drug_choice;
+          
+          // are we doing mft, and if so what drug did they get this time
+          if(parameters.g_mft_flag) {
+            m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+          }
+          
+          m_drug_choice_time = parameters.g_current_time;
+        }
+        
       }
       
     }
+    
+  }
+  
+  // if they are not infected them move them to P but include the extra duration in T
+  } else {
+    
+    // then move to P now
+    m_infection_state = PROPHYLAXIS;
+    
+    // And schedule the move P and T durations into the future
+    m_day_of_InfectionStatus_change = rexpint1(parameters.g_dur_T) + 
+      rexpint1(parameters.g_dur_P) + parameters.g_current_time + 1;
+    
+    // Clear all pending infection vectors 
+    m_infection_time_realisation_vector.clear();
+    m_infection_state_realisation_vector.clear();
+    m_infection_barcode_realisation_vector.clear();
     
   }
   

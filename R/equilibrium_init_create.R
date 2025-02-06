@@ -330,7 +330,8 @@ equilibrium_init_create <- function(age_vector,
               betaS = betaS, betaA = betaA, betaU = betaU, FOIvij_eq=FOIvij_eq,
               age_mid_point = age_mid_point, het_bounds = het_bounds, pi = pi,
               p_det_eq = p_det_eq,
-              age20l = age20l, age20u = age20u, age_20_factor = age_20_factor)
+              age20l = age20l, age20u = age20u, age_20_factor = age_20_factor,
+              country = country, admin = admin)
   
   res <- append(res,mpl)
   

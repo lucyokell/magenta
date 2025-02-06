@@ -14,3 +14,4 @@ spl_matrix_check(matrix, years)
 \description{
 Grabs spatial incidence and mosquitoFOI matrix from database
 }
+\keyword{internal}

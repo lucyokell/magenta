@@ -1,5 +1,5 @@
 # load in the table
-drug_table <- as.data.frame(data.table::fread("drug_tables.csv"))
+drug_table <- as.data.frame(read.csv("drug_tables.csv"))
 
 # check the relationship between the extra copy
 relative <- c(drug_table$AL[17:32]/drug_table$AL[1:16],
@@ -42,10 +42,6 @@ new_drug_table <- new_drug_table[match(ordered_options, new_drug_table$Genotype)
 
 # assign as drug table
 drug_table <- new_drug_table
-<<<<<<< HEAD
 drug_table$Genotype <- gsub("2$", "1", gsub("1$","0",drug_table$Genotype))
-=======
 
-# and remove 
->>>>>>> 0b63c05b7bce146be1a8d3112d92bacb45b668b0
 usethis::use_data(drug_table, overwrite = TRUE)

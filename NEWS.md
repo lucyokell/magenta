@@ -1,3 +1,23 @@
+## magenta 1.3.5
+
+* Seasonality patch so that admin and country name specification to `pipeline`
+correctly creates seasonal simulations.
+
+## magenta 1.3.4
+
+* Non-malarial fevers were not going through correct drug allocation so could not
+track who was getting what drug when it was an NMF.
+
+## magenta 1.3.3
+
+* Prophylaxis fixes. Individuals who failed treatment and recrudesce were not getting
+full duration of prophylaxis previously (short by a couple days) 
+
+## magenta 1.3.2
+
+* NMF fixes. Individuals not infected who are treated due to NMF go straight to 
+an elongated prophylaxis. 
+
 ## magenta 1.3.1
 
 * Importations can have same barcode as PLAF via `island_imports_plaf_linked_flag`

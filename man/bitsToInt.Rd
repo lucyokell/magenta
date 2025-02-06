@@ -16,3 +16,4 @@ bitsToInt(x, big_endian = FALSE)
 Function to convert vector of bools representing up to a 32 bit 
 number into the corresponding integer
 }
+\keyword{internal}

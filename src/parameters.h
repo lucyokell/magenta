@@ -198,6 +198,7 @@ public:
   
   // Housekeeping parameters
   bool g_h_quiet_print;
+  bool g_h_quiet_test_print;
   
   // Default Constructor
   Parameters();

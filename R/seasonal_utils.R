@@ -27,7 +27,7 @@ return(ret)
 #' @return Row number of the matching region in 
 #'   \code{magenta::admin_units_seasonal}
 #'
-
+#' @keywords internal
 admin_match <- function(admin = NULL, country = NULL, quiet = FALSE) {
   ads <- magenta::admin_units_seasonal
   
@@ -94,6 +94,7 @@ admin_match <- function(admin = NULL, country = NULL, quiet = FALSE) {
 #' @param admin Character for admin region. Some fuzzy logic will be used 
 #'   to match. If not provided then no seasonality is introduced. Default = NULL
 #'
+#' @keywords internal
 seasonal_profile <- function(admin = NULL, country = NULL) {
   admin_matches <- admin_match(admin, country)
   admin_units_seasonal <- magenta::admin_units_seasonal
@@ -131,7 +132,7 @@ seasonal_profile <- function(admin = NULL, country = NULL) {
 #'
 #' @param country Character for country
 #'
-
+#' @keywords internal
 country_seasonal_profiles <- function(country) {
   ads <- magenta::admin_units_seasonal
   if (!is.element(country, unique(ads$country))) {

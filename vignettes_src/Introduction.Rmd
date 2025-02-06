@@ -355,10 +355,10 @@ irs_cov <- ints$irs_cov
 # load the Malaria Atlas Project Prevalence data
 MAP_file <- system.file("extdata/MAP_PfPR_population_weighted.csv", 
                         package = "magenta")
-MAP <- data.table::fread(MAP_file)
+MAP <- read.csv(MAP_file)
 
 # work out the EIR for the prevalence in year 2000 (i.e. pre interventions)
-pfpr_micro <- MAP$`2000`[which(MAP$Name==admin)]
+pfpr_micro <- MAP$X2000[which(MAP$Name==admin)]
 EIR <- magenta:::pfpr_to_eir_heuristic(ft = 0, PfPR_micro = pfpr_micro)
 
 # run the simulation

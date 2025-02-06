@@ -73,6 +73,7 @@ ranges <- function(diff, end){
 #'
 #' @param x Vector of raw/logicals
 #' @param big_endian Is big_endian. Default = FALSE
+#' @keywords internal
 bitsToInt <- function(x, big_endian = FALSE) {
   if(big_endian) {
     sum(2^(which(rev(as.logical(x)))-1))

@@ -34,3 +34,4 @@ in microscopy based prevalence estimates. Default = NULL}
 \description{
 Brute force conversion of PfPR and ft to an EIR
 }
+\keyword{internal}

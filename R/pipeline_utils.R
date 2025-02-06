@@ -5,7 +5,7 @@
 #' @param max_age Maximum age in years
 #' @param num_age_brackets Number of age brackets
 #' @param geometric_age_brackets Boolean for geometric brackets
-
+#' @keywords internal
 age_brackets <- function(max_age=100, 
                          num_age_brackets=20, 
                          geometric_age_brackets=TRUE){
@@ -105,7 +105,8 @@ spl_grab <- function(country, admin, year_range) {
 #' 
 #' @param matrix Spatial matrix for 2000 to 2017
 #' @param years Years desired
-
+#' 
+#' @keywords internal
 spl_matrix_check <- function(matrix, years) {
   
   if(is.matrix(matrix)){
@@ -133,7 +134,7 @@ spl_matrix_check <- function(matrix, years) {
 #' 
 #' @param matrix plaf matrix
 #' @param years Years desired
-
+#' @keywords internal
 plaf_matrix_check <- function(matrix, years) {
   
   if(is.matrix(matrix)){
@@ -274,7 +275,7 @@ intervention_grab <- function(country, admin, year_range,
 #'   model included with magenta.     
 #' @param years Numeric for total years
 #' 
-
+#' @keywords internal
 mu_fv_create <- function(eqInit,
                          ft,
                          itn_cov,
@@ -335,15 +336,11 @@ mu_fv_create <- function(eqInit,
     }
     
     # build model 
-    odin_model_path <- odin_model
-    gen <- odin::odin(odin_model_path,verbose=FALSE)
-    state <- eqInit[names(eqInit) %in% names(formals(gen))]
+    state <- eqInit[names(eqInit) %in% odin_itn_irs$private_fields$user]
     
     # weird catach for when init_ICM values fall below 5e-32 that must catch
     state$init_ICM
-    
-    model <- gen(user=state,use_dde=TRUE)
-    
+    model <- odin_itn_irs$new(user=state,use_dde=TRUE)
     
     #create model and simulate
     tt <- seq(1,round(years*365),1)

@@ -61,10 +61,12 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List param_list)
   Rcpp::List populations_event_and_strains_List = savedState["populations_event_and_strains_List"];
   Rcpp::List scourge_List = savedState["scourge_List"];
   Rcpp::List parameters_List = savedState["parameters_List"];
+  Rcpp::List parameter_housekeeping_List = savedState["parameter_housekeeping_List"];
   
   
   // prove that C++ code is being run
-  parameters.g_h_quiet_print = Rcpp::as<bool>(parameters_List["g_h_quiet_print"]);
+  parameters.g_h_quiet_print = Rcpp::as<bool>(parameter_housekeeping_List["g_h_quiet_print"]);
+  parameters.g_h_quiet_test_print = Rcpp::as<bool>(parameter_housekeeping_List["g_h_quiet_test_print"]);
   rcpp_out(parameters.g_h_quiet_print, "Rcpp function is working!\n");
   
   // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -142,6 +144,7 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List param_list)
   std::vector<int> Day_of_strain_clearance = Rcpp::as<vector<int> >(populations_event_and_strains_List["Day_of_strain_clearance"]);
   std::vector<int> Day_of_death = Rcpp::as<vector<int> >(populations_event_and_strains_List["Day_of_death"]);
   std::vector<int> Day_of_last_treatment = Rcpp::as<vector<int> >(populations_event_and_strains_List["Day_of_last_treatment"]);
+  std::vector<int> Day_of_prophylaxis_waning = Rcpp::as<vector<int> >(populations_event_and_strains_List["Day_of_prophylaxis_waning"]);
   std::vector<int> Number_of_Strains = Rcpp::as<vector<int> >(populations_event_and_strains_List["Number_of_Strains"]);
   std::vector<int> Number_of_Realised_Infections = Rcpp::as<vector<int> >(populations_event_and_strains_List["Number_of_Realised_Infections"]);
   
@@ -235,11 +238,12 @@ Rcpp::List Simulation_Saved_Init_cpp(Rcpp::List param_list)
     population[n].set_m_day_of_strain_clearance(Day_of_strain_clearance[n]);
     population[n].set_m_day_of_death(Day_of_death[n]);
     population[n].set_m_day_last_treated(Day_of_last_treatment[n]);
+    population[n].set_m_day_prophylaxis_wanes(Day_of_prophylaxis_waning[n]);
     
     // Strain Numbers
     population[n].set_m_number_of_strains(Number_of_Strains[n]);
     
-    // Strain Numbers
+    // Strain Ralised Numbers
     population[n].set_m_number_of_realised_infections(Number_of_Realised_Infections[n]);
     
     // Set vectors

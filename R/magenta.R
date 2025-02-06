@@ -21,7 +21,7 @@
 #' @importFrom ggplot2 guides guide_legend scale_color_discrete ylab
 #' @importFrom ggplot2 element_blank
 #' @importFrom odin odin
-#'
+#' @keywords internal
 "_PACKAGE"
 
 globalVariables(c("admin_units_seasonal","irs_2000_2015","itn_2000_2015",""))

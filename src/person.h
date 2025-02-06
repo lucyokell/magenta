@@ -48,6 +48,13 @@ public:
     NUMBER_OF_TO_STATES = 4
   };
   
+  enum RecrudescenceOutcome
+  {
+    NOT_RECRUDESCING,  // 0
+    RECRUDESCING_LPF,   // 1
+    NUMBER_OF_RO_STATES = 2
+  };
+  
   // Infection transition options. 
   const static std::vector<InfectionStatus> m_transition_vector;
   
@@ -65,6 +72,7 @@ private:
   InfectionStatus m_temp_infection_state;    // Infection Status temp enum
   
   TreatmentOutcome m_treatment_outcome = NOT_TREATED;
+  RecrudescenceOutcome m_recrudescence_outcome = NOT_RECRUDESCING;
   bool m_slow_parasite_clearance_bool = false; // Flag for whether they are currently SPC
   int m_drug_choice = 0; // Flag for what drug they last received (i.e. so we know their prophylactic length)
   int m_drug_choice_time = 0; // Flag for what drug they last received (i.e. so we know their prophylactic length)
@@ -149,6 +157,7 @@ private:
   int m_day_of_next_event = 0;                                                // Person's closest event day
   bool m_more_than_one_strain_to_change_today_bool = false;                   // bool that declares whether there are more than one strain changing states today
   int m_day_last_treated = 0;                                                 // Day last treated
+  int m_day_prophylaxis_wanes = 0;                                            // Day prophylaxis ends - this is just for tracking prophylaxis for recrudescent infections otherwise given by duration in P
   int m_temp_strain_to_next_change = 0;                                       // temp variable so we know what strain is changing next
   int m_day_of_nmf = std::numeric_limits<int>::max();                         // Day of nmf
   int m_temp_int = 0;                                                         // Temp integer for individual. This rather than a static int or new declaration so that it's thread safe and only one construct (?)
@@ -185,6 +194,9 @@ public:
   
   // Get person's treatment outcome
   TreatmentOutcome get_m_treatment_outcome() { return(m_treatment_outcome); }
+  
+  // Get person's recrudescence outcome
+  RecrudescenceOutcome get_m_recrudescence_outcome() { return(m_recrudescence_outcome); }
   
   // Get person's drug choice
   int get_m_drug_choice() { return(m_drug_choice); }
@@ -258,8 +270,11 @@ public:
   // Get person's next event day
   int get_m_day_of_next_event() { return(m_day_of_next_event); }
   
-  // Get person's next event day
+  // Get person's day of being treated
   int get_m_day_last_treated() { return(m_day_last_treated); }
+  
+  // Get person's day of prophylaxis waning
+  int get_m_day_prophylaxis_wanes() { return(m_day_prophylaxis_wanes); }
   
   // Get person's infection time realisation vector
   std::vector<int> get_m_infection_time_realisation_vector() { return (m_infection_time_realisation_vector); }
@@ -326,6 +341,9 @@ public:
   
   // Set person's treatment outcome
   void set_m_treatment_outcome(TreatmentOutcome x) { m_treatment_outcome = x; }
+  
+  // Set person's recrudescence outcome
+  void set_m_recrudescence_outcome(RecrudescenceOutcome x) { m_recrudescence_outcome = x; }
   
   // Get person's drug choice
   void set_m_drug_choice(int x) { m_drug_choice = x; }
@@ -413,8 +431,11 @@ public:
   // Set person's time of death
   void set_m_day_of_death(int x) { m_day_of_death = x; }
   
-  // Set person's next event day
+  // Set person's day of being treated
   void set_m_day_last_treated(int x) { m_day_last_treated = x; }
+  
+  // Set person's next event day
+  void set_m_day_prophylaxis_wanes(int x) { m_day_prophylaxis_wanes = x; }
   
   // Set person's infection time realisation vector
   void set_m_infection_time_realisation_vector_from_vector(std::vector<int> x) 

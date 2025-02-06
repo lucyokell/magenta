@@ -4,15 +4,18 @@
 #' List for simulation housekeeping vars, e.g. quiet prints,
 #' 
 #' @param quiet Boolean for quiet simulation. Default = TRUE
+#' @param quiet_test Boolean for quiet testing statement. Default = TRUE
 #' @param cluster Boolean for simulation being on cluster. Default = TRUE
 #' @param clear_up Boolean for whether to clear up the memory used by the 
 #'   simulation. Default = TRUE
 
 housekeeping_list_create <- function(quiet = TRUE,
+                                     quiet_test = TRUE,
                                      cluster = FALSE,
                                      clear_up = TRUE) {
   
   l <- list("quiet_print" = quiet,
+            "quiet_test_print" = quiet_test,
             "cluster" = cluster,
             "clear_up" = clear_up)
   
@@ -445,6 +448,7 @@ nmf_list_create <- function(nmf_flag = FALSE,
 #'   are to occur in treated individuals with respect to resistance. Default = 1, i.e 
 #'   no difference
 #'
+#' @keywords internal
 barcode_list_create <- function(num_loci = 24,
                                 ibd_length = 1,
                                 plaf = rep(0.5, 24),

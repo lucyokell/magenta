@@ -14,3 +14,4 @@ output from \code{equilibrium_init_create}}
 \code{equilibrium_ss_create} creates a starting state from
   the output of \code{equilibrium_init_create}
 }
+\keyword{internal}

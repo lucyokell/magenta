@@ -6,7 +6,7 @@
 #' @param eqInit Equilibrium initialisation state as
 #'   output from \code{equilibrium_init_create}
 #'
-
+#' @keywords internal
 equilibrium_ss_create <- function(eqInit) {
   
   maternal <- which.max(eqInit$age >= 20)
@@ -66,7 +66,7 @@ equilibrium_ss_create <- function(eqInit) {
 #'  if \code{rbinom(1, 1, plaf[plaf>0][1])} is TRUE. I.e. the first loci greater 
 #'  than 0 is used to determine if the incoming barcode is 1 at all sites where 
 #'  plaf is greater than 0. 
-
+#' @keywords internal
 spl_create <- function(spatial_type = 0,
                        human_importation_rate_vector = NULL,
                        mosquito_imporation_rate_vector = NULL,
@@ -169,7 +169,7 @@ spl_create <- function(spatial_type = 0,
 #' @param dat Output of \code{equilibrium_init_create}
 #' @param dde Use dde in soliving eventual odin. Default = FALSE
 #'
-
+#' @keywords internal
 generate_default_model <- function(ft, age, dat, generator, dde = TRUE) {
   mod <- generator(
     init_S = dat$S,
