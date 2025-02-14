@@ -491,11 +491,11 @@ pipeline <- function(EIR = 120,
         # annual updates
         if (floor((update_times[i] - update_length + 1)/365) == year) {
           
-          # update the year, ft, partner drug ratios and resistance flag
+          # update the year, ft, partner drug ratios (if multiple years entered) and resistance flag
           year <- year + 1
           ft_now <- ft[year]
           drug_list$resistance_flag <- resistance_flags[year]
-          drug_list$partner_drug_ratios <- partner_drug_ratios[year,]
+          if(nrow(partner_drug_ratios) > 1) drug_list$partner_drug_ratios <- partner_drug_ratios[year,]
           barcode_list$mutation_flag <- mutation_flag[year]
           
           # update the spatial list
