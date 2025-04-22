@@ -1124,7 +1124,8 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
 }
 
 
-// LO added this separate function for resistance diagnostics - just return the LPF probability to enable drug choice.
+// LO added this separate function for resistance diagnostics, based on the original late_paristological_failure_boolean 
+// - just return the LPF probability to enable drug choice but don't do anything else.
 // remove strain update and remove asymptomatic age of infection (would not know this from a resistance diagnostic)
 double Person::get_prob_late_paristological_failure(const Parameters &parameters){
   
@@ -1132,38 +1133,44 @@ double Person::get_prob_late_paristological_failure(const Parameters &parameters
   //int time_ago = 0;
   double prob_of_lpf = 0.0;
   double temp_prob_lpf = 0.0;
-  std::vector<double> probs_of_lpf(m_number_of_strains, 0.0);
+  double prob_detection;
+  if(m_number_of_strains==1) {
+    prob_detection = 1.0;  // probability of detection for asymptomatic strains
+  } else {
+    prob_detection = 0.9;  // less if more than one strain.
+  }
+  // std::vector<double> probs_of_lpf(m_number_of_strains, 0.0);  // don't need to store the whole vector, just update as we go with max LPF prob.
   
-  // // set up our post treatment vectors // LO previously this was updating active strains but we don't want to do that while checking LPF.
-  
-  // m_post_treatment_strains.clear();
-  // m_resistant_strains.clear();
-  // 
-  // m_post_treatment_strains.reserve(m_number_of_strains);
-  // m_resistant_strains.reserve(m_number_of_strains);
+  // cout << "prob_detection = " << prob_detection << "\n";
+  // cout << "m_number_of_strains = " << m_number_of_strains << "\n";
+  // cout << "rbernoulli1(prob_detection) = " << rbernoulli1(prob_detection) << "\n";
   
   // loop through strains and work out the individuals prob of lpf
+  // First look for any in D or T state, assume high density.
   for(int ts = 0; ts < m_number_of_strains ; ts++){
     
-    // what's the probability of failure if the strain was in state T/D
-    temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
-    
-    // if the strain is subpatent then it always clears
-    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::SUBPATENT) {
-      //cout << "subpatent activated\n";
-      temp_prob_lpf = 0;
+    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::DISEASED || 
+          m_active_strains[ts].get_m_strain_infection_status() == Strain::TREATED) {
+      // cout << "disease strain loop activated\n";
+      temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
+      // update prob of LPF of the whole infection (prob_of_lpf)
+      prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
     }
-    
-    prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
-    probs_of_lpf[ts] = temp_prob_lpf;
-    
-    // previously this was updating active strains but we don't want to do that while checking LPF.
-    // if (Strain::any_at_positions(m_active_strains[ts].get_m_barcode(),parameters.g_drugs[m_drug_choice].get_m_barcode_positions())) {
-    //   m_resistant_strains.emplace_back(m_active_strains[ts]);
-    // }
-    
   }
   
+  // Next look for asymptomatic:
+  for(int ts = 0; ts < m_number_of_strains ; ts++){
+    
+    if (m_active_strains[ts].get_m_strain_infection_status() == Strain::ASYMPTOMATIC &&
+          rbernoulli1(prob_detection)) {
+      // cout << "asymptomatic detection loop activated\n";
+      temp_prob_lpf =  m_active_strains[ts].late_paristological_failure_prob(parameters, m_drug_choice);
+      // update prob of LPF of the whole infection (prob_of_lpf)
+      prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
+    }
+  }
+  
+  // Subpatent strains: assume will be cleared anyway so do not modify prob LPF away from original value of zero.
 
   return(prob_of_lpf);
   
