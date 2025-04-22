@@ -485,7 +485,9 @@ void Person::allocate_infection(Parameters &parameters, Mosquito &mosquito)
       
       // are we doing mft, and if so what drug did they get this time
       if(parameters.g_mft_flag) {
+        //if(parameters.g_current_time/365 <5) for(int i=0;i<parameters.g_partner_drug_ratios.size(); i++) std::cout << "partner drug ratios in main update in position i = " << i << ", " << parameters.g_partner_drug_ratios[i] << "\n";
         m_drug_choice = sample1(parameters.g_partner_drug_ratios, 1.0);  
+        //if(parameters.g_current_time/365 <5) std::cout << "m_drug_choice = " << m_drug_choice << "\n";
       }
       
       m_drug_choice_time = parameters.g_current_time;
@@ -1122,7 +1124,7 @@ bool Person::late_paristological_failure_boolean(const Parameters &parameters){
 }
 
 
-// LO for resistance diagnostics just get the LPF probability to choose.
+// LO added this separate function for resistance diagnostics - just return the LPF probability to enable drug choice.
 // remove strain update and remove asymptomatic age of infection (would not know this from a resistance diagnostic)
 double Person::get_prob_late_paristological_failure(const Parameters &parameters){
   
@@ -1132,12 +1134,13 @@ double Person::get_prob_late_paristological_failure(const Parameters &parameters
   double temp_prob_lpf = 0.0;
   std::vector<double> probs_of_lpf(m_number_of_strains, 0.0);
   
-  // set up our post treatment vectors
-  m_post_treatment_strains.clear();
-  m_resistant_strains.clear();
+  // // set up our post treatment vectors // LO previously this was updating active strains but we don't want to do that while checking LPF.
   
-  m_post_treatment_strains.reserve(m_number_of_strains);
-  m_resistant_strains.reserve(m_number_of_strains);
+  // m_post_treatment_strains.clear();
+  // m_resistant_strains.clear();
+  // 
+  // m_post_treatment_strains.reserve(m_number_of_strains);
+  // m_resistant_strains.reserve(m_number_of_strains);
   
   // loop through strains and work out the individuals prob of lpf
   for(int ts = 0; ts < m_number_of_strains ; ts++){
@@ -1154,9 +1157,10 @@ double Person::get_prob_late_paristological_failure(const Parameters &parameters
     prob_of_lpf = (prob_of_lpf > temp_prob_lpf) ? prob_of_lpf : temp_prob_lpf;
     probs_of_lpf[ts] = temp_prob_lpf;
     
-    if (Strain::any_at_positions(m_active_strains[ts].get_m_barcode(),parameters.g_drugs[m_drug_choice].get_m_barcode_positions())) {
-      m_resistant_strains.emplace_back(m_active_strains[ts]);
-    }
+    // previously this was updating active strains but we don't want to do that while checking LPF.
+    // if (Strain::any_at_positions(m_active_strains[ts].get_m_barcode(),parameters.g_drugs[m_drug_choice].get_m_barcode_positions())) {
+    //   m_resistant_strains.emplace_back(m_active_strains[ts]);
+    // }
     
   }
   
@@ -1268,7 +1272,7 @@ void Person::seek_nmf_treatment(const Parameters &parameters){
   }
   
   // if they are not infected them move them to P but include the extra duration in T
-  } else {
+  } else {  // if they are not actually infected
     
     // then move to P now
     m_infection_state = PROPHYLAXIS;
