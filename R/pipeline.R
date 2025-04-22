@@ -222,6 +222,7 @@ pipeline <- function(EIR = 120,
     
     # check to change the ft for the initial and odin to reflect 28 day failure rates
     lpfs <- unlist(lapply(drug_list$drugs, function(x) {x$lpf[1]}))
+    print(drug_list$partner_drug_ratios)
     ft_odin <- ft * weighted.mean(lpfs, drug_list$partner_drug_ratios[1,])
     
     # Create a near equilibirum initial condition
@@ -495,7 +496,8 @@ pipeline <- function(EIR = 120,
           year <- year + 1
           ft_now <- ft[year]
           drug_list$resistance_flag <- resistance_flags[year]
-          if(nrow(partner_drug_ratios) > 1) drug_list$partner_drug_ratios <- partner_drug_ratios[year,]
+          drug_list$partner_drug_ratios <- partner_drug_ratios[year,]
+          print(paste0("year = ", year, " partner drug ratios = ", drug_list$partner_drug_ratios))
           barcode_list$mutation_flag <- mutation_flag[year]
           
           # update the spatial list

@@ -65,7 +65,7 @@ created by \code{drug_create}.}
 
 \item{drug_choice}{What's the default drug choice to begin. Default = 0}
 
-\item{partner_drug_ratios}{Numeric vector OR array for ratio of first line drugs used - changed to array over multiple years.}
+\item{partner_drug_ratios}{Numeric vector OR array for ratio of first line drugs used - must be the same length, or number of years, as the run.}
 }
 \description{
 List for simulating drug usage for resistance/mft variables
